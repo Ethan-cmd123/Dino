@@ -6,12 +6,12 @@ import AnimatedBackground from '../components/AnimatedBackground'
 | Groq
 |--------------------------------------------------------------------------
 |
-| Groq requests are now sent through:
+| Groq requests are sent through the server-side Vercel function:
 |
 |   /api/generate
 |
-| The actual GROQ_API_KEY stays on the server and is never exposed
-| through the Vite frontend.
+| IMPORTANT:
+| The GROQ_API_KEY is NEVER exposed to the browser.
 |
 */
 
@@ -495,16 +495,28 @@ const COURSE = {
 function getCookie(name) {
   const match = document.cookie
     .split('; ')
-    .find((row) => row.startsWith(`${name}=`))
+    .find((row) =>
+      row.startsWith(`${name}=`),
+    )
 
   return match
-    ? decodeURIComponent(match.split('=').slice(1).join('='))
+    ? decodeURIComponent(
+        match
+          .split('=')
+          .slice(1)
+          .join('='),
+      )
     : ''
 }
 
 function setCookie(name, value, days = 365) {
   const expires = new Date(
-    Date.now() + days * 24 * 60 * 60 * 1000,
+    Date.now() +
+      days *
+        24 *
+        60 *
+        60 *
+        1000,
   ).toUTCString()
 
   document.cookie = `${name}=${encodeURIComponent(
@@ -528,7 +540,8 @@ function cleanModelJSON(text) {
   try {
     return JSON.parse(text)
   } catch {
-    const match = text.match(/\{[\s\S]*\}/)
+    const match =
+      text.match(/\{[\s\S]*\}/)
 
     if (!match) {
       return null
@@ -558,7 +571,8 @@ async function callGroq({
     {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type':
+          'application/json',
       },
       body: JSON.stringify({
         model: GROQ_MODEL,
@@ -571,14 +585,29 @@ async function callGroq({
     },
   )
 
-  const data = await response.json()
+  const responseText =
+    await response.text()
+
+  let data = null
+
+  try {
+    data = responseText
+      ? JSON.parse(
+          responseText,
+        )
+      : null
+  } catch {
+    throw new Error(
+      responseText ||
+        `Server returned an invalid response (${response.status}).`,
+    )
+  }
 
   if (!response.ok) {
-    const message =
+    throw new Error(
       data?.error ||
-      `Groq request failed with status ${response.status}.`
-
-    throw new Error(message)
+        `API request failed with status ${response.status}.`,
+    )
   }
 
   return data?.content || ''
@@ -632,7 +661,8 @@ const QUESTION_SCHEMA = {
               'answer',
               'explanation',
             ],
-            additionalProperties: false,
+            additionalProperties:
+              false,
           },
         },
       },
@@ -651,69 +681,122 @@ const QUESTION_SCHEMA = {
    ========================================================================== */
 
 function Dashboard() {
-  const [activeTab, setActiveTab] = useState('course')
+  const [
+    activeTab,
+    setActiveTab,
+  ] = useState('course')
 
-  const [language, setLanguage] = useState('')
-  const [selectedTopics, setSelectedTopics] = useState([])
+  const [language, setLanguage] =
+    useState('')
 
-  const [writingTopic, setWritingTopic] = useState('')
-  const [writingType, setWritingType] = useState('Article')
-  const [generatedPrompt, setGeneratedPrompt] = useState('')
+  const [
+    selectedTopics,
+    setSelectedTopics,
+  ] = useState([])
+
+  const [
+    writingTopic,
+    setWritingTopic,
+  ] = useState('')
+
+  const [
+    writingType,
+    setWritingType,
+  ] = useState('Article')
+
+  const [
+    generatedPrompt,
+    setGeneratedPrompt,
+  ] = useState('')
 
   /* Reading */
 
-  const [readingType, setReadingType] = useState(
-    'Mixed',
-  )
+  const [
+    readingType,
+    setReadingType,
+  ] = useState('Mixed')
 
-  const [readingTopic, setReadingTopic] = useState('')
+  const [
+    readingTopic,
+    setReadingTopic,
+  ] = useState('')
 
-  const [generatedQuestions, setGeneratedQuestions] =
-    useState(null)
+  const [
+    generatedQuestions,
+    setGeneratedQuestions,
+  ] = useState(null)
 
-  const [isGeneratingQuestions, setIsGeneratingQuestions] =
-    useState(false)
+  const [
+    isGeneratingQuestions,
+    setIsGeneratingQuestions,
+  ] = useState(false)
 
-  const [questionError, setQuestionError] =
-    useState('')
+  const [
+    questionError,
+    setQuestionError,
+  ] = useState('')
 
-  const [answerDraft, setAnswerDraft] = useState('')
+  const [
+    answerDraft,
+    setAnswerDraft,
+  ] = useState('')
 
-  const [answerSubmission, setAnswerSubmission] =
-    useState({
-      1: '',
-      2: '',
-    })
+  const [
+    answerSubmission,
+    setAnswerSubmission,
+  ] = useState({
+    1: '',
+    2: '',
+  })
 
-  const [grading, setGrading] = useState(false)
+  const [
+    grading,
+    setGrading,
+  ] = useState(false)
 
-  const [gradingResult, setGradingResult] =
-    useState(null)
+  const [
+    gradingResult,
+    setGradingResult,
+  ] = useState(null)
 
-  const [chatMessages, setChatMessages] = useState([])
+  const [
+    chatMessages,
+    setChatMessages,
+  ] = useState([])
 
-  const [chatInput, setChatInput] = useState('')
+  const [
+    chatInput,
+    setChatInput,
+  ] = useState('')
 
-  const [chatTyping, setChatTyping] = useState(false)
+  const [
+    chatTyping,
+    setChatTyping,
+  ] = useState(false)
 
   /* ==========================================================================
      INITIALIZATION
      ========================================================================== */
 
   useEffect(() => {
-    document.body.dataset.page = 'dashboard'
+    document.body.dataset.page =
+      'dashboard'
 
     return () => {
-      delete document.body.dataset.page
+      delete document.body
+        .dataset.page
     }
   }, [])
 
   useEffect(() => {
     const savedLanguage =
-      getCookie('dino_language')
+      getCookie(
+        'dino_language',
+      )
 
     setLanguage(
-      savedLanguage || 'English B',
+      savedLanguage ||
+        'English B',
     )
 
     try {
@@ -723,16 +806,25 @@ function Dashboard() {
         )
 
       if (savedTopics) {
-        const parsed = JSON.parse(
-          savedTopics,
-        )
+        const parsed =
+          JSON.parse(
+            savedTopics,
+          )
 
-        if (Array.isArray(parsed)) {
-          setSelectedTopics(parsed)
+        if (
+          Array.isArray(
+            parsed,
+          )
+        ) {
+          setSelectedTopics(
+            parsed,
+          )
         }
       }
     } catch {
-      setSelectedTopics([])
+      setSelectedTopics(
+        [],
+      )
     }
   }, [])
 
@@ -747,19 +839,21 @@ function Dashboard() {
     )
   }, [language])
 
-  const allTopics = useMemo(() => {
-    return course.themes.flatMap(
-      (theme) =>
-        theme.topics.map(
-          (topic) => ({
-            theme: theme.en,
-            themeLocal: theme.local,
-            topic: topic[0],
-            local: topic[1],
-          }),
-        ),
-    )
-  }, [course])
+  const allTopics =
+    useMemo(() => {
+      return course.themes.flatMap(
+        (theme) =>
+          theme.topics.map(
+            (topic) => ({
+              theme: theme.en,
+              themeLocal:
+                theme.local,
+              topic: topic[0],
+              local: topic[1],
+            }),
+          ),
+      )
+    }, [course])
 
   const completedCount =
     selectedTopics.length
@@ -798,7 +892,9 @@ function Dashboard() {
 
         localStorage.setItem(
           'dino_completed_topics',
-          JSON.stringify(next),
+          JSON.stringify(
+            next,
+          ),
         )
 
         return next
@@ -830,13 +926,21 @@ function Dashboard() {
 
       setQuestionError('')
       setGradingResult(null)
+
       setAnswerSubmission({
         1: '',
         2: '',
       })
+
       setAnswerDraft('')
-      setGeneratedQuestions(null)
-      setIsGeneratingQuestions(true)
+
+      setGeneratedQuestions(
+        null,
+      )
+
+      setIsGeneratingQuestions(
+        true,
+      )
 
       const selectedTopic =
         allTopics.find(
@@ -894,24 +998,32 @@ ${readingType}
 Make the two questions meaningfully different.
 `.trim()
 
-        const raw = await callGroq({
-          system: systemPrompt,
-          user: userPrompt,
-          responseFormat:
-            QUESTION_SCHEMA,
-          temperature: 0.35,
-          maxTokens: 1800,
-        })
+        const raw =
+          await callGroq({
+            system:
+              systemPrompt,
+            user:
+              userPrompt,
+            responseFormat:
+              QUESTION_SCHEMA,
+            temperature:
+              0.35,
+            maxTokens:
+              1800,
+          })
 
         const parsed =
-          cleanModelJSON(raw)
+          cleanModelJSON(
+            raw,
+          )
 
         if (
           !parsed ||
           !Array.isArray(
             parsed.questions,
           ) ||
-          parsed.questions.length !== 2
+          parsed.questions
+            .length !== 2
         ) {
           throw new Error(
             'Groq returned an unexpected question format.',
@@ -920,7 +1032,10 @@ Make the two questions meaningfully different.
 
         const normalizedQuestions =
           parsed.questions.map(
-            (question, index) => ({
+            (
+              question,
+              index,
+            ) => ({
               id:
                 question.id ||
                 index + 1,
@@ -960,7 +1075,8 @@ Make the two questions meaningfully different.
         ])
       } catch (error) {
         setQuestionError(
-          error instanceof Error
+          error instanceof
+            Error
             ? error.message
             : 'Something went wrong while generating the questions.',
         )
@@ -1092,78 +1208,79 @@ ${providedAnswers.two}
 Grade both answers.
 `.trim()
 
-        const responseFormat = {
-          type: 'json_schema',
-          json_schema: {
-            name: 'ib_reading_grade',
-            strict: true,
-            schema: {
-              type: 'object',
-              properties: {
-                overall: {
-                  type: 'string',
-                },
-                score: {
-                  type: 'integer',
-                },
-                feedback: {
-                  type: 'string',
-                },
-                question_1: {
-                  type: 'object',
-                  properties: {
-                    correct: {
-                      type: 'boolean',
-                    },
-                    score: {
-                      type: 'integer',
-                    },
-                    feedback: {
-                      type: 'string',
-                    },
+        const responseFormat =
+          {
+            type: 'json_schema',
+            json_schema: {
+              name: 'ib_reading_grade',
+              strict: true,
+              schema: {
+                type: 'object',
+                properties: {
+                  overall: {
+                    type: 'string',
                   },
-                  required: [
-                    'correct',
-                    'score',
-                    'feedback',
-                  ],
-                  additionalProperties:
-                    false,
-                },
-                question_2: {
-                  type: 'object',
-                  properties: {
-                    correct: {
-                      type: 'boolean',
-                    },
-                    score: {
-                      type: 'integer',
-                    },
-                    feedback: {
-                      type: 'string',
-                    },
+                  score: {
+                    type: 'integer',
                   },
-                  required: [
-                    'correct',
-                    'score',
-                    'feedback',
-                  ],
-                  additionalProperties:
-                    false,
+                  feedback: {
+                    type: 'string',
+                  },
+                  question_1: {
+                    type: 'object',
+                    properties: {
+                      correct: {
+                        type: 'boolean',
+                      },
+                      score: {
+                        type: 'integer',
+                      },
+                      feedback: {
+                        type: 'string',
+                      },
+                    },
+                    required: [
+                      'correct',
+                      'score',
+                      'feedback',
+                    ],
+                    additionalProperties:
+                      false,
+                  },
+                  question_2: {
+                    type: 'object',
+                    properties: {
+                      correct: {
+                        type: 'boolean',
+                      },
+                      score: {
+                        type: 'integer',
+                      },
+                      feedback: {
+                        type: 'string',
+                      },
+                    },
+                    required: [
+                      'correct',
+                      'score',
+                      'feedback',
+                    ],
+                    additionalProperties:
+                      false,
+                  },
                 },
+                required: [
+                  'overall',
+                  'score',
+                  'feedback',
+                  'question_1',
+                  'question_2',
+                ],
+                additionalProperties:
+                  false,
               },
-              required: [
-                'overall',
-                'score',
-                'feedback',
-                'question_1',
-                'question_2',
-              ],
-              additionalProperties:
-                false,
             },
-          },
-        }
+          }
 
         const raw =
           await callGroq({
@@ -1172,12 +1289,16 @@ Grade both answers.
             user:
               userPrompt,
             responseFormat,
-            temperature: 0.15,
-            maxTokens: 1000,
+            temperature:
+              0.15,
+            maxTokens:
+              1000,
           })
 
         const parsed =
-          cleanModelJSON(raw)
+          cleanModelJSON(
+            raw,
+          )
 
         if (!parsed) {
           throw new Error(
@@ -1213,7 +1334,8 @@ Grade both answers.
         }, 2500)
       } catch (error) {
         setQuestionError(
-          error instanceof Error
+          error instanceof
+            Error
             ? error.message
             : 'Something went wrong while grading your answers.',
         )
@@ -1232,7 +1354,10 @@ Grade both answers.
       const text =
         chatInput.trim()
 
-      if (!text || chatTyping) {
+      if (
+        !text ||
+        chatTyping
+      ) {
         return
       }
 
@@ -1241,14 +1366,15 @@ Grade both answers.
           text,
         )
 
-      const updatedAnswers = {
-        one:
-          parsedAnswers.one ||
-          answerSubmission[1],
-        two:
-          parsedAnswers.two ||
-          answerSubmission[2],
-      }
+      const updatedAnswers =
+        {
+          one:
+            parsedAnswers.one ||
+            answerSubmission[1],
+          two:
+            parsedAnswers.two ||
+            answerSubmission[2],
+        }
 
       setChatMessages(
         (current) => [
@@ -1302,31 +1428,16 @@ Rules:
 - You are a tutor, not a generic chatbot.
 `.trim()
 
-        const conversation =
-          chatMessages
-            .slice(-8)
-            .map(
-              (
-                message,
-              ) => ({
-                role:
-                  message.role ===
-                  'tutor'
-                    ? 'assistant'
-                    : 'user',
-                content:
-                  message.text,
-              }),
-            )
-
         const raw =
           await callGroq({
             system:
               tutorSystem,
             user:
               text,
-            temperature: 0.35,
-            maxTokens: 500,
+            temperature:
+              0.35,
+            maxTokens:
+              500,
           })
 
         setChatMessages(
@@ -1347,7 +1458,8 @@ Rules:
             {
               role: 'tutor',
               text:
-                error instanceof Error
+                error instanceof
+                  Error
                   ? error.message
                   : 'Tutor connection failed.',
             },
@@ -1361,7 +1473,8 @@ Rules:
   const handleChatKeyDown =
     (event) => {
       if (
-        event.key === 'Enter' &&
+        event.key ===
+          'Enter' &&
         !event.shiftKey
       ) {
         event.preventDefault()
@@ -1594,10 +1707,6 @@ Rules:
           text-align: right;
         }
 
-        /* =========================================================
-           COURSE OUTLINE
-           ========================================================= */
-
         .dino-theme-grid {
           height: calc(100% - 79px);
           display: grid;
@@ -1733,10 +1842,6 @@ Rules:
           opacity: .38;
         }
 
-        /* =========================================================
-           READING
-           ========================================================= */
-
         .dino-reading-panel {
           height: 100%;
           display: flex;
@@ -1760,8 +1865,6 @@ Rules:
           backdrop-filter: blur(16px);
           box-shadow: 0 12px 35px rgba(0,0,0,.025);
         }
-
-        /* GENERATOR */
 
         .dino-reading-generator {
           min-height: 0;
@@ -1888,8 +1991,6 @@ Rules:
           line-height: 1.45;
         }
 
-        /* QUESTION LIST */
-
         .dino-question-list {
           margin-top: 22px;
           display: flex;
@@ -1970,8 +2071,6 @@ Rules:
         .dino-generating-dot:nth-child(3) {
           animation-delay: .3s;
         }
-
-        /* TUTOR */
 
         .dino-tutor-card {
           overflow: hidden;
@@ -2140,8 +2239,6 @@ Rules:
           cursor: pointer;
         }
 
-        /* EMPTY QUESTION STATE */
-
         .dino-reading-placeholder {
           flex: 1;
           min-height: 0;
@@ -2186,8 +2283,6 @@ Rules:
           line-height: 1.5;
         }
 
-        /* GRADING RESULT */
-
         .dino-grade {
           margin-top: 12px;
           padding: 11px 12px;
@@ -2205,8 +2300,6 @@ Rules:
           color: #20502e;
           font-size: 10px;
         }
-
-        /* WRITING */
 
         .dino-writing-workspace {
           height: calc(100% - 78px);
@@ -2304,8 +2397,6 @@ Rules:
           font-weight: 600;
         }
 
-        /* COMING SOON */
-
         .dino-coming-page {
           width: 100%;
           height: calc(100% - 78px);
@@ -2356,8 +2447,6 @@ Rules:
           font-size: 12px;
           line-height: 1.5;
         }
-
-        /* PERSONAL */
 
         .dino-personal-grid {
           margin-top: 18px;
@@ -3513,7 +3602,9 @@ Rules:
                         </span>
 
                         <strong>
-                          {getCookie('dino_goals')
+                          {getCookie(
+                            'dino_goals',
+                          )
                             ? 'Configured'
                             : 'Not configured'}
                         </strong>

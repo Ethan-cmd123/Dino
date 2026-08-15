@@ -1,7 +1,13 @@
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') {
+    return res.status(200).json({
+      ok: true,
+    })
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({
-      error: 'Method not allowed',
+      error: `Method ${req.method} not allowed. Use POST.`,
     })
   }
 
@@ -9,19 +15,32 @@ export default async function handler(req, res) {
 
   if (!apiKey) {
     return res.status(500).json({
-      error: 'GROQ_API_KEY is not configured on the server.',
+      error:
+        'GROQ_API_KEY is not configured on the server.',
     })
   }
 
   try {
+    let body = req.body
+
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body)
+      } catch {
+        return res.status(400).json({
+          error: 'Invalid JSON request body.',
+        })
+      }
+    }
+
     const {
-      system,
-      user,
+      system = '',
+      user = '',
       responseFormat,
       temperature = 0.3,
       maxTokens = 1800,
       model = 'openai/gpt-oss-120b',
-    } = req.body || {}
+    } = body || {}
 
     if (!user) {
       return res.status(400).json({
@@ -44,7 +63,7 @@ export default async function handler(req, res) {
           messages: [
             {
               role: 'system',
-              content: system || '',
+              content: system,
             },
             {
               role: 'user',
@@ -60,19 +79,34 @@ export default async function handler(req, res) {
       },
     )
 
-    const data = await groqResponse.json()
+    const responseText = await groqResponse.text()
+
+    let data = {}
+
+    if (responseText) {
+      try {
+        data = JSON.parse(responseText)
+      } catch {
+        data = {
+          error: responseText,
+        }
+      }
+    }
 
     if (!groqResponse.ok) {
       return res.status(groqResponse.status).json({
         error:
           data?.error?.message ||
+          data?.error ||
           `Groq request failed with status ${groqResponse.status}.`,
       })
     }
 
+    const content =
+      data?.choices?.[0]?.message?.content || ''
+
     return res.status(200).json({
-      content:
-        data?.choices?.[0]?.message?.content || '',
+      content,
     })
   } catch (error) {
     console.error('Groq proxy error:', error)
