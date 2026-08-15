@@ -6,22 +6,16 @@ import AnimatedBackground from '../components/AnimatedBackground'
 | Groq
 |--------------------------------------------------------------------------
 |
-| For local development:
+| Groq requests are now sent through:
 |
-|   .env
-|   VITE_GROQ_API_KEY=your_key_here
+|   /api/generate
 |
-| IMPORTANT:
-| Putting a Groq API key directly in a Vite frontend exposes it to users.
-| This is acceptable for a local prototype, but production should proxy
-| requests through your own backend/server.
+| The actual GROQ_API_KEY stays on the server and is never exposed
+| through the Vite frontend.
 |
 */
 
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || ''
-
-const GROQ_ENDPOINT =
-  'https://api.groq.com/openai/v1/chat/completions'
+const GROQ_ENDPOINT = '/api/generate'
 
 const GROQ_MODEL = 'openai/gpt-oss-120b'
 
@@ -559,51 +553,35 @@ async function callGroq({
   temperature = 0.3,
   maxTokens = 1800,
 }) {
-  if (!GROQ_API_KEY) {
-    throw new Error(
-      'Missing VITE_GROQ_API_KEY. Add it to your .env file and restart Vite.',
-    )
-  }
-
-  const response = await fetch(GROQ_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${GROQ_API_KEY}`,
+  const response = await fetch(
+    GROQ_ENDPOINT,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        system,
+        user,
+        responseFormat,
+        temperature,
+        maxTokens,
+      }),
     },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      temperature,
-      max_completion_tokens: maxTokens,
-      messages: [
-        {
-          role: 'system',
-          content: system,
-        },
-        {
-          role: 'user',
-          content: user,
-        },
-      ],
-      ...(responseFormat
-        ? {
-            response_format: responseFormat,
-          }
-        : {}),
-    }),
-  })
+  )
 
   const data = await response.json()
 
   if (!response.ok) {
     const message =
-      data?.error?.message ||
+      data?.error ||
       `Groq request failed with status ${response.status}.`
 
     throw new Error(message)
   }
 
-  return data?.choices?.[0]?.message?.content || ''
+  return data?.content || ''
 }
 
 /* ==========================================================================
@@ -1221,11 +1199,6 @@ Grade both answers.
           ],
         )
 
-        /*
-         * The generated question set deliberately disappears
-         * after both answers have been graded.
-         */
-
         setTimeout(() => {
           setGeneratedQuestions(
             null,
@@ -1306,11 +1279,6 @@ Grade both answers.
 
         return
       }
-
-      /*
-       * Normal tutor conversation.
-       * This uses the actual Groq model too.
-       */
 
       setChatTyping(true)
 
@@ -2555,10 +2523,6 @@ Rules:
       <AnimatedBackground className="dino-dashboard">
         <div className="dino-dashboard-shell">
 
-          {/* =====================================================
-              HEADER
-             ===================================================== */}
-
           <header className="dino-dashboard-header">
             <div>
               <span className="dino-kicker">
@@ -2594,10 +2558,6 @@ Rules:
               </div>
             </div>
           </header>
-
-          {/* =====================================================
-              TABS
-             ===================================================== */}
 
           <nav className="dino-tabs">
 
@@ -2669,10 +2629,6 @@ Rules:
           </nav>
 
           <main className="dino-content">
-
-            {/* =====================================================
-                COURSE OUTLINE
-               ===================================================== */}
 
             {activeTab === 'course' && (
               <section className="dino-panel">
@@ -2820,10 +2776,6 @@ Rules:
               </section>
             )}
 
-            {/* =====================================================
-                READING QUESTIONBANK
-               ===================================================== */}
-
             {activeTab === 'reading' && (
               <section className="dino-panel dino-reading-panel">
 
@@ -2855,10 +2807,6 @@ Rules:
                 </div>
 
                 <div className="dino-reading-workspace">
-
-                  {/* =================================================
-                      LEFT: GENERATOR / QUESTIONS
-                     ================================================= */}
 
                   <div className="dino-reading-card dino-reading-generator">
 
@@ -3157,10 +3105,6 @@ Rules:
 
                   </div>
 
-                  {/* =================================================
-                      RIGHT: AI TUTOR
-                     ================================================= */}
-
                   <div className="dino-reading-card dino-tutor-card">
 
                     <div className="dino-tutor-head">
@@ -3183,9 +3127,7 @@ Rules:
 
                       <div className="dino-tutor-online">
                         <span className="dino-tutor-online-dot" />
-                        {GROQ_API_KEY
-                          ? 'Connected'
-                          : 'Not configured'}
+                        Connected
                       </div>
 
                     </div>
@@ -3280,10 +3222,6 @@ Rules:
 
               </section>
             )}
-
-            {/* =====================================================
-                WRITING
-               ===================================================== */}
 
             {activeTab === 'writing' && (
               <section className="dino-panel">
@@ -3476,10 +3414,6 @@ Rules:
               </section>
             )}
 
-            {/* =====================================================
-                GRAMMAR / SENTENCE STRUCTURES
-               ===================================================== */}
-
             {activeTab === 'coming' && (
               <section className="dino-panel">
 
@@ -3515,10 +3449,6 @@ Rules:
 
               </section>
             )}
-
-            {/* =====================================================
-                VOCAB / SETTINGS
-               ===================================================== */}
 
             {activeTab === 'vocab' && (
               <section className="dino-panel">
