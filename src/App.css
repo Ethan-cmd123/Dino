@@ -3245,3 +3245,44 @@ body[data-page="dashboard"] {
     gap: 6px;
   }
 }
+
+/* ==========================================================================
+   BLOG ONLY - ENABLE PAGE SCROLLING
+   ========================================================================== */
+
+body:has(.blog-page),
+body:has(.blog-article) {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+html:has(.blog-page),
+html:has(.blog-article) {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+#root:has(.blog-page),
+#root:has(.blog-article),
+.app:has(.blog-page),
+.app:has(.blog-article),
+.page-container:has(.blog-page),
+.page-container:has(.blog-article) {
+  height: auto !important;
+  min-height: 100vh !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/*
+ * Make sure the actual blog content can extend
+ * beyond the viewport.
+ */
+
+.blog-page,
+.blog-article {
+  height: auto !important;
+  min-height: 100vh;
+  max-height: none !important;
+  overflow: visible !important;
+}
