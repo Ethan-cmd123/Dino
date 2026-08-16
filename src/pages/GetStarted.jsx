@@ -59,8 +59,7 @@ function GetStarted({ navigate }) {
   useEffect(() => {
     const checkExistingUser = async () => {
       try {
-        const user =
-          await getCurrentUser()
+        const user = await getCurrentUser()
 
         if (!user) {
           return
@@ -145,9 +144,19 @@ function GetStarted({ navigate }) {
   const finish = async () => {
     clearMessages()
 
-    if (!email.trim()) {
+    const cleanEmail =
+      email.trim().toLowerCase()
+
+    if (!cleanEmail) {
       setError(
         'Enter your email address.',
+      )
+      return
+    }
+
+    if (!cleanEmail.includes('@')) {
+      setError(
+        'Enter a valid email address.',
       )
       return
     }
@@ -181,7 +190,7 @@ function GetStarted({ navigate }) {
 
     try {
       const data = await signUp(
-        email,
+        cleanEmail,
         password,
         {
           language,
@@ -190,10 +199,6 @@ function GetStarted({ navigate }) {
         },
       )
 
-      /*
-       * With email confirmation disabled,
-       * Supabase returns a session immediately.
-       */
       if (data.session && data.user) {
         try {
           await saveOnboarding(
@@ -219,9 +224,6 @@ function GetStarted({ navigate }) {
         return
       }
 
-      /*
-       * Email confirmation is enabled.
-       */
       setNotice(
         'Account created. Check your email to confirm your account, then log in.',
       )
@@ -236,12 +238,12 @@ function GetStarted({ navigate }) {
         'Something went wrong while creating your account.'
 
       if (
-        message.toLowerCase().includes(
-          'invalid path',
-        )
+        message
+          .toLowerCase()
+          .includes('invalid path')
       ) {
         setError(
-          'Supabase is not configured correctly. Check VITE_SUPABASE_URL in Vercel and redeploy the project.',
+          'Supabase is not configured correctly. Check your VITE_SUPABASE_URL and redeploy Vercel.',
         )
       } else {
         setError(message)
@@ -249,6 +251,58 @@ function GetStarted({ navigate }) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const inputStyle = {
+    width: '100%',
+    height: '56px',
+    boxSizing: 'border-box',
+    padding: '0 16px',
+    margin: 0,
+
+    appearance: 'none',
+    WebkitAppearance: 'none',
+
+    display: 'block',
+
+    backgroundColor: 'rgba(255, 255, 255, 0.055)',
+    backgroundImage: 'none',
+
+    border: '1px solid rgba(255, 255, 255, 0.14)',
+    borderRadius: '14px',
+
+    outline: 'none',
+
+    color: '#ffffff',
+    caretColor: '#ffffff',
+
+    fontFamily: 'inherit',
+    fontSize: '15px',
+    fontWeight: '500',
+    lineHeight: '1.2',
+
+    WebkitTextFillColor: '#ffffff',
+
+    opacity: 1,
+
+    transition:
+      'border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease',
+  }
+
+  const labelStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '9px',
+    width: '100%',
+  }
+
+  const labelTextStyle = {
+    display: 'block',
+    color: 'rgba(255, 255, 255, 0.62)',
+    fontSize: '12px',
+    fontWeight: '600',
+    lineHeight: '1',
+    letterSpacing: '-0.01em',
   }
 
   return (
@@ -286,8 +340,7 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                Choose the language you're
-                studying for IB.
+                Choose the language you're studying for IB.
               </p>
 
               <div className="choice-grid">
@@ -340,19 +393,19 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                We'll use this to shape
-                your study timeline.
+                We'll use this to shape your study timeline.
               </p>
 
               <div className="date-wrapper">
                 <input
                   type="date"
                   value={examDate}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setExamDate(
                       event.target.value,
                     )
-                  }
+                    clearMessages()
+                  }}
                   className="exam-date"
                   min={
                     new Date()
@@ -363,8 +416,7 @@ function GetStarted({ navigate }) {
               </div>
 
               <div className="date-hint">
-                Pick the date of your
-                Language B examination.
+                Pick the date of your Language B examination.
               </div>
             </div>
           )}
@@ -381,8 +433,7 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                Choose everything you're
-                interested in.
+                Choose everything you're interested in.
               </p>
 
               <div className="goal-grid">
@@ -417,7 +468,14 @@ function GetStarted({ navigate }) {
           )}
 
           {step === 4 && (
-            <div className="onboarding-step signup-step">
+            <div
+              className="onboarding-step"
+              style={{
+                width: '100%',
+                maxWidth: '520px',
+                margin: '0 auto',
+              }}
+            >
               <span className="page-eyebrow">
                 Last step
               </span>
@@ -428,13 +486,25 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                Your study preferences will
-                be saved to your account.
+                Create an account to save your
+                study preferences and progress.
               </p>
 
-              <div className="signup-form">
-                <label className="signup-field">
-                  <span>Email</span>
+              <div
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '18px',
+                  marginTop: '30px',
+                }}
+              >
+                <label style={labelStyle}>
+                  <span
+                    style={labelTextStyle}
+                  >
+                    Email address
+                  </span>
 
                   <input
                     type="email"
@@ -447,11 +517,37 @@ function GetStarted({ navigate }) {
                     }}
                     placeholder="you@example.com"
                     autoComplete="email"
+                    spellCheck={false}
+                    style={inputStyle}
+                    onFocus={(event) => {
+                      event.currentTarget.style.borderColor =
+                        'rgba(255, 255, 255, 0.36)'
+
+                      event.currentTarget.style.backgroundColor =
+                        'rgba(255, 255, 255, 0.08)'
+
+                      event.currentTarget.style.boxShadow =
+                        '0 0 0 4px rgba(255, 255, 255, 0.045)'
+                    }}
+                    onBlur={(event) => {
+                      event.currentTarget.style.borderColor =
+                        'rgba(255, 255, 255, 0.14)'
+
+                      event.currentTarget.style.backgroundColor =
+                        'rgba(255, 255, 255, 0.055)'
+
+                      event.currentTarget.style.boxShadow =
+                        'none'
+                    }}
                   />
                 </label>
 
-                <label className="signup-field">
-                  <span>Password</span>
+                <label style={labelStyle}>
+                  <span
+                    style={labelTextStyle}
+                  >
+                    Password
+                  </span>
 
                   <input
                     type="password"
@@ -464,11 +560,36 @@ function GetStarted({ navigate }) {
                     }}
                     placeholder="At least 6 characters"
                     autoComplete="new-password"
+                    style={inputStyle}
+                    onFocus={(event) => {
+                      event.currentTarget.style.borderColor =
+                        'rgba(255, 255, 255, 0.36)'
+
+                      event.currentTarget.style.backgroundColor =
+                        'rgba(255, 255, 255, 0.08)'
+
+                      event.currentTarget.style.boxShadow =
+                        '0 0 0 4px rgba(255, 255, 255, 0.045)'
+                    }}
+                    onBlur={(event) => {
+                      event.currentTarget.style.borderColor =
+                        'rgba(255, 255, 255, 0.14)'
+
+                      event.currentTarget.style.backgroundColor =
+                        'rgba(255, 255, 255, 0.055)'
+
+                      event.currentTarget.style.boxShadow =
+                        'none'
+                    }}
                   />
                 </label>
 
-                <label className="signup-field">
-                  <span>Confirm password</span>
+                <label style={labelStyle}>
+                  <span
+                    style={labelTextStyle}
+                  >
+                    Confirm password
+                  </span>
 
                   <input
                     type="password"
@@ -481,6 +602,7 @@ function GetStarted({ navigate }) {
                     }}
                     placeholder="Repeat your password"
                     autoComplete="new-password"
+                    style={inputStyle}
                     onKeyDown={(event) => {
                       if (
                         event.key === 'Enter'
@@ -488,32 +610,132 @@ function GetStarted({ navigate }) {
                         finish()
                       }
                     }}
+                    onFocus={(event) => {
+                      event.currentTarget.style.borderColor =
+                        'rgba(255, 255, 255, 0.36)'
+
+                      event.currentTarget.style.backgroundColor =
+                        'rgba(255, 255, 255, 0.08)'
+
+                      event.currentTarget.style.boxShadow =
+                        '0 0 0 4px rgba(255, 255, 255, 0.045)'
+                    }}
+                    onBlur={(event) => {
+                      event.currentTarget.style.borderColor =
+                        'rgba(255, 255, 255, 0.14)'
+
+                      event.currentTarget.style.backgroundColor =
+                        'rgba(255, 255, 255, 0.055)'
+
+                      event.currentTarget.style.boxShadow =
+                        'none'
+                    }}
                   />
                 </label>
               </div>
 
-              <div className="signup-meta">
-                <span>
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  marginTop: '18px',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    minHeight: '28px',
+                    padding: '0 11px',
+                    border:
+                      '1px solid rgba(255, 255, 255, 0.09)',
+                    borderRadius: '999px',
+                    background:
+                      'rgba(255, 255, 255, 0.035)',
+                    color:
+                      'rgba(255, 255, 255, 0.56)',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    letterSpacing:
+                      '-0.01em',
+                  }}
+                >
                   {language}
                 </span>
 
-                <span>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    minHeight: '28px',
+                    padding: '0 11px',
+                    border:
+                      '1px solid rgba(255, 255, 255, 0.09)',
+                    borderRadius: '999px',
+                    background:
+                      'rgba(255, 255, 255, 0.035)',
+                    color:
+                      'rgba(255, 255, 255, 0.56)',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    letterSpacing:
+                      '-0.01em',
+                  }}
+                >
                   {selectedGoals.length}{' '}
-                  {selectedGoals.length ===
-                  1
+                  {selectedGoals.length === 1
                     ? 'goal'
                     : 'goals'}
                 </span>
               </div>
 
               {error && (
-                <div className="form-message error">
+                <div
+                  style={{
+                    width: '100%',
+                    marginTop: '16px',
+                    padding:
+                      '12px 14px',
+                    boxSizing: 'border-box',
+                    border:
+                      '1px solid rgba(255, 105, 105, 0.18)',
+                    borderRadius: '12px',
+                    background:
+                      'rgba(255, 105, 105, 0.07)',
+                    color:
+                      'rgba(255, 190, 190, 0.94)',
+                    fontSize: '12px',
+                    lineHeight: '1.5',
+                    letterSpacing:
+                      '-0.01em',
+                  }}
+                >
                   {error}
                 </div>
               )}
 
               {notice && (
-                <div className="form-message success">
+                <div
+                  style={{
+                    width: '100%',
+                    marginTop: '16px',
+                    padding:
+                      '12px 14px',
+                    boxSizing: 'border-box',
+                    border:
+                      '1px solid rgba(140, 255, 185, 0.16)',
+                    borderRadius: '12px',
+                    background:
+                      'rgba(140, 255, 185, 0.06)',
+                    color:
+                      'rgba(190, 255, 215, 0.92)',
+                    fontSize: '12px',
+                    lineHeight: '1.5',
+                    letterSpacing:
+                      '-0.01em',
+                  }}
+                >
                   {notice}
                 </div>
               )}
@@ -522,7 +744,24 @@ function GetStarted({ navigate }) {
         </div>
 
         {step !== 4 && error && (
-          <div className="form-message error">
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '520px',
+              margin: '0 auto',
+              padding: '12px 14px',
+              boxSizing: 'border-box',
+              border:
+                '1px solid rgba(255, 105, 105, 0.18)',
+              borderRadius: '12px',
+              background:
+                'rgba(255, 105, 105, 0.07)',
+              color:
+                'rgba(255, 190, 190, 0.94)',
+              fontSize: '12px',
+              lineHeight: '1.5',
+            }}
+          >
             {error}
           </div>
         )}

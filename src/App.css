@@ -3080,3 +3080,33 @@ body[data-page="dashboard"] {
     flex-wrap: wrap;
   }
 }
+
+.signup-step input,
+.signup-step input[type='email'],
+.signup-step input[type='password'] {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+}
+
+.signup-step input::placeholder {
+  color: rgba(255, 255, 255, 0.32) !important;
+  opacity: 1 !important;
+}
+
+.signup-step input:focus {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.signup-step input:-webkit-autofill,
+.signup-step input:-webkit-autofill:hover,
+.signup-step input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.055) inset !important;
+}
