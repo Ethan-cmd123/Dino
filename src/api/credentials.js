@@ -1,152 +1,73 @@
 import { createClient } from '@supabase/supabase-js'
 
-/*
-|--------------------------------------------------------------------------
-| Supabase configuration
-|--------------------------------------------------------------------------
-|
-| Vercel:
-|
-| VITE_SUPABASE_URL
-| VITE_SUPABASE_PUBLISHABLE_KEY
-|
-| NEVER use SUPABASE_SERVICE_ROLE_KEY in this browser file.
-|
-|--------------------------------------------------------------------------
-*/
-
-const rawUrl =
-  import.meta.env.VITE_SUPABASE_URL
-
-const rawPublishableKey =
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_PUBLISHABLE_KEY =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 
-function getSupabaseUrl() {
-  if (!rawUrl) {
+function normalizeSupabaseUrl(value) {
+  if (!value) {
     throw new Error(
-      'VITE_SUPABASE_URL is missing. Add your Supabase Project URL to Vercel and redeploy.',
+      'Missing VITE_SUPABASE_URL. Add the Supabase Project URL to Vercel.',
     )
   }
 
-  let value = String(rawUrl).trim()
+  let url = String(value).trim()
 
-  /*
-   * Remove accidental whitespace.
-   */
-  value = value.replace(/\s+/g, '')
+  url = url.replace(/\s+/g, '')
+  url = url.replace(/\/+$/, '')
 
-  /*
-   * Remove trailing slashes.
-   */
-  value = value.replace(/\/+$/, '')
-
-  /*
-   * People sometimes accidentally paste:
-   *
-   * /auth/v1
-   * /rest/v1
-   * /storage/v1
-   *
-   * into the Project URL.
-   *
-   * The Supabase client adds these paths itself.
-   */
-  value = value.replace(
-    /\/(auth|rest|storage)\/v1$/i,
+  // Strip accidental API paths.
+  url = url.replace(
+    /\/(auth|rest|storage|realtime)\/v1$/i,
     '',
   )
 
-  /*
-   * Parse the URL.
-   */
   let parsed
 
   try {
-    parsed = new URL(value)
+    parsed = new URL(url)
   } catch {
     throw new Error(
-      'VITE_SUPABASE_URL is not a valid URL. It must look like https://xxxxxxxx.supabase.co',
+      'VITE_SUPABASE_URL is invalid. Use your Supabase Project URL, such as https://xxxxxxxx.supabase.co',
     )
   }
 
-  /*
-   * This should be the Supabase project host,
-   * not the Supabase dashboard.
-   */
-  if (
-    parsed.protocol !== 'https:' &&
-    parsed.protocol !== 'http:'
-  ) {
-    throw new Error(
-      'VITE_SUPABASE_URL must start with https://',
-    )
-  }
-
-  /*
-   * Prevent accidentally using the Dashboard URL.
-   */
   if (
     parsed.hostname === 'supabase.com' ||
     parsed.hostname === 'app.supabase.com'
   ) {
     throw new Error(
-      'VITE_SUPABASE_URL is the Supabase Dashboard URL. Use your Project URL from Supabase → Connect instead.',
+      'VITE_SUPABASE_URL is the Supabase dashboard URL. Use the Project URL from Supabase → Connect.',
     )
   }
 
-  /*
-   * If you're using the normal Supabase hosted project URL,
-   * this should look like:
-   *
-   * https://abcdefghijklmnop.supabase.co
-   */
+  if (!parsed.protocol.startsWith('http')) {
+    throw new Error(
+      'VITE_SUPABASE_URL must start with https://',
+    )
+  }
+
   return parsed.origin
 }
 
-function getPublishableKey() {
-  if (!rawPublishableKey) {
+function getPublishableKey(value) {
+  if (!value || !String(value).trim()) {
     throw new Error(
-      'VITE_SUPABASE_PUBLISHABLE_KEY is missing. Add the Supabase Publishable key to Vercel and redeploy.',
+      'Missing VITE_SUPABASE_PUBLISHABLE_KEY. Add the Supabase publishable key to Vercel.',
     )
   }
 
-  const key =
-    String(rawPublishableKey).trim()
-
-  if (!key) {
-    throw new Error(
-      'VITE_SUPABASE_PUBLISHABLE_KEY is empty.',
-    )
-  }
-
-  /*
-   * Current Supabase publishable keys begin with
-   * sb_publishable_.
-   *
-   * Legacy anon keys are also accepted by Supabase,
-   * so don't hard-fail old projects.
-   */
-  if (
-    !key.startsWith('sb_publishable_') &&
-    !key.startsWith('eyJ')
-  ) {
-    console.warn(
-      'The Supabase browser key does not look like a current sb_publishable_ key. Verify it in Supabase → Connect → Publishable key.',
-    )
-  }
-
-  return key
+  return String(value).trim()
 }
 
-const supabaseUrl = getSupabaseUrl()
-const supabasePublishableKey =
-  getPublishableKey()
+const supabaseUrl = normalizeSupabaseUrl(
+  SUPABASE_URL,
+)
 
-/*
-|--------------------------------------------------------------------------
-| Single Supabase client
-|--------------------------------------------------------------------------
-*/
+const supabasePublishableKey =
+  getPublishableKey(
+    SUPABASE_PUBLISHABLE_KEY,
+  )
 
 export const supabase = createClient(
   supabaseUrl,
@@ -160,84 +81,27 @@ export const supabase = createClient(
   },
 )
 
-/*
-|--------------------------------------------------------------------------
-| Debug information
-|--------------------------------------------------------------------------
-|
-| This logs only safe information.
-| Never log the publishable key itself.
-|
-*/
-
-if (import.meta.env.DEV) {
-  console.log(
-    '[Supabase]',
-    'URL:',
-    supabaseUrl,
-  )
-
-  console.log(
-    '[Supabase]',
-    'Publishable key:',
-    supabasePublishableKey
-      ? 'loaded'
-      : 'missing',
-  )
-}
-
-/*
-|--------------------------------------------------------------------------
-| SIGN UP
-|--------------------------------------------------------------------------
-*/
+/* -------------------------------------------------------------------------- */
+/* SIGN UP                                                                    */
+/* -------------------------------------------------------------------------- */
 
 export async function signUp(
   email,
   password,
   onboarding = {},
 ) {
-  const cleanEmail =
-    String(email)
-      .trim()
-      .toLowerCase()
+  const cleanEmail = String(email)
+    .trim()
+    .toLowerCase()
 
-  if (!cleanEmail) {
-    throw new Error(
-      'Email address is required.',
-    )
-  }
+  const {
+    language = '',
+    examDate = '',
+    selectedGoals = [],
+  } = onboarding
 
-  if (!password) {
-    throw new Error(
-      'Password is required.',
-    )
-  }
-
-  if (password.length < 6) {
-    throw new Error(
-      'Password must be at least 6 characters.',
-    )
-  }
-
-  const language =
-    onboarding.language || ''
-
-  const examDate =
-    onboarding.examDate || ''
-
-  const selectedGoals =
-    Array.isArray(
-      onboarding.selectedGoals,
-    )
-      ? onboarding.selectedGoals
-      : []
-
-  try {
-    const {
-      data,
-      error,
-    } = await supabase.auth.signUp({
+  const { data, error } =
+    await supabase.auth.signUp({
       email: cleanEmail,
       password,
 
@@ -245,77 +109,47 @@ export async function signUp(
         data: {
           language,
           exam_date: examDate,
-          goals: selectedGoals,
-          onboarding_complete:
-            true,
+          goals: Array.isArray(
+            selectedGoals,
+          )
+            ? selectedGoals
+            : [],
+          onboarding_complete: true,
         },
       },
     })
 
-    if (error) {
-      throw error
-    }
-
-    return data
-  } catch (error) {
+  if (error) {
     console.error(
-      '[Supabase signup]',
+      'Supabase signup error:',
       error,
     )
 
-    /*
-     * Turn the very vague Supabase error into
-     * something actually useful.
-     */
-    if (
-      String(error?.message)
-        .toLowerCase()
-        .includes(
-          'invalid path specified in request url',
-        )
-    ) {
-      throw new Error(
-        'Supabase URL is incorrect. In Vercel, VITE_SUPABASE_URL must be your Project URL, like https://xxxxxxxx.supabase.co. Do not include /auth/v1, /rest/v1, or the Supabase Dashboard URL.',
-      )
-    }
-
-    if (
-      String(error?.message)
-        .toLowerCase()
-        .includes('api key')
-    ) {
-      throw new Error(
-        'Supabase publishable key is missing or invalid. Check VITE_SUPABASE_PUBLISHABLE_KEY in Vercel and redeploy.',
-      )
-    }
-
     throw error
   }
+
+  return data
 }
 
-/*
-|--------------------------------------------------------------------------
-| LOGIN
-|--------------------------------------------------------------------------
-*/
+/* -------------------------------------------------------------------------- */
+/* LOGIN                                                                      */
+/* -------------------------------------------------------------------------- */
 
 export async function signIn(
   email,
   password,
 ) {
-  const cleanEmail =
-    String(email)
-      .trim()
-      .toLowerCase()
+  const cleanEmail = String(email)
+    .trim()
+    .toLowerCase()
 
-  const {
-    data,
-    error,
-  } =
-    await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password,
-    })
+  const { data, error } =
+    await supabase.auth.signInWithPassword(
+      {
+        email: cleanEmail,
+        password,
+      },
+    )
 
   if (error) {
     throw error
@@ -324,11 +158,9 @@ export async function signIn(
   return data
 }
 
-/*
-|--------------------------------------------------------------------------
-| LOGOUT
-|--------------------------------------------------------------------------
-*/
+/* -------------------------------------------------------------------------- */
+/* LOGOUT                                                                     */
+/* -------------------------------------------------------------------------- */
 
 export async function signOut() {
   const { error } =
@@ -339,36 +171,13 @@ export async function signOut() {
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| SESSION
-|--------------------------------------------------------------------------
-*/
-
-export async function getSession() {
-  const {
-    data,
-    error,
-  } = await supabase.auth.getSession()
-
-  if (error) {
-    throw error
-  }
-
-  return data.session
-}
-
-/*
-|--------------------------------------------------------------------------
-| USER
-|--------------------------------------------------------------------------
-*/
+/* -------------------------------------------------------------------------- */
+/* CURRENT USER                                                               */
+/* -------------------------------------------------------------------------- */
 
 export async function getCurrentUser() {
-  const {
-    data,
-    error,
-  } = await supabase.auth.getUser()
+  const { data, error } =
+    await supabase.auth.getUser()
 
   if (error) {
     return null
@@ -377,11 +186,24 @@ export async function getCurrentUser() {
   return data.user
 }
 
-/*
-|--------------------------------------------------------------------------
-| PROFILE
-|--------------------------------------------------------------------------
-*/
+/* -------------------------------------------------------------------------- */
+/* SESSION                                                                    */
+/* -------------------------------------------------------------------------- */
+
+export async function getSession() {
+  const { data, error } =
+    await supabase.auth.getSession()
+
+  if (error) {
+    throw error
+  }
+
+  return data.session
+}
+
+/* -------------------------------------------------------------------------- */
+/* PROFILE                                                                    */
+/* -------------------------------------------------------------------------- */
 
 export async function getProfile(
   userId,
@@ -390,24 +212,22 @@ export async function getProfile(
     return null
   }
 
-  const {
-    data,
-    error,
-  } = await supabase
-    .from('profiles')
-    .select(
-      `
-        id,
-        language,
-        exam_date,
-        goals,
-        onboarding_complete,
-        created_at,
-        updated_at
-      `,
-    )
-    .eq('id', userId)
-    .maybeSingle()
+  const { data, error } =
+    await supabase
+      .from('profiles')
+      .select(
+        `
+          id,
+          language,
+          exam_date,
+          goals,
+          onboarding_complete,
+          created_at,
+          updated_at
+        `,
+      )
+      .eq('id', userId)
+      .maybeSingle()
 
   if (error) {
     throw error
@@ -416,11 +236,9 @@ export async function getProfile(
   return data
 }
 
-/*
-|--------------------------------------------------------------------------
-| SAVE ONBOARDING
-|--------------------------------------------------------------------------
-*/
+/* -------------------------------------------------------------------------- */
+/* SAVE ONBOARDING                                                            */
+/* -------------------------------------------------------------------------- */
 
 export async function saveOnboarding(
   userId,
@@ -432,38 +250,33 @@ export async function saveOnboarding(
 ) {
   if (!userId) {
     throw new Error(
-      'Missing authenticated user.',
+      'Cannot save onboarding without a user ID.',
     )
   }
 
-  const {
-    data,
-    error,
-  } = await supabase
-    .from('profiles')
-    .upsert(
-      {
-        id: userId,
-        language:
-          language || null,
-        exam_date:
-          examDate || null,
-        goals:
-          Array.isArray(
+  const { data, error } =
+    await supabase
+      .from('profiles')
+      .upsert(
+        {
+          id: userId,
+          language: language || null,
+          exam_date: examDate || null,
+          goals: Array.isArray(
             selectedGoals,
           )
             ? selectedGoals
             : [],
-        onboarding_complete: true,
-        updated_at:
-          new Date().toISOString(),
-      },
-      {
-        onConflict: 'id',
-      },
-    )
-    .select()
-    .single()
+          onboarding_complete: true,
+          updated_at:
+            new Date().toISOString(),
+        },
+        {
+          onConflict: 'id',
+        },
+      )
+      .select()
+      .single()
 
   if (error) {
     throw error
@@ -472,11 +285,9 @@ export async function saveOnboarding(
   return data
 }
 
-/*
-|--------------------------------------------------------------------------
-| AUTH STATE LISTENER
-|--------------------------------------------------------------------------
-*/
+/* -------------------------------------------------------------------------- */
+/* AUTH STATE                                                                 */
+/* -------------------------------------------------------------------------- */
 
 export function onAuthStateChange(
   callback,

@@ -2898,62 +2898,165 @@ body[data-page="dashboard"] {
 }
 
 .signup-field > span {
+  display: block;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.58);
 }
 
-.signup-field input {
-  width: 100%;
-  height: 54px;
-  padding: 0 17px;
+/* --------------------------------------------------------------------------
+   INPUTS
+   -------------------------------------------------------------------------- */
 
-  border: 1px solid rgba(255, 255, 255, 0.11);
-  border-radius: 14px;
+.signup-field input,
+.signup-step input,
+.signup-step input[type='email'],
+.signup-step input[type='password'] {
+  width: 100% !important;
+  height: 54px !important;
+  min-height: 54px !important;
 
-  outline: none;
+  box-sizing: border-box !important;
 
-  background: rgba(255, 255, 255, 0.045);
+  padding: 0 17px !important;
+  margin: 0 !important;
 
-  color: #fff;
+  display: block !important;
 
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.015em;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 14px !important;
+
+  outline: none !important;
+
+  background-color: #111111 !important;
+  background-image: none !important;
+
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+
+  caret-color: #ffffff !important;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.015em !important;
+
+  appearance: none !important;
+  -webkit-appearance: none !important;
+
+  box-shadow: none !important;
 
   transition:
     border-color 160ms ease,
-    background 160ms ease,
+    background-color 160ms ease,
     box-shadow 160ms ease,
     transform 160ms ease;
 }
 
-.signup-field input::placeholder {
-  color: rgba(255, 255, 255, 0.28);
+/* Placeholder */
+
+.signup-field input::placeholder,
+.signup-step input::placeholder {
+  color: rgba(255, 255, 255, 0.34) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.34) !important;
+  opacity: 1 !important;
 }
 
-.signup-field input:hover {
-  border-color: rgba(255, 255, 255, 0.18);
+/* Hover */
+
+.signup-field input:hover,
+.signup-step input:hover {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  background-color: #141414 !important;
 }
 
-.signup-field input:focus {
-  border-color: rgba(255, 255, 255, 0.34);
+/* Focus */
 
-  background: rgba(255, 255, 255, 0.06);
+.signup-field input:focus,
+.signup-step input:focus {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+
+  background-color: #171717 !important;
+
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 
   box-shadow:
-    0 0 0 4px rgba(255, 255, 255, 0.045);
+    0 0 0 4px rgba(255, 255, 255, 0.05) !important;
 
   transform: translateY(-1px);
 }
 
+/* Active */
+
+.signup-field input:active,
+.signup-step input:active {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Disabled */
+
+.signup-field input:disabled,
+.signup-step input:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   AUTOFILL
+   -------------------------------------------------------------------------- */
+
+.signup-field input:-webkit-autofill,
+.signup-field input:-webkit-autofill:hover,
+.signup-field input:-webkit-autofill:focus,
+.signup-field input:-webkit-autofill:active,
+.signup-step input:-webkit-autofill,
+.signup-step input:-webkit-autofill:hover,
+.signup-step input:-webkit-autofill:focus,
+.signup-step input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+
+  background-color: #111111 !important;
+  background-image: none !important;
+
+  -webkit-box-shadow:
+    0 0 0 1000px #111111 inset !important;
+
+  box-shadow:
+    0 0 0 1000px #111111 inset !important;
+
+  border-color: rgba(255, 255, 255, 0.14) !important;
+
+  opacity: 1 !important;
+}
+
+/* --------------------------------------------------------------------------
+   PASSWORD INPUTS
+   -------------------------------------------------------------------------- */
+
+.signup-step input[type='password'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+
+  background-color: #111111 !important;
+}
+
+/* --------------------------------------------------------------------------
+   META PILLS
+   -------------------------------------------------------------------------- */
+
 .signup-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-
   margin-top: 16px;
 }
 
@@ -2976,10 +3079,16 @@ body[data-page="dashboard"] {
   letter-spacing: -0.01em;
 }
 
+/* --------------------------------------------------------------------------
+   FORM MESSAGES
+   -------------------------------------------------------------------------- */
+
 .form-message {
   width: 100%;
   margin-top: 16px;
   padding: 12px 14px;
+
+  box-sizing: border-box;
 
   border-radius: 12px;
 
@@ -2990,13 +3099,17 @@ body[data-page="dashboard"] {
 
 .form-message.error {
   border: 1px solid rgba(255, 105, 105, 0.16);
+
   background: rgba(255, 105, 105, 0.07);
+
   color: rgba(255, 190, 190, 0.9);
 }
 
 .form-message.success {
   border: 1px solid rgba(140, 255, 185, 0.14);
+
   background: rgba(140, 255, 185, 0.06);
+
   color: rgba(190, 255, 215, 0.9);
 }
 
@@ -3013,7 +3126,8 @@ body[data-page="dashboard"] {
   padding: 0;
 
   border: 0;
-  background: transparent;
+
+  background: transparent !important;
 
   color: rgba(255, 255, 255, 0.42);
 
@@ -3024,8 +3138,7 @@ body[data-page="dashboard"] {
 
   cursor: pointer;
 
-  transition:
-    color 160ms ease;
+  transition: color 160ms ease;
 }
 
 .login-bypass:hover {
@@ -3034,6 +3147,7 @@ body[data-page="dashboard"] {
 
 .login-bypass span {
   margin-left: 4px;
+
   color: rgba(255, 255, 255, 0.82);
 }
 
@@ -3058,6 +3172,37 @@ body[data-page="dashboard"] {
 }
 
 /* ==========================================================================
+   CRITICAL GLOBAL INPUT OVERRIDE
+   --------------------------------------------------------------------------
+   This overrides the old:
+   
+   input {
+     background: white;
+     color: white;
+   }
+
+   because white text on a white field is a bold artistic statement,
+   but not a usable signup form.
+   ========================================================================== */
+
+.signup-step input,
+.signup-form input {
+  background-color: #111111 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Prevent the generic global input rule from touching signup inputs */
+
+.signup-step input[type='email'],
+.signup-step input[type='password'] {
+  background: #111111 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* ==========================================================================
    MOBILE
    ========================================================================== */
 
@@ -3071,42 +3216,14 @@ body[data-page="dashboard"] {
     gap: 13px;
   }
 
-  .signup-field input {
-    height: 50px;
-    border-radius: 12px;
+  .signup-field input,
+  .signup-step input {
+    height: 50px !important;
+    min-height: 50px !important;
+    border-radius: 12px !important;
   }
 
   .signup-meta {
     flex-wrap: wrap;
   }
-}
-
-.signup-step input,
-.signup-step input[type='email'],
-.signup-step input[type='password'] {
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.055) !important;
-  -webkit-text-fill-color: #ffffff !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  display: block !important;
-}
-
-.signup-step input::placeholder {
-  color: rgba(255, 255, 255, 0.32) !important;
-  opacity: 1 !important;
-}
-
-.signup-step input:focus {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-}
-
-.signup-step input:-webkit-autofill,
-.signup-step input:-webkit-autofill:hover,
-.signup-step input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #ffffff !important;
-  caret-color: #ffffff !important;
-  box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.055) inset !important;
 }
