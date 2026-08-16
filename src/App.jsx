@@ -13,21 +13,37 @@ const routes = {
   '/': Home,
   '/login': Login,
   '/get-started': GetStarted,
+  '/get-started.jsx': GetStarted,
   '/dashboard': Dashboard,
   '/testimonials': Testimonials,
   '/faqs': FAQs,
   '/about-us': AboutUs,
 }
 
-function App() {
-  const getCurrentPath = () => {
-    const path = window.location.pathname
-    return routes[path] ? path : '/'
-  }
+function getCurrentPath() {
+  const pathname =
+    window.location.pathname
 
-  const [path, setPath] = useState(getCurrentPath)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [isTransitioning, setIsTransitioning] = useState(false)
+  const normalizedPath =
+    pathname
+      .replace(/\/+$/, '') || '/'
+
+  return routes[normalizedPath]
+    ? normalizedPath
+    : '/'
+}
+
+function App() {
+  const [path, setPath] =
+    useState(getCurrentPath)
+
+  const [menuOpen, setMenuOpen] =
+    useState(false)
+
+  const [
+    isTransitioning,
+    setIsTransitioning,
+  ] = useState(false)
 
   useEffect(() => {
     const handlePopState = () => {
@@ -49,29 +65,45 @@ function App() {
   }, [])
 
   const navigate = (to) => {
-    if (to === path) {
+    const destination =
+      String(to || '')
+        .trim()
+        .replace(/\/+$/, '') || '/'
+
+    if (
+      destination === path
+    ) {
       setMenuOpen(false)
+      return
+    }
+
+    if (!routes[destination]) {
+      console.error(
+        `Dino router: route "${destination}" does not exist.`,
+      )
+
       return
     }
 
     setIsTransitioning(true)
     setMenuOpen(false)
 
-    setTimeout(() => {
-      window.history.pushState(
-        {},
-        '',
-        to,
-      )
+    window.history.pushState(
+      {},
+      '',
+      destination,
+    )
 
-      setPath(to)
+    setPath(destination)
 
-      window.scrollTo(0, 0)
+    window.scrollTo({
+      top: 0,
+      behavior: 'instant',
+    })
 
-      setTimeout(() => {
-        setIsTransitioning(false)
-      }, 40)
-    }, 180)
+    window.setTimeout(() => {
+      setIsTransitioning(false)
+    }, 220)
   }
 
   const CurrentPage =
@@ -110,7 +142,9 @@ function App() {
               setMenuOpen(true)
             }
           >
-            <span>Menu</span>
+            <span>
+              Menu
+            </span>
 
             <span className="menu-chevron">
               <svg
@@ -145,7 +179,9 @@ function App() {
               setMenuOpen(false)
             }
           >
-            <span>Close</span>
+            <span>
+              Close
+            </span>
 
             <svg
               width="17"
@@ -164,32 +200,44 @@ function App() {
 
           <nav className="drawer-nav">
             <button
+              type="button"
               onClick={() =>
-                navigate('/get-started')
+                navigate(
+                  '/get-started',
+                )
               }
             >
               Get Started
             </button>
 
             <button
+              type="button"
               onClick={() =>
-                navigate('/login')
+                navigate(
+                  '/login',
+                )
               }
             >
               Log In
             </button>
 
             <button
+              type="button"
               onClick={() =>
-                navigate('/faqs')
+                navigate(
+                  '/faqs',
+                )
               }
             >
               FAQs
             </button>
 
             <button
+              type="button"
               onClick={() =>
-                navigate('/about-us')
+                navigate(
+                  '/about-us',
+                )
               }
             >
               About Us
@@ -197,7 +245,9 @@ function App() {
           </nav>
 
           <div className="drawer-footer">
-            © {new Date().getFullYear()} Dino
+            ©{' '}
+            {new Date().getFullYear()}{' '}
+            Dino
           </div>
         </div>
       </div>
