@@ -9,6 +9,8 @@ import {
   getProfile,
   getCourseProgress,
   setCourseTopicCompleted,
+  syncUserCredits,
+  spendUserCredits,
   onAuthStateChange,
   signOut,
 } from '../api/credentials'
@@ -1188,6 +1190,7 @@ function Dashboard({ navigate }) {
   const [authLoading, setAuthLoading] = useState(true)
   const [user, setUser] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
+  const [dinoPoints, setDinoPoints] = useState(0)
   const [language, setLanguage] = useState('English B')
   const [activeTab, setActiveTab] = useState('course')
   const [selectedTopics, setSelectedTopics] = useState([])
@@ -1259,6 +1262,16 @@ function Dashboard({ navigate }) {
           }
         } catch (error) {
           console.error('Course progress loading failed:', error)
+        }
+
+        try {
+          const syncedPoints = await syncUserCredits(currentUser.id)
+
+          if (mounted) {
+            setDinoPoints(syncedPoints)
+          }
+        } catch (error) {
+          console.error('Dino points loading failed:', error)
         } finally {
           if (mounted) {
             setProfileLoading(false)
@@ -1360,6 +1373,26 @@ function Dashboard({ navigate }) {
 
   const generateReadingQuestions = async () => {
     if (!readingTopic || !readingType) return
+
+    try {
+      const syncedPoints = await syncUserCredits(user.id)
+      setDinoPoints(syncedPoints)
+
+      if (syncedPoints < 1) {
+        setQuestionError('You need 1 Dino point to generate a reading question set. Come back in 24 hours for 5 more.')
+        return
+      }
+
+      const nextPointTotal = await spendUserCredits(user.id, 1)
+      setDinoPoints(nextPointTotal)
+    } catch (error) {
+      setQuestionError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong while checking Dino points.',
+      )
+      return
+    }
 
     setQuestionError('')
     setGeneratedQuestions(null)
@@ -1705,6 +1738,26 @@ ${questionContext}
 
     if (!selected) return
 
+    try {
+      const syncedPoints = await syncUserCredits(user.id)
+      setDinoPoints(syncedPoints)
+
+      if (syncedPoints < 1) {
+        setQuestionError('You need 1 Dino point to generate a writing prompt. Come back in 24 hours for 5 more.')
+        return
+      }
+
+      const nextPointTotal = await spendUserCredits(user.id, 1)
+      setDinoPoints(nextPointTotal)
+    } catch (error) {
+      setQuestionError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong while checking Dino points.',
+      )
+      return
+    }
+
     setWritingGenerating(true)
     setWritingGrade(null)
     setWritingAnswer('')
@@ -2009,6 +2062,32 @@ ${writingAnswer}
           font-size: 9px;
           text-overflow: ellipsis;
           white-space: nowrap;
+        }
+
+        .dino-points-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 7px 10px;
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 999px;
+          background: rgba(255,255,255,.7);
+          color: #111;
+          font-size: 9px;
+          line-height: 1;
+          box-shadow: 0 8px 24px rgba(0,0,0,.02);
+        }
+
+        .dino-points-coin {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          background: #0a0a0a;
+          color: #fff;
+          font-size: 7px;
         }
 
         .dino-logout-button {
@@ -3160,6 +3239,11 @@ ${writingAnswer}
 
             <div className="dino-header-actions">
               <span className="dino-user-email">{user.email}</span>
+
+              <div className="dino-points-pill" aria-label="Dino points balance">
+                <span className="dino-points-coin">◉</span>
+                <strong>{dinoPoints}</strong>
+              </div>
 
               <button
                 type="button"

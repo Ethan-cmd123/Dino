@@ -315,6 +315,166 @@ export async function getCourseProgress(
   )
 }
 
+/* -------------------------------------------------------------------------- */
+/* DINO POINTS                                                                */
+/* -------------------------------------------------------------------------- */
+
+export async function syncUserCredits(
+  userId,
+) {
+  if (!userId) {
+    return 0
+  }
+
+  const now = new Date()
+
+  const { data, error } =
+    await supabase
+      .from('user_dino_points')
+      .select(
+        'credits, last_refill_at',
+      )
+      .eq('user_id', userId)
+      .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+
+  if (!data) {
+    const initial = {
+      user_id: userId,
+      credits: 0,
+      last_refill_at:
+        now.toISOString(),
+      updated_at:
+        now.toISOString(),
+    }
+
+    const { data: created, error: createError } =
+      await supabase
+        .from('user_dino_points')
+        .upsert(initial, {
+          onConflict: 'user_id',
+        })
+        .select()
+        .single()
+
+    if (createError) {
+      throw createError
+    }
+
+    return Number(
+      created?.credits || 0,
+    )
+  }
+
+  let credits = Number(
+    data.credits || 0,
+  )
+  let lastRefillAt = data.last_refill_at
+    ? new Date(
+        data.last_refill_at,
+      )
+    : now
+
+  while (
+    now.getTime() -
+      lastRefillAt.getTime() >=
+    24 * 60 * 60 * 1000
+  ) {
+    credits += 5
+    lastRefillAt = new Date(
+      lastRefillAt.getTime() +
+        24 * 60 * 60 * 1000,
+    )
+  }
+
+  const didUpdate =
+    credits !== Number(
+      data.credits || 0,
+    ) ||
+    lastRefillAt.toISOString() !==
+      new Date(
+        data.last_refill_at ||
+          now.toISOString(),
+      ).toISOString()
+
+  if (didUpdate) {
+    const { data: updated, error: updateError } =
+      await supabase
+        .from('user_dino_points')
+        .upsert(
+          {
+            user_id: userId,
+            credits,
+            last_refill_at:
+              lastRefillAt.toISOString(),
+            updated_at:
+              now.toISOString(),
+          },
+          {
+            onConflict: 'user_id',
+          },
+        )
+        .select()
+        .single()
+
+    if (updateError) {
+      throw updateError
+    }
+
+    return Number(
+      updated?.credits || credits,
+    )
+  }
+
+  return credits
+}
+
+export async function spendUserCredits(
+  userId,
+  amount = 1,
+) {
+  if (!userId) {
+    return 0
+  }
+
+  const currentCredits =
+    await syncUserCredits(userId)
+
+  if (currentCredits < amount) {
+    throw new Error(
+      `You need ${amount} Dino point${
+        amount === 1 ? '' : 's'
+      } to generate this.`,
+    )
+  }
+
+  const nextCredits =
+    currentCredits - amount
+
+  const { data, error } =
+    await supabase
+      .from('user_dino_points')
+      .update({
+        credits: nextCredits,
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+  if (error) {
+    throw error
+  }
+
+  return Number(
+    data?.credits || nextCredits,
+  )
+}
+
 export async function setCourseTopicCompleted(
   userId,
   topicId,
