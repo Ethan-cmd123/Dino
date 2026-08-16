@@ -1,24 +1,54 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const rawSupabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL
+
 const supabasePublishableKey =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 
-if (!supabaseUrl) {
-  throw new Error(
-    'Missing VITE_SUPABASE_URL. Add it to your .env.local file.',
-  )
+function cleanSupabaseUrl(value) {
+  if (!value) {
+    throw new Error(
+      'Missing VITE_SUPABASE_URL. Add your Supabase Project URL to Vercel Environment Variables.',
+    )
+  }
+
+  const url = value.trim().replace(/\/+$/, '')
+
+  let parsed
+
+  try {
+    parsed = new URL(url)
+  } catch {
+    throw new Error(
+      'VITE_SUPABASE_URL is not a valid URL. It should look like https://xxxxxxxx.supabase.co',
+    )
+  }
+
+  if (
+    parsed.protocol !== 'https:' ||
+    !parsed.hostname.endsWith('.supabase.co')
+  ) {
+    throw new Error(
+      'VITE_SUPABASE_URL must be your Supabase Project URL, for example https://xxxxxxxx.supabase.co',
+    )
+  }
+
+  return url
 }
 
 if (!supabasePublishableKey) {
   throw new Error(
-    'Missing VITE_SUPABASE_PUBLISHABLE_KEY. Add it to your .env.local file.',
+    'Missing VITE_SUPABASE_PUBLISHABLE_KEY. Add your Supabase publishable key to Vercel Environment Variables.',
   )
 }
 
+const supabaseUrl =
+  cleanSupabaseUrl(rawSupabaseUrl)
+
 export const supabase = createClient(
   supabaseUrl,
-  supabasePublishableKey,
+  supabasePublishableKey.trim(),
   {
     auth: {
       autoRefreshToken: true,
@@ -28,21 +58,19 @@ export const supabase = createClient(
   },
 )
 
-/*
-|--------------------------------------------------------------------------
-| AUTH
-|--------------------------------------------------------------------------
-*/
+/* -------------------------------------------------------------------------- */
+/* AUTH                                                                       */
+/* -------------------------------------------------------------------------- */
 
 export async function signUp(
   email,
   password,
-  onboarding = {},
+  onboarding,
 ) {
   const {
-    language = '',
-    examDate = '',
-    selectedGoals = [],
+    language,
+    examDate,
+    selectedGoals,
   } = onboarding
 
   const {
@@ -51,6 +79,7 @@ export async function signUp(
   } = await supabase.auth.signUp({
     email: email.trim().toLowerCase(),
     password,
+
     options: {
       data: {
         language,
@@ -65,39 +94,13 @@ export async function signUp(
     throw error
   }
 
-  /*
-   * If email confirmation is disabled, Supabase gives us
-   * a session immediately.
-   *
-   * If email confirmation is enabled, session may be null.
-   * The onboarding data is still stored in auth metadata and
-   * the database trigger will create the profile.
-   */
-  if (data.user) {
-    try {
-      await saveOnboarding(data.user.id, {
-        language,
-        examDate,
-        selectedGoals,
-      })
-    } catch (profileError) {
-      /*
-       * Do not destroy a successful signup because the
-       * optional profile upsert failed.
-       *
-       * The database trigger also creates the profile.
-       */
-      console.error(
-        'Profile save failed:',
-        profileError,
-      )
-    }
-  }
-
   return data
 }
 
-export async function signIn(email, password) {
+export async function signIn(
+  email,
+  password,
+) {
   const {
     data,
     error,
@@ -114,7 +117,8 @@ export async function signIn(email, password) {
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut()
+  const { error } =
+    await supabase.auth.signOut()
 
   if (error) {
     throw error
@@ -147,53 +151,9 @@ export async function getCurrentUser() {
   return data.user
 }
 
-/*
-|--------------------------------------------------------------------------
-| PROFILE / ONBOARDING
-|--------------------------------------------------------------------------
-*/
-
-export async function saveOnboarding(
-  userId,
-  {
-    language,
-    examDate,
-    selectedGoals,
-  },
-) {
-  if (!userId) {
-    throw new Error(
-      'Cannot save onboarding without a user ID.',
-    )
-  }
-
-  const {
-    data,
-    error,
-  } = await supabase
-    .from('profiles')
-    .upsert(
-      {
-        id: userId,
-        language,
-        exam_date: examDate || null,
-        goals: selectedGoals || [],
-        onboarding_complete: true,
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onConflict: 'id',
-      },
-    )
-    .select()
-    .single()
-
-  if (error) {
-    throw error
-  }
-
-  return data
-}
+/* -------------------------------------------------------------------------- */
+/* PROFILE                                                                    */
+/* -------------------------------------------------------------------------- */
 
 export async function getProfile(userId) {
   if (!userId) {
@@ -226,13 +186,56 @@ export async function getProfile(userId) {
   return data
 }
 
-/*
-|--------------------------------------------------------------------------
-| AUTH STATE
-|--------------------------------------------------------------------------
-*/
+export async function saveOnboarding(
+  userId,
+  {
+    language,
+    examDate,
+    selectedGoals,
+  },
+) {
+  if (!userId) {
+    throw new Error(
+      'Missing authenticated user ID.',
+    )
+  }
 
-export function onAuthStateChange(callback) {
+  const {
+    data,
+    error,
+  } = await supabase
+    .from('profiles')
+    .upsert(
+      {
+        id: userId,
+        language,
+        exam_date: examDate || null,
+        goals: selectedGoals || [],
+        onboarding_complete: true,
+        updated_at:
+          new Date().toISOString(),
+      },
+      {
+        onConflict: 'id',
+      },
+    )
+    .select()
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+/* -------------------------------------------------------------------------- */
+/* AUTH STATE                                                                 */
+/* -------------------------------------------------------------------------- */
+
+export function onAuthStateChange(
+  callback,
+) {
   return supabase.auth.onAuthStateChange(
     (event, session) => {
       callback(event, session)

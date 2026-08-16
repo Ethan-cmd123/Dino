@@ -3,6 +3,7 @@ import AnimatedBackground from '../components/AnimatedBackground'
 import {
   getCurrentUser,
   getProfile,
+  saveOnboarding,
   signUp,
 } from '../api/credentials'
 
@@ -25,86 +26,48 @@ const goals = [
   'Become more fluent',
 ]
 
-function getCookie(name) {
-  const match = document.cookie
-    .split('; ')
-    .find((row) => row.startsWith(`${name}=`))
-
-  return match
-    ? decodeURIComponent(
-        match.split('=').slice(1).join('='),
-      )
-    : ''
-}
-
-function setCookie(name, value, days = 365) {
-  const expires = new Date(
-    Date.now() +
-      days * 24 * 60 * 60 * 1000,
-  ).toUTCString()
-
-  document.cookie = `${name}=${encodeURIComponent(
-    value,
-  )}; expires=${expires}; path=/; SameSite=Lax`
-}
-
 function GetStarted({ navigate }) {
   const [step, setStep] = useState(1)
 
-  const [language, setLanguage] = useState('')
-  const [examDate, setExamDate] = useState('')
+  const [language, setLanguage] =
+    useState('')
+
+  const [examDate, setExamDate] =
+    useState('')
+
   const [selectedGoals, setSelectedGoals] =
     useState([])
 
-  const [email, setEmail] = useState('')
+  const [email, setEmail] =
+    useState('')
+
   const [password, setPassword] =
     useState('')
+
   const [confirmPassword, setConfirmPassword] =
     useState('')
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [successMessage, setSuccessMessage] =
+  const [loading, setLoading] =
+    useState(false)
+
+  const [error, setError] =
+    useState('')
+
+  const [notice, setNotice] =
     useState('')
 
   useEffect(() => {
     const checkExistingUser = async () => {
       try {
-        const user = await getCurrentUser()
+        const user =
+          await getCurrentUser()
 
         if (!user) {
-          const savedLanguage =
-            getCookie('dino_language')
-          const savedExamDate =
-            getCookie('dino_exam_date')
-          const savedGoals =
-            getCookie('dino_goals')
-
-          if (savedLanguage) {
-            setLanguage(savedLanguage)
-          }
-
-          if (savedExamDate) {
-            setExamDate(savedExamDate)
-          }
-
-          if (savedGoals) {
-            try {
-              const parsedGoals =
-                JSON.parse(savedGoals)
-
-              if (Array.isArray(parsedGoals)) {
-                setSelectedGoals(parsedGoals)
-              }
-            } catch {
-              setSelectedGoals([])
-            }
-          }
-
           return
         }
 
-        const profile = await getProfile(user.id)
+        const profile =
+          await getProfile(user.id)
 
         if (
           profile?.onboarding_complete
@@ -113,7 +76,7 @@ function GetStarted({ navigate }) {
         }
       } catch (err) {
         console.error(
-          'Failed to restore session:',
+          'Session check failed:',
           err,
         )
       }
@@ -122,7 +85,14 @@ function GetStarted({ navigate }) {
     checkExistingUser()
   }, [navigate])
 
+  const clearMessages = () => {
+    setError('')
+    setNotice('')
+  }
+
   const toggleGoal = (goal) => {
+    clearMessages()
+
     setSelectedGoals((current) =>
       current.includes(goal)
         ? current.filter(
@@ -133,23 +103,26 @@ function GetStarted({ navigate }) {
   }
 
   const nextStep = () => {
-    setError('')
+    clearMessages()
 
     if (step === 1 && !language) {
       setError(
-        'Choose your Language B first.',
+        'Choose your Language B.',
       )
       return
     }
 
     if (step === 2 && !examDate) {
       setError(
-        'Choose your exam date first.',
+        'Choose your exam date.',
       )
       return
     }
 
-    if (step === 3 && selectedGoals.length === 0) {
+    if (
+      step === 3 &&
+      selectedGoals.length === 0
+    ) {
       setError(
         'Choose at least one goal.',
       )
@@ -162,8 +135,7 @@ function GetStarted({ navigate }) {
   }
 
   const previousStep = () => {
-    setError('')
-    setSuccessMessage('')
+    clearMessages()
 
     setStep((current) =>
       Math.max(current - 1, 1),
@@ -171,8 +143,7 @@ function GetStarted({ navigate }) {
   }
 
   const finish = async () => {
-    setError('')
-    setSuccessMessage('')
+    clearMessages()
 
     if (!email.trim()) {
       setError(
@@ -195,16 +166,13 @@ function GetStarted({ navigate }) {
       return
     }
 
-    if (!language || !examDate) {
+    if (
+      !language ||
+      !examDate ||
+      selectedGoals.length === 0
+    ) {
       setError(
         'Your onboarding information is incomplete.',
-      )
-      return
-    }
-
-    if (selectedGoals.length === 0) {
-      setError(
-        'Choose at least one goal.',
       )
       return
     }
@@ -223,56 +191,64 @@ function GetStarted({ navigate }) {
       )
 
       /*
-       * Save the local onboarding state as a
-       * convenience for this browser.
+       * With email confirmation disabled,
+       * Supabase returns a session immediately.
        */
-      setCookie(
-        'dino_language',
-        language,
-      )
+      if (data.session && data.user) {
+        try {
+          await saveOnboarding(
+            data.user.id,
+            {
+              language,
+              examDate,
+              selectedGoals,
+            },
+          )
+        } catch (profileError) {
+          console.error(
+            'Profile save failed:',
+            profileError,
+          )
 
-      setCookie(
-        'dino_exam_date',
-        examDate,
-      )
+          throw new Error(
+            'Your account was created, but your onboarding profile could not be saved.',
+          )
+        }
 
-      setCookie(
-        'dino_goals',
-        JSON.stringify(
-          selectedGoals,
-        ),
-      )
-
-      /*
-       * Supabase may require email confirmation.
-       * In that case data.session is null.
-       */
-      if (!data.session) {
-        setSuccessMessage(
-          'Account created. Check your email to confirm your account, then log in.',
-        )
-
+        navigate('/dashboard')
         return
       }
 
-      navigate('/dashboard')
+      /*
+       * Email confirmation is enabled.
+       */
+      setNotice(
+        'Account created. Check your email to confirm your account, then log in.',
+      )
     } catch (err) {
       console.error(
         'Signup failed:',
         err,
       )
 
-      setError(
+      const message =
         err?.message ||
-          'Could not create your account. Please try again.',
-      )
+        'Something went wrong while creating your account.'
+
+      if (
+        message.toLowerCase().includes(
+          'invalid path',
+        )
+      ) {
+        setError(
+          'Supabase is not configured correctly. Check VITE_SUPABASE_URL in Vercel and redeploy the project.',
+        )
+      } else {
+        setError(message)
+      }
     } finally {
       setLoading(false)
     }
-  }
-
-  const bypassOnboarding = () => {
-    navigate('/login')
   }
 
   return (
@@ -310,19 +286,20 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                Choose the language you're studying for IB.
+                Choose the language you're
+                studying for IB.
               </p>
 
               <div className="choice-grid">
                 {languages.map((item) => (
                   <button
+                    key={item}
                     type="button"
                     className={`choice-card ${
                       language === item
                         ? 'selected'
                         : ''
                     }`}
-                    key={item}
                     onClick={() =>
                       setLanguage(item)
                     }
@@ -330,8 +307,9 @@ function GetStarted({ navigate }) {
                     <span>{item}</span>
 
                     <span className="choice-circle">
-                      {language === item &&
-                        '✓'}
+                      {language === item
+                        ? '✓'
+                        : ''}
                     </span>
                   </button>
                 ))}
@@ -340,9 +318,12 @@ function GetStarted({ navigate }) {
               <button
                 type="button"
                 className="login-bypass"
-                onClick={bypassOnboarding}
+                onClick={() =>
+                  navigate('/login')
+                }
               >
-                Go away, I want to login
+                Already have an account?
+                <span> Log in</span>
               </button>
             </div>
           )}
@@ -359,7 +340,8 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                We'll use this to shape your study timeline.
+                We'll use this to shape
+                your study timeline.
               </p>
 
               <div className="date-wrapper">
@@ -381,7 +363,8 @@ function GetStarted({ navigate }) {
               </div>
 
               <div className="date-hint">
-                Pick the date of your Language B examination.
+                Pick the date of your
+                Language B examination.
               </div>
             </div>
           )}
@@ -398,12 +381,14 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                Choose everything you're interested in.
+                Choose everything you're
+                interested in.
               </p>
 
               <div className="goal-grid">
                 {goals.map((goal) => (
                   <button
+                    key={goal}
                     type="button"
                     className={`goal-card ${
                       selectedGoals.includes(
@@ -412,7 +397,6 @@ function GetStarted({ navigate }) {
                         ? 'selected'
                         : ''
                     }`}
-                    key={goal}
                     onClick={() =>
                       toggleGoal(goal)
                     }
@@ -433,9 +417,9 @@ function GetStarted({ navigate }) {
           )}
 
           {step === 4 && (
-            <div className="onboarding-step">
+            <div className="onboarding-step signup-step">
               <span className="page-eyebrow">
-                Almost there
+                Last step
               </span>
 
               <h1 className="onboarding-title">
@@ -444,73 +428,104 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                Your onboarding data will be saved to your Dino account.
+                Your study preferences will
+                be saved to your account.
               </p>
 
-              <div className="auth-form">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => {
-                    setEmail(
-                      event.target.value,
-                    )
-                    setError('')
-                  }}
-                  className="auth-input"
-                  placeholder="Email address"
-                  autoComplete="email"
-                />
+              <div className="signup-form">
+                <label className="signup-field">
+                  <span>Email</span>
 
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => {
-                    setPassword(
-                      event.target.value,
-                    )
-                    setError('')
-                  }}
-                  className="auth-input"
-                  placeholder="Password"
-                  autoComplete="new-password"
-                />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(
+                        event.target.value,
+                      )
+                      clearMessages()
+                    }}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
+                </label>
 
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(event) => {
-                    setConfirmPassword(
-                      event.target.value,
-                    )
-                    setError('')
-                  }}
-                  className="auth-input"
-                  placeholder="Confirm password"
-                  autoComplete="new-password"
-                />
+                <label className="signup-field">
+                  <span>Password</span>
+
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(
+                        event.target.value,
+                      )
+                      clearMessages()
+                    }}
+                    placeholder="At least 6 characters"
+                    autoComplete="new-password"
+                  />
+                </label>
+
+                <label className="signup-field">
+                  <span>Confirm password</span>
+
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => {
+                      setConfirmPassword(
+                        event.target.value,
+                      )
+                      clearMessages()
+                    }}
+                    placeholder="Repeat your password"
+                    autoComplete="new-password"
+                    onKeyDown={(event) => {
+                      if (
+                        event.key === 'Enter'
+                      ) {
+                        finish()
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+
+              <div className="signup-meta">
+                <span>
+                  {language}
+                </span>
+
+                <span>
+                  {selectedGoals.length}{' '}
+                  {selectedGoals.length ===
+                  1
+                    ? 'goal'
+                    : 'goals'}
+                </span>
               </div>
 
               {error && (
-                <div className="auth-error">
+                <div className="form-message error">
                   {error}
                 </div>
               )}
 
-              {successMessage && (
-                <div className="auth-success">
-                  {successMessage}
+              {notice && (
+                <div className="form-message success">
+                  {notice}
                 </div>
               )}
             </div>
           )}
-
-          {step !== 4 && error && (
-            <div className="auth-error">
-              {error}
-            </div>
-          )}
         </div>
+
+        {step !== 4 && error && (
+          <div className="form-message error">
+            {error}
+          </div>
+        )}
 
         <div className="onboarding-footer">
           <button
@@ -541,7 +556,7 @@ function GetStarted({ navigate }) {
               disabled={loading}
             >
               {loading
-                ? 'Creating account...'
+                ? 'Creating account…'
                 : 'Create account'}
             </button>
           )}

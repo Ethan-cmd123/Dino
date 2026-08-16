@@ -2872,3 +2872,211 @@ body[data-page="dashboard"] {
     grid-template-columns: 1fr;
   }
 }
+/* ==========================================================================
+   SIGNUP
+   ========================================================================== */
+
+.signup-step {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  margin-top: 32px;
+}
+
+.signup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.signup-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.signup-field input {
+  width: 100%;
+  height: 54px;
+  padding: 0 17px;
+
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 14px;
+
+  outline: none;
+
+  background: rgba(255, 255, 255, 0.045);
+
+  color: #fff;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.signup-field input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.signup-field input:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.signup-field input:focus {
+  border-color: rgba(255, 255, 255, 0.34);
+
+  background: rgba(255, 255, 255, 0.06);
+
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.045);
+
+  transform: translateY(-1px);
+}
+
+.signup-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 16px;
+}
+
+.signup-meta span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 28px;
+  padding: 0 11px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  color: rgba(255, 255, 255, 0.55);
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.form-message {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 14px;
+
+  border-radius: 12px;
+
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+.form-message.error {
+  border: 1px solid rgba(255, 105, 105, 0.16);
+  background: rgba(255, 105, 105, 0.07);
+  color: rgba(255, 190, 190, 0.9);
+}
+
+.form-message.success {
+  border: 1px solid rgba(140, 255, 185, 0.14);
+  background: rgba(140, 255, 185, 0.06);
+  color: rgba(190, 255, 215, 0.9);
+}
+
+/* ==========================================================================
+   LOGIN LINK
+   ========================================================================== */
+
+.login-bypass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 22px;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.42);
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease;
+}
+
+.login-bypass:hover {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.login-bypass span {
+  margin-left: 4px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+
+.next-button,
+.back-button {
+  font-family: inherit;
+  letter-spacing: -0.02em;
+}
+
+.next-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.back-button:disabled {
+  opacity: 0.25;
+}
+
+/* ==========================================================================
+   MOBILE
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .signup-step {
+    max-width: 100%;
+  }
+
+  .signup-form {
+    margin-top: 26px;
+    gap: 13px;
+  }
+
+  .signup-field input {
+    height: 50px;
+    border-radius: 12px;
+  }
+
+  .signup-meta {
+    flex-wrap: wrap;
+  }
+}
