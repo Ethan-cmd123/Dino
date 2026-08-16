@@ -3229,7 +3229,7 @@ ${writingAnswer}
                   </div>
 
                   <div className="dino-subtle-note">
-                    Your checklist is synced to your Supabase account.
+                    This checklist is saved across your devices.
                   </div>
                 </div>
 

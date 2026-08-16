@@ -318,13 +318,8 @@ function Login({ navigate }) {
 
       <div className="onboarding-wrapper">
         <div className="onboarding-header">
-          <div className="onboarding-brand">
-            Dino
-          </div>
+          
 
-          <div className="step-counter">
-            Log in
-          </div>
         </div>
 
         <div className="progress-line">
