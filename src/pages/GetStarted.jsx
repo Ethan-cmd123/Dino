@@ -44,8 +44,10 @@ function GetStarted({ navigate }) {
   const [password, setPassword] =
     useState('')
 
-  const [confirmPassword, setConfirmPassword] =
-    useState('')
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] = useState('')
 
   const [loading, setLoading] =
     useState(false)
@@ -57,9 +59,10 @@ function GetStarted({ navigate }) {
     useState('')
 
   useEffect(() => {
-    const checkExistingUser = async () => {
+    async function checkSession() {
       try {
-        const user = await getCurrentUser()
+        const user =
+          await getCurrentUser()
 
         if (!user) {
           return
@@ -73,47 +76,49 @@ function GetStarted({ navigate }) {
         ) {
           navigate('/dashboard')
         }
-      } catch (err) {
+      } catch (error) {
         console.error(
           'Session check failed:',
-          err,
+          error,
         )
       }
     }
 
-    checkExistingUser()
+    checkSession()
   }, [navigate])
 
-  const clearMessages = () => {
+  function clearMessages() {
     setError('')
     setNotice('')
   }
 
-  const toggleGoal = (goal) => {
+  function toggleGoal(goal) {
     clearMessages()
 
-    setSelectedGoals((current) =>
-      current.includes(goal)
-        ? current.filter(
-            (item) => item !== goal,
-          )
-        : [...current, goal],
-    )
+    setSelectedGoals((current) => {
+      if (current.includes(goal)) {
+        return current.filter(
+          (item) => item !== goal,
+        )
+      }
+
+      return [...current, goal]
+    })
   }
 
-  const nextStep = () => {
+  function nextStep() {
     clearMessages()
 
     if (step === 1 && !language) {
       setError(
-        'Choose your Language B.',
+        'Choose your Language B first.',
       )
       return
     }
 
     if (step === 2 && !examDate) {
       setError(
-        'Choose your exam date.',
+        'Choose your exam date first.',
       )
       return
     }
@@ -123,7 +128,7 @@ function GetStarted({ navigate }) {
       selectedGoals.length === 0
     ) {
       setError(
-        'Choose at least one goal.',
+        'Choose at least one goal first.',
       )
       return
     }
@@ -133,7 +138,7 @@ function GetStarted({ navigate }) {
     )
   }
 
-  const previousStep = () => {
+  function previousStep() {
     clearMessages()
 
     setStep((current) =>
@@ -141,7 +146,7 @@ function GetStarted({ navigate }) {
     )
   }
 
-  const finish = async () => {
+  async function finish() {
     clearMessages()
 
     const cleanEmail =
@@ -163,25 +168,35 @@ function GetStarted({ navigate }) {
 
     if (password.length < 6) {
       setError(
-        'Your password must be at least 6 characters.',
+        'Password must be at least 6 characters.',
       )
       return
     }
 
     if (password !== confirmPassword) {
       setError(
-        'Your passwords do not match.',
+        'Passwords do not match.',
       )
       return
     }
 
-    if (
-      !language ||
-      !examDate ||
-      selectedGoals.length === 0
-    ) {
+    if (!language) {
       setError(
-        'Your onboarding information is incomplete.',
+        'Choose your Language B.',
+      )
+      return
+    }
+
+    if (!examDate) {
+      setError(
+        'Choose your exam date.',
+      )
+      return
+    }
+
+    if (selectedGoals.length === 0) {
+      setError(
+        'Choose at least one goal.',
       )
       return
     }
@@ -199,110 +214,49 @@ function GetStarted({ navigate }) {
         },
       )
 
-      if (data.session && data.user) {
-        try {
-          await saveOnboarding(
-            data.user.id,
-            {
-              language,
-              examDate,
-              selectedGoals,
-            },
-          )
-        } catch (profileError) {
-          console.error(
-            'Profile save failed:',
-            profileError,
-          )
-
-          throw new Error(
-            'Your account was created, but your onboarding profile could not be saved.',
-          )
-        }
+      /*
+       * Email confirmation OFF:
+       * Supabase immediately gives us
+       * a session.
+       */
+      if (
+        data?.session &&
+        data?.user
+      ) {
+        await saveOnboarding(
+          data.user.id,
+          {
+            language,
+            examDate,
+            selectedGoals,
+          },
+        )
 
         navigate('/dashboard')
         return
       }
 
+      /*
+       * Email confirmation ON:
+       * account exists but session is
+       * not active yet.
+       */
       setNotice(
         'Account created. Check your email to confirm your account, then log in.',
       )
-    } catch (err) {
+    } catch (error) {
       console.error(
         'Signup failed:',
-        err,
+        error,
       )
 
-      const message =
-        err?.message ||
-        'Something went wrong while creating your account.'
-
-      if (
-        message
-          .toLowerCase()
-          .includes('invalid path')
-      ) {
-        setError(
-          'Supabase is not configured correctly. Check your VITE_SUPABASE_URL and redeploy Vercel.',
-        )
-      } else {
-        setError(message)
-      }
+      setError(
+        error?.message ||
+          'Could not create your account.',
+      )
     } finally {
       setLoading(false)
     }
-  }
-
-  const inputStyle = {
-    width: '100%',
-    height: '56px',
-    boxSizing: 'border-box',
-    padding: '0 16px',
-    margin: 0,
-
-    appearance: 'none',
-    WebkitAppearance: 'none',
-
-    display: 'block',
-
-    backgroundColor: 'rgba(255, 255, 255, 0.055)',
-    backgroundImage: 'none',
-
-    border: '1px solid rgba(255, 255, 255, 0.14)',
-    borderRadius: '14px',
-
-    outline: 'none',
-
-    color: '#ffffff',
-    caretColor: '#ffffff',
-
-    fontFamily: 'inherit',
-    fontSize: '15px',
-    fontWeight: '500',
-    lineHeight: '1.2',
-
-    WebkitTextFillColor: '#ffffff',
-
-    opacity: 1,
-
-    transition:
-      'border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease',
-  }
-
-  const labelStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '9px',
-    width: '100%',
-  }
-
-  const labelTextStyle = {
-    display: 'block',
-    color: 'rgba(255, 255, 255, 0.62)',
-    fontSize: '12px',
-    fontWeight: '600',
-    lineHeight: '1',
-    letterSpacing: '-0.01em',
   }
 
   return (
@@ -322,7 +276,9 @@ function GetStarted({ navigate }) {
           <div
             className="progress-line-active"
             style={{
-              width: `${(step / 4) * 100}%`,
+              width: `${
+                (step / 4) * 100
+              }%`,
             }}
           />
         </div>
@@ -336,47 +292,65 @@ function GetStarted({ navigate }) {
 
               <h1 className="onboarding-title">
                 What is your
-                <span> Language B?</span>
+                <span>
+                  {' '}
+                  Language B?
+                </span>
               </h1>
 
               <p className="onboarding-description">
-                Choose the language you're studying for IB.
+                Choose the language you're
+                studying for IB.
               </p>
 
               <div className="choice-grid">
-                {languages.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    className={`choice-card ${
-                      language === item
-                        ? 'selected'
-                        : ''
-                    }`}
-                    onClick={() =>
-                      setLanguage(item)
-                    }
-                  >
-                    <span>{item}</span>
+                {languages.map(
+                  (item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      className={`choice-card ${
+                        language ===
+                        item
+                          ? 'selected'
+                          : ''
+                      }`}
+                      onClick={() =>
+                        setLanguage(
+                          item,
+                        )
+                      }
+                    >
+                      <span>
+                        {item}
+                      </span>
 
-                    <span className="choice-circle">
-                      {language === item
-                        ? '✓'
-                        : ''}
-                    </span>
-                  </button>
-                ))}
+                      <span className="choice-circle">
+                        {language ===
+                        item
+                          ? '✓'
+                          : ''}
+                      </span>
+                    </button>
+                  ),
+                )}
               </div>
 
               <button
                 type="button"
                 className="login-bypass"
                 onClick={() =>
-                  navigate('/login')
+                  navigate(
+                    '/login',
+                  )
                 }
               >
-                Already have an account?
-                <span> Log in</span>
+                Already have an
+                account?
+                <span>
+                  {' '}
+                  Log in
+                </span>
               </button>
             </div>
           )}
@@ -389,11 +363,16 @@ function GetStarted({ navigate }) {
 
               <h1 className="onboarding-title">
                 When is your
-                <span> IB exam?</span>
+                <span>
+                  {' '}
+                  IB exam?
+                </span>
               </h1>
 
               <p className="onboarding-description">
-                We'll use this to shape your study timeline.
+                We'll use this to
+                shape your study
+                timeline.
               </p>
 
               <div className="date-wrapper">
@@ -402,7 +381,8 @@ function GetStarted({ navigate }) {
                   value={examDate}
                   onChange={(event) => {
                     setExamDate(
-                      event.target.value,
+                      event.target
+                        .value,
                     )
                     clearMessages()
                   }}
@@ -410,13 +390,16 @@ function GetStarted({ navigate }) {
                   min={
                     new Date()
                       .toISOString()
-                      .split('T')[0]
+                      .split(
+                        'T',
+                      )[0]
                   }
                 />
               </div>
 
               <div className="date-hint">
-                Pick the date of your Language B examination.
+                Pick the date of your
+                Language B examination.
               </div>
             </div>
           )}
@@ -429,40 +412,51 @@ function GetStarted({ navigate }) {
 
               <h1 className="onboarding-title">
                 What do you want
-                <span> to improve?</span>
+                <span>
+                  {' '}
+                  to improve?
+                </span>
               </h1>
 
               <p className="onboarding-description">
-                Choose everything you're interested in.
+                Choose everything
+                you're interested
+                in.
               </p>
 
               <div className="goal-grid">
-                {goals.map((goal) => (
-                  <button
-                    key={goal}
-                    type="button"
-                    className={`goal-card ${
-                      selectedGoals.includes(
-                        goal,
-                      )
-                        ? 'selected'
-                        : ''
-                    }`}
-                    onClick={() =>
-                      toggleGoal(goal)
-                    }
-                  >
-                    <span>{goal}</span>
+                {goals.map(
+                  (goal) => (
+                    <button
+                      key={goal}
+                      type="button"
+                      className={`goal-card ${
+                        selectedGoals.includes(
+                          goal,
+                        )
+                          ? 'selected'
+                          : ''
+                      }`}
+                      onClick={() =>
+                        toggleGoal(
+                          goal,
+                        )
+                      }
+                    >
+                      <span>
+                        {goal}
+                      </span>
 
-                    <span className="goal-check">
-                      {selectedGoals.includes(
-                        goal,
-                      )
-                        ? '✓'
-                        : '+'}
-                    </span>
-                  </button>
-                ))}
+                      <span className="goal-check">
+                        {selectedGoals.includes(
+                          goal,
+                        )
+                          ? '✓'
+                          : '+'}
+                      </span>
+                    </button>
+                  ),
+                )}
               </div>
             </div>
           )}
@@ -472,243 +466,291 @@ function GetStarted({ navigate }) {
               className="onboarding-step"
               style={{
                 width: '100%',
-                maxWidth: '520px',
-                margin: '0 auto',
+                maxWidth:
+                  '520px',
+                margin:
+                  '0 auto',
               }}
             >
               <span className="page-eyebrow">
-                Last step
+                Almost there
               </span>
 
               <h1 className="onboarding-title">
                 Create your
-                <span> Dino account.</span>
+                <span>
+                  {' '}
+                  Dino account.
+                </span>
               </h1>
 
               <p className="onboarding-description">
-                Create an account to save your
-                study preferences and progress.
+                Your Language B,
+                exam date and goals
+                will be saved to
+                your account.
               </p>
 
               <div
                 style={{
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '18px',
-                  marginTop: '30px',
+                  width:
+                    '100%',
+                  display:
+                    'flex',
+                  flexDirection:
+                    'column',
+                  gap: '16px',
+                  marginTop:
+                    '30px',
                 }}
               >
-                <label style={labelStyle}>
-                  <span
-                    style={labelTextStyle}
+                <div
+                  style={{
+                    display:
+                      'flex',
+                    flexDirection:
+                      'column',
+                    gap: '8px',
+                  }}
+                >
+                  <label
+                    htmlFor="dino-email"
+                    style={{
+                      fontSize:
+                        '12px',
+                      fontWeight:
+                        600,
+                      color:
+                        'rgba(255,255,255,0.60)',
+                    }}
                   >
-                    Email address
-                  </span>
+                    Email
+                  </label>
 
                   <input
+                    id="dino-email"
                     type="email"
                     value={email}
-                    onChange={(event) => {
+                    onChange={(
+                      event,
+                    ) => {
                       setEmail(
-                        event.target.value,
+                        event
+                          .target
+                          .value,
                       )
                       clearMessages()
                     }}
                     placeholder="you@example.com"
                     autoComplete="email"
-                    spellCheck={false}
-                    style={inputStyle}
-                    onFocus={(event) => {
-                      event.currentTarget.style.borderColor =
-                        'rgba(255, 255, 255, 0.36)'
-
-                      event.currentTarget.style.backgroundColor =
-                        'rgba(255, 255, 255, 0.08)'
-
-                      event.currentTarget.style.boxShadow =
-                        '0 0 0 4px rgba(255, 255, 255, 0.045)'
-                    }}
-                    onBlur={(event) => {
-                      event.currentTarget.style.borderColor =
-                        'rgba(255, 255, 255, 0.14)'
-
-                      event.currentTarget.style.backgroundColor =
-                        'rgba(255, 255, 255, 0.055)'
-
-                      event.currentTarget.style.boxShadow =
-                        'none'
+                    style={{
+                      width:
+                        '100%',
+                      height:
+                        '54px',
+                      padding:
+                        '0 16px',
+                      boxSizing:
+                        'border-box',
+                      color:
+                        '#ffffff',
+                      background:
+                        'rgba(255,255,255,0.055)',
+                      border:
+                        '1px solid rgba(255,255,255,0.14)',
+                      borderRadius:
+                        '14px',
+                      outline:
+                        'none',
+                      fontFamily:
+                        'inherit',
+                      fontSize:
+                        '14px',
+                      fontWeight:
+                        500,
+                      WebkitTextFillColor:
+                        '#ffffff',
+                      opacity: 1,
                     }}
                   />
-                </label>
+                </div>
 
-                <label style={labelStyle}>
-                  <span
-                    style={labelTextStyle}
+                <div
+                  style={{
+                    display:
+                      'flex',
+                    flexDirection:
+                      'column',
+                    gap: '8px',
+                  }}
+                >
+                  <label
+                    htmlFor="dino-password"
+                    style={{
+                      fontSize:
+                        '12px',
+                      fontWeight:
+                        600,
+                      color:
+                        'rgba(255,255,255,0.60)',
+                    }}
                   >
                     Password
-                  </span>
+                  </label>
 
                   <input
+                    id="dino-password"
                     type="password"
-                    value={password}
-                    onChange={(event) => {
+                    value={
+                      password
+                    }
+                    onChange={(
+                      event,
+                    ) => {
                       setPassword(
-                        event.target.value,
+                        event
+                          .target
+                          .value,
                       )
                       clearMessages()
                     }}
                     placeholder="At least 6 characters"
                     autoComplete="new-password"
-                    style={inputStyle}
-                    onFocus={(event) => {
-                      event.currentTarget.style.borderColor =
-                        'rgba(255, 255, 255, 0.36)'
-
-                      event.currentTarget.style.backgroundColor =
-                        'rgba(255, 255, 255, 0.08)'
-
-                      event.currentTarget.style.boxShadow =
-                        '0 0 0 4px rgba(255, 255, 255, 0.045)'
-                    }}
-                    onBlur={(event) => {
-                      event.currentTarget.style.borderColor =
-                        'rgba(255, 255, 255, 0.14)'
-
-                      event.currentTarget.style.backgroundColor =
-                        'rgba(255, 255, 255, 0.055)'
-
-                      event.currentTarget.style.boxShadow =
-                        'none'
+                    style={{
+                      width:
+                        '100%',
+                      height:
+                        '54px',
+                      padding:
+                        '0 16px',
+                      boxSizing:
+                        'border-box',
+                      color:
+                        '#ffffff',
+                      background:
+                        'rgba(255,255,255,0.055)',
+                      border:
+                        '1px solid rgba(255,255,255,0.14)',
+                      borderRadius:
+                        '14px',
+                      outline:
+                        'none',
+                      fontFamily:
+                        'inherit',
+                      fontSize:
+                        '14px',
+                      fontWeight:
+                        500,
+                      WebkitTextFillColor:
+                        '#ffffff',
+                      opacity: 1,
                     }}
                   />
-                </label>
+                </div>
 
-                <label style={labelStyle}>
-                  <span
-                    style={labelTextStyle}
+                <div
+                  style={{
+                    display:
+                      'flex',
+                    flexDirection:
+                      'column',
+                    gap: '8px',
+                  }}
+                >
+                  <label
+                    htmlFor="dino-confirm-password"
+                    style={{
+                      fontSize:
+                        '12px',
+                      fontWeight:
+                        600,
+                      color:
+                        'rgba(255,255,255,0.60)',
+                    }}
                   >
                     Confirm password
-                  </span>
+                  </label>
 
                   <input
+                    id="dino-confirm-password"
                     type="password"
-                    value={confirmPassword}
-                    onChange={(event) => {
+                    value={
+                      confirmPassword
+                    }
+                    onChange={(
+                      event,
+                    ) => {
                       setConfirmPassword(
-                        event.target.value,
+                        event
+                          .target
+                          .value,
                       )
                       clearMessages()
                     }}
                     placeholder="Repeat your password"
                     autoComplete="new-password"
-                    style={inputStyle}
-                    onKeyDown={(event) => {
+                    onKeyDown={(
+                      event,
+                    ) => {
                       if (
-                        event.key === 'Enter'
+                        event.key ===
+                        'Enter'
                       ) {
                         finish()
                       }
                     }}
-                    onFocus={(event) => {
-                      event.currentTarget.style.borderColor =
-                        'rgba(255, 255, 255, 0.36)'
-
-                      event.currentTarget.style.backgroundColor =
-                        'rgba(255, 255, 255, 0.08)'
-
-                      event.currentTarget.style.boxShadow =
-                        '0 0 0 4px rgba(255, 255, 255, 0.045)'
-                    }}
-                    onBlur={(event) => {
-                      event.currentTarget.style.borderColor =
-                        'rgba(255, 255, 255, 0.14)'
-
-                      event.currentTarget.style.backgroundColor =
-                        'rgba(255, 255, 255, 0.055)'
-
-                      event.currentTarget.style.boxShadow =
-                        'none'
+                    style={{
+                      width:
+                        '100%',
+                      height:
+                        '54px',
+                      padding:
+                        '0 16px',
+                      boxSizing:
+                        'border-box',
+                      color:
+                        '#ffffff',
+                      background:
+                        'rgba(255,255,255,0.055)',
+                      border:
+                        '1px solid rgba(255,255,255,0.14)',
+                      borderRadius:
+                        '14px',
+                      outline:
+                        'none',
+                      fontFamily:
+                        'inherit',
+                      fontSize:
+                        '14px',
+                      fontWeight:
+                        500,
+                      WebkitTextFillColor:
+                        '#ffffff',
+                      opacity: 1,
                     }}
                   />
-                </label>
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '8px',
-                  marginTop: '18px',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    minHeight: '28px',
-                    padding: '0 11px',
-                    border:
-                      '1px solid rgba(255, 255, 255, 0.09)',
-                    borderRadius: '999px',
-                    background:
-                      'rgba(255, 255, 255, 0.035)',
-                    color:
-                      'rgba(255, 255, 255, 0.56)',
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    letterSpacing:
-                      '-0.01em',
-                  }}
-                >
-                  {language}
-                </span>
-
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    minHeight: '28px',
-                    padding: '0 11px',
-                    border:
-                      '1px solid rgba(255, 255, 255, 0.09)',
-                    borderRadius: '999px',
-                    background:
-                      'rgba(255, 255, 255, 0.035)',
-                    color:
-                      'rgba(255, 255, 255, 0.56)',
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    letterSpacing:
-                      '-0.01em',
-                  }}
-                >
-                  {selectedGoals.length}{' '}
-                  {selectedGoals.length === 1
-                    ? 'goal'
-                    : 'goals'}
-                </span>
+                </div>
               </div>
 
               {error && (
                 <div
                   style={{
-                    width: '100%',
-                    marginTop: '16px',
+                    marginTop:
+                      '18px',
                     padding:
                       '12px 14px',
-                    boxSizing: 'border-box',
                     border:
-                      '1px solid rgba(255, 105, 105, 0.18)',
-                    borderRadius: '12px',
+                      '1px solid rgba(255,100,100,0.18)',
+                    borderRadius:
+                      '12px',
                     background:
-                      'rgba(255, 105, 105, 0.07)',
+                      'rgba(255,100,100,0.07)',
                     color:
-                      'rgba(255, 190, 190, 0.94)',
-                    fontSize: '12px',
-                    lineHeight: '1.5',
-                    letterSpacing:
-                      '-0.01em',
+                      'rgba(255,190,190,0.95)',
+                    fontSize:
+                      '12px',
+                    lineHeight:
+                      1.5,
                   }}
                 >
                   {error}
@@ -718,22 +760,22 @@ function GetStarted({ navigate }) {
               {notice && (
                 <div
                   style={{
-                    width: '100%',
-                    marginTop: '16px',
+                    marginTop:
+                      '18px',
                     padding:
                       '12px 14px',
-                    boxSizing: 'border-box',
                     border:
-                      '1px solid rgba(140, 255, 185, 0.16)',
-                    borderRadius: '12px',
+                      '1px solid rgba(140,255,185,0.16)',
+                    borderRadius:
+                      '12px',
                     background:
-                      'rgba(140, 255, 185, 0.06)',
+                      'rgba(140,255,185,0.06)',
                     color:
-                      'rgba(190, 255, 215, 0.92)',
-                    fontSize: '12px',
-                    lineHeight: '1.5',
-                    letterSpacing:
-                      '-0.01em',
+                      'rgba(190,255,215,0.95)',
+                    fontSize:
+                      '12px',
+                    lineHeight:
+                      1.5,
                   }}
                 >
                   {notice}
@@ -743,36 +785,14 @@ function GetStarted({ navigate }) {
           )}
         </div>
 
-        {step !== 4 && error && (
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '520px',
-              margin: '0 auto',
-              padding: '12px 14px',
-              boxSizing: 'border-box',
-              border:
-                '1px solid rgba(255, 105, 105, 0.18)',
-              borderRadius: '12px',
-              background:
-                'rgba(255, 105, 105, 0.07)',
-              color:
-                'rgba(255, 190, 190, 0.94)',
-              fontSize: '12px',
-              lineHeight: '1.5',
-            }}
-          >
-            {error}
-          </div>
-        )}
-
         <div className="onboarding-footer">
           <button
             type="button"
             className="back-button"
             onClick={previousStep}
             disabled={
-              step === 1 || loading
+              step === 1 ||
+              loading
             }
           >
             Back
