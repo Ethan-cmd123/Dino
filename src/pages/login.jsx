@@ -19,26 +19,42 @@ function Login({ navigate }) {
     useState('')
 
   useEffect(() => {
+    let active = true
+
     async function checkSession() {
       try {
         const user =
           await getCurrentUser()
 
-        if (user) {
+        if (
+          active &&
+          user
+        ) {
           navigate('/dashboard')
         }
-      } catch {
-        // Ignore session check errors.
+      } catch (error) {
+        console.error(
+          'Login session check failed:',
+          error,
+        )
       }
     }
 
     checkSession()
+
+    return () => {
+      active = false
+    }
   }, [navigate])
+
+  function clearError() {
+    setError('')
+  }
 
   async function handleLogin(event) {
     event.preventDefault()
 
-    setError('')
+    clearError()
 
     const cleanEmail =
       email.trim().toLowerCase()
@@ -46,6 +62,13 @@ function Login({ navigate }) {
     if (!cleanEmail) {
       setError(
         'Enter your email address.',
+      )
+      return
+    }
+
+    if (!cleanEmail.includes('@')) {
+      setError(
+        'Enter a valid email address.',
       )
       return
     }
@@ -87,35 +110,41 @@ function Login({ navigate }) {
         {`
           .dino-login-page {
             width: 100%;
-            max-width: 460px;
+            max-width: 500px;
             margin: 0 auto;
           }
 
           .dino-login-card {
             width: 100%;
-            padding: 34px;
+            box-sizing: border-box;
+            padding: 36px;
             border: 1px solid rgba(0,0,0,.08);
             border-radius: 22px;
-            background: rgba(255,255,255,.80);
+            background: rgba(255,255,255,.78);
             backdrop-filter: blur(18px);
-            box-shadow: 0 20px 60px rgba(0,0,0,.06);
+            box-shadow: 0 22px 60px rgba(0,0,0,.055);
           }
 
-          .dino-login-brand {
-            margin-bottom: 8px;
-            color: #0a0a0a;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: -.03em;
+          .dino-login-kicker {
+            display: block;
+            margin-bottom: 9px;
+            color: #8a8a8a;
+            font-family: Inter, sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: .03em;
           }
 
           .dino-login-title {
             margin: 0;
             color: #0a0a0a;
-            font-size: 42px;
-            line-height: .94;
+            font-family: Inter, sans-serif;
+            font-size: clamp(42px, 7vw, 58px);
             font-weight: 600;
-            letter-spacing: -.075em;
+            line-height: .92;
+            letter-spacing: -.085em;
           }
 
           .dino-login-title span {
@@ -123,19 +152,24 @@ function Login({ navigate }) {
           }
 
           .dino-login-description {
-            margin: 12px 0 27px;
+            max-width: 400px;
+            margin: 13px 0 28px;
             color: #777;
+            font-family: Inter, sans-serif;
             font-size: 11px;
-            line-height: 1.5;
+            font-weight: 400;
+            line-height: 1.55;
           }
 
           .dino-login-form {
+            width: 100%;
             display: flex;
             flex-direction: column;
             gap: 15px;
           }
 
           .dino-login-field {
+            width: 100%;
             display: flex;
             flex-direction: column;
             gap: 7px;
@@ -143,103 +177,140 @@ function Login({ navigate }) {
 
           .dino-login-label {
             color: #777;
+            font-family: Inter, sans-serif;
             font-size: 9px;
             font-weight: 600;
+            line-height: 1;
             text-transform: uppercase;
+            letter-spacing: .025em;
           }
 
           .dino-login-input {
             width: 100%;
-            height: 52px;
+            height: 54px;
             box-sizing: border-box;
-            padding: 0 15px;
+            padding: 0 16px;
             border: 1px solid rgba(0,0,0,.09);
-            border-radius: 13px;
+            border-radius: 14px;
             outline: none;
-            background: rgba(255,255,255,.95);
-            color: #000;
-            font-family: inherit;
+            background: rgba(255,255,255,.96);
+            color: #000000;
+            -webkit-text-fill-color: #000000;
+            font-family: Inter, sans-serif;
             font-size: 13px;
             font-weight: 500;
+            line-height: 1;
+            letter-spacing: -.015em;
             transition:
-              border-color .15s ease,
-              box-shadow .15s ease;
+              border-color .16s ease,
+              box-shadow .16s ease,
+              background .16s ease;
           }
 
           .dino-login-input::placeholder {
-            color: #aaa;
+            color: #a0a0a0;
+            -webkit-text-fill-color: #a0a0a0;
+            font-family: Inter, sans-serif;
+            font-weight: 400;
           }
 
           .dino-login-input:focus {
-            border-color: rgba(0,0,0,.28);
-            box-shadow: 0 0 0 3px rgba(0,0,0,.04);
+            border-color: rgba(0,0,0,.24);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0,0,0,.045);
           }
 
-          .dino-login-button {
+          .dino-login-input:-webkit-autofill,
+          .dino-login-input:-webkit-autofill:hover,
+          .dino-login-input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #000000;
+            box-shadow: 0 0 0 1000px #ffffff inset;
+            font-family: Inter, sans-serif;
+          }
+
+          .dino-login-error {
+            padding: 12px 14px;
+            border: 1px solid rgba(255,100,100,.15);
+            border-radius: 12px;
+            background: rgba(255,100,100,.06);
+            color: #8c4747;
+            font-family: Inter, sans-serif;
+            font-size: 10px;
+            line-height: 1.5;
+          }
+
+          .dino-login-submit {
             width: 100%;
-            height: 52px;
-            margin-top: 4px;
+            height: 54px;
+            margin-top: 2px;
             border: 0;
-            border-radius: 13px;
+            border-radius: 14px;
             background: #0a0a0a;
-            color: #fff;
-            font-family: inherit;
+            color: #ffffff;
+            font-family: Inter, sans-serif;
             font-size: 11px;
             font-weight: 600;
+            letter-spacing: -.01em;
             cursor: pointer;
             transition:
-              transform .15s ease,
-              opacity .15s ease;
+              transform .16s ease,
+              opacity .16s ease;
           }
 
-          .dino-login-button:hover:not(:disabled) {
+          .dino-login-submit:hover:not(:disabled) {
             transform: translateY(-1px);
           }
 
-          .dino-login-button:disabled {
+          .dino-login-submit:active:not(:disabled) {
+            transform: translateY(0);
+          }
+
+          .dino-login-submit:disabled {
             opacity: .45;
             cursor: not-allowed;
           }
 
-          .dino-login-error {
-            padding: 11px 13px;
-            border: 1px solid rgba(180,50,50,.13);
-            border-radius: 11px;
-            background: rgba(180,50,50,.05);
-            color: #8c4444;
-            font-size: 10px;
-            line-height: 1.45;
-          }
-
           .dino-create-account {
             width: 100%;
-            margin-top: 20px;
-            padding: 15px 0 0;
+            margin-top: 22px;
+            padding-top: 17px;
             border: 0;
             border-top: 1px solid rgba(0,0,0,.07);
             background: transparent;
-            color: #777;
-            font-family: inherit;
+            color: #888;
+            font-family: Inter, sans-serif;
             font-size: 10px;
+            font-weight: 400;
             cursor: pointer;
           }
 
           .dino-create-account span {
             color: #0a0a0a;
-            font-weight: 700;
+            font-weight: 600;
           }
 
           .dino-create-account:hover {
-            color: #555;
+            color: #666;
+          }
+
+          .dino-back-home {
+            width: 100%;
+            margin-top: 13px;
+            border: 0;
+            background: transparent;
+            color: #aaa;
+            font-family: Inter, sans-serif;
+            font-size: 9px;
+            cursor: pointer;
+          }
+
+          .dino-back-home:hover {
+            color: #777;
           }
 
           @media (max-width: 600px) {
             .dino-login-card {
               padding: 25px;
-            }
-
-            .dino-login-title {
-              font-size: 36px;
             }
           }
         `}
@@ -249,6 +320,10 @@ function Login({ navigate }) {
         <div className="onboarding-header">
           <div className="onboarding-brand">
             Dino
+          </div>
+
+          <div className="step-counter">
+            Log in
           </div>
         </div>
 
@@ -268,14 +343,15 @@ function Login({ navigate }) {
             alignItems: 'center',
             justifyContent: 'center',
             minHeight:
-              'calc(100vh - 160px)',
+              'calc(100vh - 180px)',
           }}
         >
           <div className="dino-login-page">
             <div className="dino-login-card">
-              <div className="dino-login-brand">
-                Welcome back.
-              </div>
+
+              <span className="dino-login-kicker">
+                Welcome back
+              </span>
 
               <h1 className="dino-login-title">
                 Log back
@@ -283,56 +359,64 @@ function Login({ navigate }) {
               </h1>
 
               <p className="dino-login-description">
-                Sign in to continue your
-                Language B study workspace.
+                Sign in to continue to
+                your Dino Language B
+                workspace.
               </p>
 
               <form
                 className="dino-login-form"
-                onSubmit={handleLogin}
+                onSubmit={
+                  handleLogin
+                }
               >
                 <div className="dino-login-field">
                   <label
                     className="dino-login-label"
-                    htmlFor="login-email"
+                    htmlFor="dino-login-email"
                   >
                     Email
                   </label>
 
                   <input
-                    id="login-email"
+                    id="dino-login-email"
                     className="dino-login-input"
                     type="email"
                     value={email}
-                    onChange={(event) => {
+                    onChange={(
+                      event,
+                    ) => {
                       setEmail(
                         event.target.value,
                       )
-                      setError('')
+                      clearError()
                     }}
                     placeholder="you@example.com"
                     autoComplete="email"
+                    autoFocus
                   />
                 </div>
 
                 <div className="dino-login-field">
                   <label
                     className="dino-login-label"
-                    htmlFor="login-password"
+                    htmlFor="dino-login-password"
                   >
                     Password
                   </label>
 
                   <input
-                    id="login-password"
+                    id="dino-login-password"
                     className="dino-login-input"
                     type="password"
                     value={password}
-                    onChange={(event) => {
+                    onChange={(
+                      event,
+                    ) => {
                       setPassword(
                         event.target.value,
                       )
-                      setError('')
+                      clearError()
                     }}
                     placeholder="Your password"
                     autoComplete="current-password"
@@ -347,7 +431,7 @@ function Login({ navigate }) {
 
                 <button
                   type="submit"
-                  className="dino-login-button"
+                  className="dino-login-submit"
                   disabled={loading}
                 >
                   {loading
@@ -360,7 +444,9 @@ function Login({ navigate }) {
                 type="button"
                 className="dino-create-account"
                 onClick={() =>
-                  navigate('/get-started.jsx')
+                  navigate(
+                    '/get-started.jsx',
+                  )
                 }
               >
                 Don't have an account?
@@ -369,6 +455,17 @@ function Login({ navigate }) {
                   Create one
                 </span>
               </button>
+
+              <button
+                type="button"
+                className="dino-back-home"
+                onClick={() =>
+                  navigate('/')
+                }
+              >
+                Back to home
+              </button>
+
             </div>
           </div>
         </div>

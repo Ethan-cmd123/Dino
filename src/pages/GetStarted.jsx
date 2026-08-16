@@ -27,31 +27,56 @@ const goals = [
 ]
 
 function GetStarted({ navigate }) {
-  const [step, setStep] = useState(1)
+  const [step, setStep] =
+    useState(1)
 
-  const [language, setLanguage] = useState('')
-  const [examDate, setExamDate] = useState('')
-  const [selectedGoals, setSelectedGoals] = useState([])
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] =
+  const [language, setLanguage] =
     useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
+
+  const [examDate, setExamDate] =
+    useState('')
+
+  const [
+    selectedGoals,
+    setSelectedGoals,
+  ] = useState([])
+
+  const [email, setEmail] =
+    useState('')
+
+  const [password, setPassword] =
+    useState('')
+
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] = useState('')
+
+  const [loading, setLoading] =
+    useState(false)
+
+  const [error, setError] =
+    useState('')
+
+  const [notice, setNotice] =
+    useState('')
 
   useEffect(() => {
     async function checkSession() {
       try {
-        const user = await getCurrentUser()
+        const user =
+          await getCurrentUser()
 
         if (!user) {
           return
         }
 
-        const profile = await getProfile(user.id)
+        const profile =
+          await getProfile(user.id)
 
-        if (profile?.onboarding_complete) {
+        if (
+          profile?.onboarding_complete
+        ) {
           navigate('/dashboard')
         }
       } catch (error) {
@@ -73,27 +98,45 @@ function GetStarted({ navigate }) {
   function toggleGoal(goal) {
     clearMessages()
 
-    setSelectedGoals((current) => {
-      if (current.includes(goal)) {
-        return current.filter(
-          (item) => item !== goal,
-        )
-      }
+    setSelectedGoals(
+      (current) => {
+        if (
+          current.includes(goal)
+        ) {
+          return current.filter(
+            (item) =>
+              item !== goal,
+          )
+        }
 
-      return [...current, goal]
-    })
+        return [
+          ...current,
+          goal,
+        ]
+      },
+    )
   }
 
   function nextStep() {
     clearMessages()
 
-    if (step === 1 && !language) {
-      setError('Choose your Language B first.')
+    if (
+      step === 1 &&
+      !language
+    ) {
+      setError(
+        'Choose your Language B first.',
+      )
       return
     }
 
-    if (step === 2 && !examDate) {
-      setError('Choose your exam date first.')
+    if (
+      step === 2 &&
+      !examDate
+    ) {
+      setError(
+        'Choose your exam date first.',
+      )
       return
     }
 
@@ -101,20 +144,30 @@ function GetStarted({ navigate }) {
       step === 3 &&
       selectedGoals.length === 0
     ) {
-      setError('Choose at least one goal first.')
+      setError(
+        'Choose at least one goal first.',
+      )
       return
     }
 
-    setStep((current) =>
-      Math.min(current + 1, 4),
+    setStep(
+      (current) =>
+        Math.min(
+          current + 1,
+          4,
+        ),
     )
   }
 
   function previousStep() {
     clearMessages()
 
-    setStep((current) =>
-      Math.max(current - 1, 1),
+    setStep(
+      (current) =>
+        Math.max(
+          current - 1,
+          1,
+        ),
     )
   }
 
@@ -125,12 +178,16 @@ function GetStarted({ navigate }) {
       email.trim().toLowerCase()
 
     if (!cleanEmail) {
-      setError('Enter your email address.')
+      setError(
+        'Enter your email address.',
+      )
       return
     }
 
     if (!cleanEmail.includes('@')) {
-      setError('Enter a valid email address.')
+      setError(
+        'Enter a valid email address.',
+      )
       return
     }
 
@@ -141,45 +198,57 @@ function GetStarted({ navigate }) {
       return
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+    if (
+      password !==
+      confirmPassword
+    ) {
+      setError(
+        'Passwords do not match.',
+      )
       return
     }
 
     if (!language) {
-      setError('Choose your Language B.')
+      setError(
+        'Choose your Language B.',
+      )
       return
     }
 
     if (!examDate) {
-      setError('Choose your exam date.')
+      setError(
+        'Choose your exam date.',
+      )
       return
     }
 
-    if (selectedGoals.length === 0) {
-      setError('Choose at least one goal.')
+    if (
+      selectedGoals.length === 0
+    ) {
+      setError(
+        'Choose at least one goal.',
+      )
       return
     }
 
     setLoading(true)
 
     try {
-      const data = await signUp(
-        cleanEmail,
-        password,
-        {
-          language,
-          examDate,
-          selectedGoals,
-        },
-      )
+      const data =
+        await signUp(
+          cleanEmail,
+          password,
+          {
+            language,
+            examDate,
+            selectedGoals,
+          },
+        )
 
-      /*
-       * Email confirmation OFF:
-       * Supabase immediately gives us
-       * a session.
-       */
-      if (data?.session && data?.user) {
+      if (
+        data?.session &&
+        data?.user
+      ) {
         await saveOnboarding(
           data.user.id,
           {
@@ -189,15 +258,13 @@ function GetStarted({ navigate }) {
           },
         )
 
-        navigate('/dashboard')
+        navigate(
+          '/dashboard',
+        )
+
         return
       }
 
-      /*
-       * Email confirmation ON:
-       * account exists but session is
-       * not active yet.
-       */
       setNotice(
         'Account created. Check your email to confirm your account, then log in.',
       )
@@ -218,7 +285,80 @@ function GetStarted({ navigate }) {
 
   return (
     <AnimatedBackground className="onboarding-page">
+
+      <style>
+        {`
+          .dino-signup-input {
+            width: 100%;
+            height: 54px;
+            box-sizing: border-box;
+            padding: 0 16px;
+            border: 1px solid rgba(0,0,0,.10);
+            border-radius: 14px;
+            outline: none;
+            background: rgba(255,255,255,.94);
+            color: #000000;
+            -webkit-text-fill-color: #000000;
+            font-family: Inter, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1;
+            letter-spacing: -.015em;
+            transition:
+              border-color .16s ease,
+              box-shadow .16s ease,
+              background .16s ease;
+          }
+
+          .dino-signup-input::placeholder {
+            color: #999999;
+            -webkit-text-fill-color: #999999;
+            font-family: Inter, sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+          }
+
+          .dino-signup-input:focus {
+            border-color: rgba(0,0,0,.24);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0,0,0,.045);
+          }
+
+          .dino-signup-input:-webkit-autofill,
+          .dino-signup-input:-webkit-autofill:hover,
+          .dino-signup-input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #000000;
+            box-shadow: 0 0 0 1000px #ffffff inset;
+            font-family: Inter, sans-serif;
+          }
+
+          .dino-signup-label {
+            color: rgba(255,255,255,.60);
+            font-family: Inter, sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1;
+          }
+
+          .dino-signup-fields {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 30px;
+          }
+
+          .dino-signup-field {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+        `}
+      </style>
+
       <div className="onboarding-wrapper">
+
         <div className="onboarding-header">
           <div className="onboarding-brand">
             Dino
@@ -241,6 +381,7 @@ function GetStarted({ navigate }) {
         </div>
 
         <div className="onboarding-content">
+
           {step === 1 && (
             <div className="onboarding-step">
               <span className="page-eyebrow">
@@ -256,45 +397,60 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                Choose the language you're
-                studying for IB.
+                Choose the language
+                you're studying
+                for IB.
               </p>
 
               <div className="choice-grid">
-                {languages.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    className={`choice-card ${
-                      language === item
-                        ? 'selected'
-                        : ''
-                    }`}
-                    onClick={() => {
-                      setLanguage(item)
-                      clearMessages()
-                    }}
-                  >
-                    <span>{item}</span>
+                {languages.map(
+                  (item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      className={`choice-card ${
+                        language ===
+                        item
+                          ? 'selected'
+                          : ''
+                      }`}
+                      onClick={() => {
+                        setLanguage(
+                          item,
+                        )
+                        clearMessages()
+                      }}
+                    >
+                      <span>
+                        {item}
+                      </span>
 
-                    <span className="choice-circle">
-                      {language === item
-                        ? '✓'
-                        : ''}
-                    </span>
-                  </button>
-                ))}
+                      <span className="choice-circle">
+                        {language ===
+                        item
+                          ? '✓'
+                          : ''}
+                      </span>
+                    </button>
+                  ),
+                )}
               </div>
 
               <button
                 type="button"
                 className="login-bypass"
                 onClick={() =>
-                  navigate('/login')
+                  navigate(
+                    '/login',
+                  )
                 }
               >
-                Already have an account?
-                <span> Log in</span>
+                Already have an
+                account?
+                <span>
+                  {' '}
+                  Log in
+                </span>
               </button>
             </div>
           )}
@@ -314,8 +470,9 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                We'll use this to shape
-                your study timeline.
+                We'll use this to
+                shape your study
+                timeline.
               </p>
 
               <div className="date-wrapper">
@@ -324,7 +481,9 @@ function GetStarted({ navigate }) {
                   value={examDate}
                   onChange={(event) => {
                     setExamDate(
-                      event.target.value,
+                      event
+                        .target
+                        .value,
                     )
                     clearMessages()
                   }}
@@ -332,14 +491,17 @@ function GetStarted({ navigate }) {
                   min={
                     new Date()
                       .toISOString()
-                      .split('T')[0]
+                      .split(
+                        'T',
+                      )[0]
                   }
                 />
               </div>
 
               <div className="date-hint">
-                Pick the date of your
-                Language B examination.
+                Pick the date of
+                your Language B
+                examination.
               </div>
             </div>
           )}
@@ -359,37 +521,44 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                Choose everything you're
-                interested in.
+                Choose everything
+                you're interested
+                in.
               </p>
 
               <div className="goal-grid">
-                {goals.map((goal) => (
-                  <button
-                    key={goal}
-                    type="button"
-                    className={`goal-card ${
-                      selectedGoals.includes(
-                        goal,
-                      )
-                        ? 'selected'
-                        : ''
-                    }`}
-                    onClick={() =>
-                      toggleGoal(goal)
-                    }
-                  >
-                    <span>{goal}</span>
+                {goals.map(
+                  (goal) => (
+                    <button
+                      key={goal}
+                      type="button"
+                      className={`goal-card ${
+                        selectedGoals.includes(
+                          goal,
+                        )
+                          ? 'selected'
+                          : ''
+                      }`}
+                      onClick={() =>
+                        toggleGoal(
+                          goal,
+                        )
+                      }
+                    >
+                      <span>
+                        {goal}
+                      </span>
 
-                    <span className="goal-check">
-                      {selectedGoals.includes(
-                        goal,
-                      )
-                        ? '✓'
-                        : '+'}
-                    </span>
-                  </button>
-                ))}
+                      <span className="goal-check">
+                        {selectedGoals.includes(
+                          goal,
+                        )
+                          ? '✓'
+                          : '+'}
+                      </span>
+                    </button>
+                  ),
+                )}
               </div>
             </div>
           )}
@@ -398,9 +567,12 @@ function GetStarted({ navigate }) {
             <div
               className="onboarding-step"
               style={{
-                width: '100%',
-                maxWidth: '520px',
-                margin: '0 auto',
+                width:
+                  '100%',
+                maxWidth:
+                  '520px',
+                margin:
+                  '0 auto',
               }}
             >
               <span className="page-eyebrow">
@@ -416,35 +588,18 @@ function GetStarted({ navigate }) {
               </h1>
 
               <p className="onboarding-description">
-                Your Language B, exam date
-                and goals will be saved to
+                Your Language B,
+                exam date and goals
+                will be saved to
                 your account.
               </p>
 
-              <div
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  marginTop: '30px',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                  }}
-                >
+              <div className="dino-signup-fields">
+
+                <div className="dino-signup-field">
                   <label
                     htmlFor="dino-email"
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color:
-                        'rgba(255,255,255,0.60)',
-                    }}
+                    className="dino-signup-label"
                   >
                     Email
                   </label>
@@ -453,38 +608,26 @@ function GetStarted({ navigate }) {
                     id="dino-email"
                     type="email"
                     value={email}
-                    onChange={(event) => {
+                    onChange={(
+                      event,
+                    ) => {
                       setEmail(
-                        event.target.value,
+                        event
+                          .target
+                          .value,
                       )
                       clearMessages()
                     }}
                     placeholder="you@example.com"
                     autoComplete="email"
-                    className="exam-date"
-                    style={{
-                      color: '#000000',
-                      WebkitTextFillColor:
-                        '#000000',
-                    }}
+                    className="dino-signup-input"
                   />
                 </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                  }}
-                >
+                <div className="dino-signup-field">
                   <label
                     htmlFor="dino-password"
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color:
-                        'rgba(255,255,255,0.60)',
-                    }}
+                    className="dino-signup-label"
                   >
                     Password
                   </label>
@@ -493,38 +636,26 @@ function GetStarted({ navigate }) {
                     id="dino-password"
                     type="password"
                     value={password}
-                    onChange={(event) => {
+                    onChange={(
+                      event,
+                    ) => {
                       setPassword(
-                        event.target.value,
+                        event
+                          .target
+                          .value,
                       )
                       clearMessages()
                     }}
                     placeholder="At least 6 characters"
                     autoComplete="new-password"
-                    className="exam-date"
-                    style={{
-                      color: '#000000',
-                      WebkitTextFillColor:
-                        '#000000',
-                    }}
+                    className="dino-signup-input"
                   />
                 </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                  }}
-                >
+                <div className="dino-signup-field">
                   <label
                     htmlFor="dino-confirm-password"
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color:
-                        'rgba(255,255,255,0.60)',
-                    }}
+                    className="dino-signup-label"
                   >
                     Confirm password
                   </label>
@@ -532,16 +663,25 @@ function GetStarted({ navigate }) {
                   <input
                     id="dino-confirm-password"
                     type="password"
-                    value={confirmPassword}
-                    onChange={(event) => {
+                    value={
+                      confirmPassword
+                    }
+                    onChange={(
+                      event,
+                    ) => {
                       setConfirmPassword(
-                        event.target.value,
+                        event
+                          .target
+                          .value,
                       )
                       clearMessages()
                     }}
                     placeholder="Repeat your password"
                     autoComplete="new-password"
-                    onKeyDown={(event) => {
+                    className="dino-signup-input"
+                    onKeyDown={(
+                      event,
+                    ) => {
                       if (
                         event.key ===
                         'Enter'
@@ -549,30 +689,32 @@ function GetStarted({ navigate }) {
                         finish()
                       }
                     }}
-                    className="exam-date"
-                    style={{
-                      color: '#000000',
-                      WebkitTextFillColor:
-                        '#000000',
-                    }}
                   />
                 </div>
+
               </div>
 
               {error && (
                 <div
                   style={{
-                    marginTop: '18px',
-                    padding: '12px 14px',
+                    marginTop:
+                      '18px',
+                    padding:
+                      '12px 14px',
                     border:
                       '1px solid rgba(255,100,100,0.18)',
-                    borderRadius: '12px',
+                    borderRadius:
+                      '12px',
                     background:
                       'rgba(255,100,100,0.07)',
                     color:
                       'rgba(255,190,190,0.95)',
-                    fontSize: '12px',
-                    lineHeight: 1.5,
+                    fontFamily:
+                      'Inter, sans-serif',
+                    fontSize:
+                      '12px',
+                    lineHeight:
+                      1.5,
                   }}
                 >
                   {error}
@@ -582,17 +724,24 @@ function GetStarted({ navigate }) {
               {notice && (
                 <div
                   style={{
-                    marginTop: '18px',
-                    padding: '12px 14px',
+                    marginTop:
+                      '18px',
+                    padding:
+                      '12px 14px',
                     border:
                       '1px solid rgba(140,255,185,0.16)',
-                    borderRadius: '12px',
+                    borderRadius:
+                      '12px',
                     background:
                       'rgba(140,255,185,0.06)',
                     color:
                       'rgba(190,255,215,0.95)',
-                    fontSize: '12px',
-                    lineHeight: 1.5,
+                    fontFamily:
+                      'Inter, sans-serif',
+                    fontSize:
+                      '12px',
+                    lineHeight:
+                      1.5,
                   }}
                 >
                   {notice}
@@ -603,12 +752,16 @@ function GetStarted({ navigate }) {
         </div>
 
         <div className="onboarding-footer">
+
           <button
             type="button"
             className="back-button"
-            onClick={previousStep}
+            onClick={
+              previousStep
+            }
             disabled={
-              step === 1 || loading
+              step === 1 ||
+              loading
             }
           >
             Back
@@ -618,8 +771,12 @@ function GetStarted({ navigate }) {
             <button
               type="button"
               className="next-button"
-              onClick={nextStep}
-              disabled={loading}
+              onClick={
+                nextStep
+              }
+              disabled={
+                loading
+              }
             >
               Next
             </button>
@@ -628,13 +785,16 @@ function GetStarted({ navigate }) {
               type="button"
               className="next-button"
               onClick={finish}
-              disabled={loading}
+              disabled={
+                loading
+              }
             >
               {loading
                 ? 'Creating account…'
                 : 'Create account'}
             </button>
           )}
+
         </div>
       </div>
     </AnimatedBackground>

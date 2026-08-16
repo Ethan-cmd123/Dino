@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 
 import Home from './pages/Home'
+import Login from './pages/Login'
 import GetStarted from './pages/GetStarted'
 import Dashboard from './pages/Dashboard'
 import Testimonials from './pages/Testimonials'
@@ -10,6 +11,7 @@ import AboutUs from './pages/AboutUs'
 
 const routes = {
   '/': Home,
+  '/login': Login,
   '/get-started': GetStarted,
   '/dashboard': Dashboard,
   '/testimonials': Testimonials,
@@ -33,10 +35,16 @@ function App() {
       setMenuOpen(false)
     }
 
-    window.addEventListener('popstate', handlePopState)
+    window.addEventListener(
+      'popstate',
+      handlePopState,
+    )
 
     return () => {
-      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener(
+        'popstate',
+        handlePopState,
+      )
     }
   }, [])
 
@@ -50,7 +58,12 @@ function App() {
     setMenuOpen(false)
 
     setTimeout(() => {
-      window.history.pushState({}, '', to)
+      window.history.pushState(
+        {},
+        '',
+        to,
+      )
+
       setPath(to)
 
       window.scrollTo(0, 0)
@@ -61,28 +74,41 @@ function App() {
     }, 180)
   }
 
-  const CurrentPage = routes[path] || Home
+  const CurrentPage =
+    routes[path] || Home
 
   return (
     <div className="app">
-      <div className={`page-transition ${isTransitioning ? 'active' : ''}`} />
+      <div
+        className={`page-transition ${
+          isTransitioning
+            ? 'active'
+            : ''
+        }`}
+      />
 
       <header className="navbar">
         <div className="nav-inner">
           <button
             type="button"
             className="logo"
-            onClick={() => navigate('/')}
+            onClick={() =>
+              navigate('/')
+            }
             aria-label="Go home"
           >
             Dino
-            <span className="trademark">®</span>
+            <span className="trademark">
+              ®
+            </span>
           </button>
 
           <button
             type="button"
             className="menu-button"
-            onClick={() => setMenuOpen(true)}
+            onClick={() =>
+              setMenuOpen(true)
+            }
           >
             <span>Menu</span>
 
@@ -104,12 +130,20 @@ function App() {
         </div>
       </header>
 
-      <div className={`drawer ${menuOpen ? 'drawer-open' : ''}`}>
+      <div
+        className={`drawer ${
+          menuOpen
+            ? 'drawer-open'
+            : ''
+        }`}
+      >
         <div className="drawer-inner">
           <button
             type="button"
             className="drawer-close"
-            onClick={() => setMenuOpen(false)}
+            onClick={() =>
+              setMenuOpen(false)
+            }
           >
             <span>Close</span>
 
@@ -129,15 +163,35 @@ function App() {
           </button>
 
           <nav className="drawer-nav">
-            <button onClick={() => navigate('/get-started')}>
+            <button
+              onClick={() =>
+                navigate('/get-started')
+              }
+            >
               Get Started
             </button>
 
-            <button onClick={() => navigate('/faqs')}>
+            <button
+              onClick={() =>
+                navigate('/login')
+              }
+            >
+              Log In
+            </button>
+
+            <button
+              onClick={() =>
+                navigate('/faqs')
+              }
+            >
               FAQs
             </button>
 
-            <button onClick={() => navigate('/about-us')}>
+            <button
+              onClick={() =>
+                navigate('/about-us')
+              }
+            >
               About Us
             </button>
           </nav>
@@ -149,7 +203,9 @@ function App() {
       </div>
 
       <main className="page-container">
-        <CurrentPage navigate={navigate} />
+        <CurrentPage
+          navigate={navigate}
+        />
       </main>
     </div>
   )
