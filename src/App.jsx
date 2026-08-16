@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import Testimonials from './pages/Testimonials'
 import FAQs from './pages/FAQs'
 import AboutUs from './pages/AboutUs'
+import Blog from './pages/Blog'
 
 const routes = {
   '/': Home,
@@ -18,19 +19,43 @@ const routes = {
   '/testimonials': Testimonials,
   '/faqs': FAQs,
   '/about-us': AboutUs,
+  '/blog': Blog,
+}
+
+function normalizePath(pathname) {
+  let path = pathname
+    .replace(/\/+$/, '')
+    || '/'
+
+  if (
+    path.length > 1 &&
+    path.endsWith('.jsx')
+  ) {
+    path = path.slice(0, -4)
+  }
+
+  return path
 }
 
 function getCurrentPath() {
-  const pathname =
-    window.location.pathname
+  const pathname = normalizePath(
+    window.location.pathname,
+  )
 
-  const normalizedPath =
-    pathname
-      .replace(/\/+$/, '') || '/'
+  if (routes[pathname]) {
+    return pathname
+  }
 
-  return routes[normalizedPath]
-    ? normalizedPath
-    : '/'
+  /*
+   * Blog article routes use:
+   * /blog/post-slug
+   */
+
+  if (pathname.startsWith('/blog/')) {
+    return pathname
+  }
+
+  return '/'
 }
 
 function App() {
@@ -66,22 +91,28 @@ function App() {
 
   const navigate = (to) => {
     const destination =
-      String(to || '')
-        .trim()
-        .replace(/\/+$/, '') || '/'
+      normalizePath(
+        String(to || '').trim(),
+      )
 
-    if (
-      destination === path
-    ) {
-      setMenuOpen(false)
-      return
-    }
+    /*
+     * Allow normal routes and blog article URLs.
+     */
+    const isValidRoute =
+      Boolean(routes[destination]) ||
+      destination === '/blog' ||
+      destination.startsWith('/blog/')
 
-    if (!routes[destination]) {
+    if (!isValidRoute) {
       console.error(
         `Dino router: route "${destination}" does not exist.`,
       )
 
+      return
+    }
+
+    if (destination === path) {
+      setMenuOpen(false)
       return
     }
 
@@ -106,8 +137,26 @@ function App() {
     }, 220)
   }
 
-  const CurrentPage =
-    routes[path] || Home
+  /*
+   * Determine which page component should render.
+   *
+   * /blog                -> Blog index
+   * /blog/example-post   -> Blog article
+   */
+  let CurrentPage = routes[path] || Home
+
+  let pageProps = {
+    navigate,
+  }
+
+  if (path.startsWith('/blog/')) {
+    CurrentPage = Blog
+
+    pageProps = {
+      navigate,
+      slug: path.replace('/blog/', ''),
+    }
+  }
 
   return (
     <div className="app">
@@ -141,6 +190,7 @@ function App() {
             onClick={() =>
               setMenuOpen(true)
             }
+            aria-label="Open menu"
           >
             <span>
               Menu
@@ -178,6 +228,7 @@ function App() {
             onClick={() =>
               setMenuOpen(false)
             }
+            aria-label="Close menu"
           >
             <span>
               Close
@@ -202,9 +253,7 @@ function App() {
             <button
               type="button"
               onClick={() =>
-                navigate(
-                  '/get-started',
-                )
+                navigate('/get-started')
               }
             >
               Get Started
@@ -213,9 +262,7 @@ function App() {
             <button
               type="button"
               onClick={() =>
-                navigate(
-                  '/login',
-                )
+                navigate('/login')
               }
             >
               Log In
@@ -224,9 +271,16 @@ function App() {
             <button
               type="button"
               onClick={() =>
-                navigate(
-                  '/faqs',
-                )
+                navigate('/blog')
+              }
+            >
+              Blog
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                navigate('/faqs')
               }
             >
               FAQs
@@ -235,9 +289,7 @@ function App() {
             <button
               type="button"
               onClick={() =>
-                navigate(
-                  '/about-us',
-                )
+                navigate('/about-us')
               }
             >
               About Us
@@ -254,7 +306,7 @@ function App() {
 
       <main className="page-container">
         <CurrentPage
-          navigate={navigate}
+          {...pageProps}
         />
       </main>
     </div>
