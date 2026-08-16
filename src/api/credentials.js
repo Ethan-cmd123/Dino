@@ -16,7 +16,6 @@ function normalizeSupabaseUrl(value) {
   url = url.replace(/\s+/g, '')
   url = url.replace(/\/+$/, '')
 
-  // Strip accidental API paths.
   url = url.replace(
     /\/(auth|rest|storage|realtime)\/v1$/i,
     '',
@@ -283,6 +282,95 @@ export async function saveOnboarding(
   }
 
   return data
+}
+
+/* -------------------------------------------------------------------------- */
+/* COURSE PROGRESS                                                            */
+/* -------------------------------------------------------------------------- */
+
+export async function getCourseProgress(
+  userId,
+) {
+  if (!userId) {
+    return []
+  }
+
+  const { data, error } =
+    await supabase
+      .from('course_progress')
+      .select(
+        'topic_id, completed',
+      )
+      .eq('user_id', userId)
+      .eq('completed', true)
+
+  if (error) {
+    throw error
+  }
+
+  return (
+    data?.map(
+      (item) => item.topic_id,
+    ) || []
+  )
+}
+
+export async function setCourseTopicCompleted(
+  userId,
+  topicId,
+  completed,
+) {
+  if (!userId) {
+    throw new Error(
+      'Cannot save course progress without a user ID.',
+    )
+  }
+
+  if (!topicId) {
+    throw new Error(
+      'Cannot save course progress without a topic ID.',
+    )
+  }
+
+  if (completed) {
+    const { data, error } =
+      await supabase
+        .from('course_progress')
+        .upsert(
+          {
+            user_id: userId,
+            topic_id: topicId,
+            completed: true,
+            updated_at:
+              new Date().toISOString(),
+          },
+          {
+            onConflict:
+              'user_id,topic_id',
+          },
+        )
+        .select()
+        .single()
+
+    if (error) {
+      throw error
+    }
+
+    return data
+  }
+
+  const { error } =
+    await supabase
+      .from('course_progress')
+      .delete()
+      .eq('user_id', userId)
+      .eq('topic_id', topicId)
+
+  if (error) {
+    throw error
+  }
+
+  return null
 }
 
 /* -------------------------------------------------------------------------- */

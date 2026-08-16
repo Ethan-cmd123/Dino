@@ -1,27 +1,39 @@
-import { useEffect, useMemo, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import AnimatedBackground from '../components/AnimatedBackground'
+import {
+  getCurrentUser,
+  getProfile,
+  getCourseProgress,
+  setCourseTopicCompleted,
+  onAuthStateChange,
+  signOut,
+} from '../api/credentials'
 
 /*
-|--------------------------------------------------------------------------
-| Groq
-|--------------------------------------------------------------------------
+|--------------------------------------------------------------------------|
+| Groq                                                                    |
+|--------------------------------------------------------------------------|
 |
-| Groq requests are sent through the server-side Vercel function:
+| Requests are sent through:
 |
 |   /api/generate
 |
-| IMPORTANT:
-| The GROQ_API_KEY is NEVER exposed to the browser.
+| The GROQ_API_KEY remains server-side.
 |
 */
 
 const GROQ_ENDPOINT = '/api/generate'
 
-const GROQ_MODEL = 'openai/gpt-oss-120b'
+const GROQ_MODEL =
+  'openai/gpt-oss-120b'
 
-/* ==========================================================================
-   WRITING
-   ========================================================================== */
+/* ========================================================================== */
+/* WRITING                                                                   */
+/* ========================================================================== */
 
 const writingTypes = [
   'Article',
@@ -34,9 +46,9 @@ const writingTypes = [
   'Interview',
 ]
 
-/* ==========================================================================
-   IB LANGUAGE B COURSE OUTLINE
-   ========================================================================== */
+/* ========================================================================== */
+/* COURSE OUTLINE                                                            */
+/* ========================================================================== */
 
 const COURSE = {
   'French B': {
@@ -46,21 +58,45 @@ const COURSE = {
         local: 'Identités',
         topics: [
           ['Lifestyles', 'Modes de vie'],
-          ['Health and wellbeing', 'Santé et bien-être'],
-          ['Beliefs and values', 'Croyances et valeurs'],
+          [
+            'Health and wellbeing',
+            'Santé et bien-être',
+          ],
+          [
+            'Beliefs and values',
+            'Croyances et valeurs',
+          ],
           ['Subcultures', 'Sous-cultures'],
-          ['Language and identity', 'Langue et identité'],
+          [
+            'Language and identity',
+            'Langue et identité',
+          ],
         ],
       },
       {
         en: 'Experiences',
         local: 'Expériences',
         topics: [
-          ['Leisure activities', 'Activités de loisirs'],
-          ['Holidays and travel', 'Vacances et voyages'],
-          ['Life stories', 'Récits de vie'],
-          ['Rites of passage', 'Rites de passage'],
-          ['Customs and traditions', 'Coutumes et traditions'],
+          [
+            'Leisure activities',
+            'Activités de loisirs',
+          ],
+          [
+            'Holidays and travel',
+            'Vacances et voyages',
+          ],
+          [
+            'Life stories',
+            'Récits de vie',
+          ],
+          [
+            'Rites of passage',
+            'Rites de passage',
+          ],
+          [
+            'Customs and traditions',
+            'Coutumes et traditions',
+          ],
           ['Migration', 'Migration'],
         ],
       },
@@ -69,35 +105,68 @@ const COURSE = {
         local: 'Ingéniosité humaine',
         topics: [
           ['Entertainment', 'Divertissement'],
-          ['Artistic expressions', 'Expressions artistiques'],
-          ['Communication and media', 'Communication et médias'],
+          [
+            'Artistic expressions',
+            'Expressions artistiques',
+          ],
+          [
+            'Communication and media',
+            'Communication et médias',
+          ],
           ['Technology', 'Technologie'],
-          ['Scientific innovation', 'Innovation scientifique'],
+          [
+            'Scientific innovation',
+            'Innovation scientifique',
+          ],
         ],
       },
       {
         en: 'Social organization',
         local: 'Organisation sociale',
         topics: [
-          ['Social relationships', 'Relations sociales'],
+          [
+            'Social relationships',
+            'Relations sociales',
+          ],
           ['Community', 'Communauté'],
-          ['Social engagement', 'Engagement social'],
+          [
+            'Social engagement',
+            'Engagement social',
+          ],
           ['Education', 'Éducation'],
-          ['The world of work', 'Le monde du travail'],
-          ['Law and order', 'Droit et ordre public'],
+          [
+            'The world of work',
+            'Le monde du travail',
+          ],
+          [
+            'Law and order',
+            'Droit et ordre public',
+          ],
         ],
       },
       {
         en: 'Sharing the planet',
         local: 'Partage de la planète',
         topics: [
-          ['The environment', "L’environnement"],
+          [
+            'The environment',
+            "L’environnement",
+          ],
           ['Human rights', 'Droits humains'],
-          ['Peace and conflict', 'Paix et conflits'],
+          [
+            'Peace and conflict',
+            'Paix et conflits',
+          ],
           ['Equality', 'Égalité'],
-          ['Globalization', 'Mondialisation'],
+          [
+            'Globalization',
+            'Mondialisation',
+          ],
           ['Ethics', 'Éthique'],
-          ['Urban and rural environment', 'Environnement urbain et rural'],
+          [
+            'Urban and rural environment',
+            'Environnement urbain et rural',
+          ],
         ],
       },
     ],
@@ -110,21 +179,45 @@ const COURSE = {
         local: 'Identidades',
         topics: [
           ['Lifestyles', 'Estilos de vida'],
-          ['Health and wellbeing', 'Salud y bienestar'],
-          ['Beliefs and values', 'Creencias y valores'],
+          [
+            'Health and wellbeing',
+            'Salud y bienestar',
+          ],
+          [
+            'Beliefs and values',
+            'Creencias y valores',
+          ],
           ['Subcultures', 'Subculturas'],
-          ['Language and identity', 'Lengua e identidad'],
+          [
+            'Language and identity',
+            'Lengua e identidad',
+          ],
         ],
       },
       {
         en: 'Experiences',
         local: 'Experiencias',
         topics: [
-          ['Leisure activities', 'Actividades de ocio'],
-          ['Holidays and travel', 'Vacaciones y viajes'],
-          ['Life stories', 'Historias de vida'],
-          ['Rites of passage', 'Ritos de paso'],
-          ['Customs and traditions', 'Costumbres y tradiciones'],
+          [
+            'Leisure activities',
+            'Actividades de ocio',
+          ],
+          [
+            'Holidays and travel',
+            'Vacaciones y viajes',
+          ],
+          [
+            'Life stories',
+            'Historias de vida',
+          ],
+          [
+            'Rites of passage',
+            'Ritos de paso',
+          ],
+          [
+            'Customs and traditions',
+            'Costumbres y tradiciones',
+          ],
           ['Migration', 'Migración'],
         ],
       },
@@ -132,36 +225,75 @@ const COURSE = {
         en: 'Human ingenuity',
         local: 'Ingenio humano',
         topics: [
-          ['Entertainment', 'Entretenimiento'],
-          ['Artistic expressions', 'Expresiones artísticas'],
-          ['Communication and media', 'Comunicación y medios'],
+          [
+            'Entertainment',
+            'Entretenimiento',
+          ],
+          [
+            'Artistic expressions',
+            'Expresiones artísticas',
+          ],
+          [
+            'Communication and media',
+            'Comunicación y medios',
+          ],
           ['Technology', 'Tecnología'],
-          ['Scientific innovation', 'Innovación científica'],
+          [
+            'Scientific innovation',
+            'Innovación científica',
+          ],
         ],
       },
       {
         en: 'Social organization',
         local: 'Organización social',
         topics: [
-          ['Social relationships', 'Relaciones sociales'],
+          [
+            'Social relationships',
+            'Relaciones sociales',
+          ],
           ['Community', 'Comunidad'],
-          ['Social engagement', 'Participación social'],
+          [
+            'Social engagement',
+            'Participación social',
+          ],
           ['Education', 'Educación'],
-          ['The world of work', 'El mundo laboral'],
-          ['Law and order', 'Ley y orden'],
+          [
+            'The world of work',
+            'El mundo laboral',
+          ],
+          [
+            'Law and order',
+            'Ley y orden',
+          ],
         ],
       },
       {
         en: 'Sharing the planet',
         local: 'Compartir el planeta',
         topics: [
-          ['The environment', 'El medio ambiente'],
-          ['Human rights', 'Derechos humanos'],
-          ['Peace and conflict', 'Paz y conflicto'],
+          [
+            'The environment',
+            'El medio ambiente',
+          ],
+          [
+            'Human rights',
+            'Derechos humanos',
+          ],
+          [
+            'Peace and conflict',
+            'Paz y conflicto',
+          ],
           ['Equality', 'Igualdad'],
-          ['Globalization', 'Globalización'],
+          [
+            'Globalization',
+            'Globalización',
+          ],
           ['Ethics', 'Ética'],
-          ['Urban and rural environment', 'Entorno urbano y rural'],
+          [
+            'Urban and rural environment',
+            'Entorno urbano y rural',
+          ],
         ],
       },
     ],
@@ -174,10 +306,19 @@ const COURSE = {
         local: '身份认同',
         topics: [
           ['Lifestyles', '生活方式'],
-          ['Health and wellbeing', '健康与身心福祉'],
-          ['Beliefs and values', '信仰与价值观'],
+          [
+            'Health and wellbeing',
+            '健康与身心福祉',
+          ],
+          [
+            'Beliefs and values',
+            '信仰与价值观',
+          ],
           ['Subcultures', '亚文化'],
-          ['Language and identity', '语言与身份认同'],
+          [
+            'Language and identity',
+            '语言与身份认同',
+          ],
         ],
       },
       {
@@ -185,11 +326,26 @@ const COURSE = {
         local: '经历',
         topics: [
           ['Leisure activities', '休闲活动'],
-          ['Holidays and travel', '假期与旅行'],
-          ['Life stories', '人生故事'],
-          ['Rites of passage', '人生阶段仪式'],
-          ['Customs and traditions', '习俗与传统'],
-          ['Migration', '移民与迁徙'],
+          [
+            'Holidays and travel',
+            '假期与旅行',
+          ],
+          [
+            'Life stories',
+            '人生故事',
+          ],
+          [
+            'Rites of passage',
+            '人生阶段仪式',
+          ],
+          [
+            'Customs and traditions',
+            '习俗与传统',
+          ],
+          [
+            'Migration',
+            '移民与迁徙',
+          ],
         ],
       },
       {
@@ -198,21 +354,39 @@ const COURSE = {
         topics: [
           ['Entertainment', '娱乐'],
           ['Artistic expressions', '艺术表达'],
-          ['Communication and media', '传播与媒体'],
+          [
+            'Communication and media',
+            '传播与媒体',
+          ],
           ['Technology', '科技'],
-          ['Scientific innovation', '科学创新'],
+          [
+            'Scientific innovation',
+            '科学创新',
+          ],
         ],
       },
       {
         en: 'Social organization',
         local: '社会组织',
         topics: [
-          ['Social relationships', '社会关系'],
+          [
+            'Social relationships',
+            '社会关系',
+          ],
           ['Community', '社区'],
-          ['Social engagement', '社会参与'],
+          [
+            'Social engagement',
+            '社会参与',
+          ],
           ['Education', '教育'],
-          ['The world of work', '工作世界'],
-          ['Law and order', '法律与秩序'],
+          [
+            'The world of work',
+            '工作世界',
+          ],
+          [
+            'Law and order',
+            '法律与秩序',
+          ],
         ],
       },
       {
@@ -221,11 +395,17 @@ const COURSE = {
         topics: [
           ['The environment', '环境'],
           ['Human rights', '人权'],
-          ['Peace and conflict', '和平与冲突'],
+          [
+            'Peace and conflict',
+            '和平与冲突',
+          ],
           ['Equality', '平等'],
           ['Globalization', '全球化'],
           ['Ethics', '伦理'],
-          ['Urban and rural environment', '城市与农村环境'],
+          [
+            'Urban and rural environment',
+            '城市与农村环境',
+          ],
         ],
       },
     ],
@@ -238,21 +418,45 @@ const COURSE = {
         local: 'Identities',
         topics: [
           ['Lifestyles', 'Lifestyles'],
-          ['Health and wellbeing', 'Health and wellbeing'],
-          ['Beliefs and values', 'Beliefs and values'],
+          [
+            'Health and wellbeing',
+            'Health and wellbeing',
+          ],
+          [
+            'Beliefs and values',
+            'Beliefs and values',
+          ],
           ['Subcultures', 'Subcultures'],
-          ['Language and identity', 'Language and identity'],
+          [
+            'Language and identity',
+            'Language and identity',
+          ],
         ],
       },
       {
         en: 'Experiences',
         local: 'Experiences',
         topics: [
-          ['Leisure activities', 'Leisure activities'],
-          ['Holidays and travel', 'Holidays and travel'],
-          ['Life stories', 'Life stories'],
-          ['Rites of passage', 'Rites of passage'],
-          ['Customs and traditions', 'Customs and traditions'],
+          [
+            'Leisure activities',
+            'Leisure activities',
+          ],
+          [
+            'Holidays and travel',
+            'Holidays and travel',
+          ],
+          [
+            'Life stories',
+            'Life stories',
+          ],
+          [
+            'Rites of passage',
+            'Rites of passage',
+          ],
+          [
+            'Customs and traditions',
+            'Customs and traditions',
+          ],
           ['Migration', 'Migration'],
         ],
       },
@@ -261,35 +465,68 @@ const COURSE = {
         local: 'Human ingenuity',
         topics: [
           ['Entertainment', 'Entertainment'],
-          ['Artistic expressions', 'Artistic expressions'],
-          ['Communication and media', 'Communication and media'],
+          [
+            'Artistic expressions',
+            'Artistic expressions',
+          ],
+          [
+            'Communication and media',
+            'Communication and media',
+          ],
           ['Technology', 'Technology'],
-          ['Scientific innovation', 'Scientific innovation'],
+          [
+            'Scientific innovation',
+            'Scientific innovation',
+          ],
         ],
       },
       {
         en: 'Social organization',
         local: 'Social organization',
         topics: [
-          ['Social relationships', 'Social relationships'],
+          [
+            'Social relationships',
+            'Social relationships',
+          ],
           ['Community', 'Community'],
-          ['Social engagement', 'Social engagement'],
+          [
+            'Social engagement',
+            'Social engagement',
+          ],
           ['Education', 'Education'],
-          ['The world of work', 'The world of work'],
-          ['Law and order', 'Law and order'],
+          [
+            'The world of work',
+            'The world of work',
+          ],
+          [
+            'Law and order',
+            'Law and order',
+          ],
         ],
       },
       {
         en: 'Sharing the planet',
         local: 'Sharing the planet',
         topics: [
-          ['The environment', 'The environment'],
+          [
+            'The environment',
+            'The environment',
+          ],
           ['Human rights', 'Human rights'],
-          ['Peace and conflict', 'Peace and conflict'],
+          [
+            'Peace and conflict',
+            'Peace and conflict',
+          ],
           ['Equality', 'Equality'],
-          ['Globalization', 'Globalization'],
+          [
+            'Globalization',
+            'Globalization',
+          ],
           ['Ethics', 'Ethics'],
-          ['Urban and rural environment', 'Urban and rural environment'],
+          [
+            'Urban and rural environment',
+            'Urban and rural environment',
+          ],
         ],
       },
     ],
@@ -302,21 +539,45 @@ const COURSE = {
         local: 'Identitäten',
         topics: [
           ['Lifestyles', 'Lebensstile'],
-          ['Health and wellbeing', 'Gesundheit und Wohlbefinden'],
-          ['Beliefs and values', 'Glaubensvorstellungen und Werte'],
+          [
+            'Health and wellbeing',
+            'Gesundheit und Wohlbefinden',
+          ],
+          [
+            'Beliefs and values',
+            'Glaubensvorstellungen und Werte',
+          ],
           ['Subcultures', 'Subkulturen'],
-          ['Language and identity', 'Sprache und Identität'],
+          [
+            'Language and identity',
+            'Sprache und Identität',
+          ],
         ],
       },
       {
         en: 'Experiences',
         local: 'Erfahrungen',
         topics: [
-          ['Leisure activities', 'Freizeitaktivitäten'],
-          ['Holidays and travel', 'Urlaub und Reisen'],
-          ['Life stories', 'Lebensgeschichten'],
-          ['Rites of passage', 'Übergangsriten'],
-          ['Customs and traditions', 'Bräuche und Traditionen'],
+          [
+            'Leisure activities',
+            'Freizeitaktivitäten',
+          ],
+          [
+            'Holidays and travel',
+            'Urlaub und Reisen',
+          ],
+          [
+            'Life stories',
+            'Lebensgeschichten',
+          ],
+          [
+            'Rites of passage',
+            'Übergangsriten',
+          ],
+          [
+            'Customs and traditions',
+            'Bräuche und Traditionen',
+          ],
           ['Migration', 'Migration'],
         ],
       },
@@ -325,22 +586,43 @@ const COURSE = {
         local: 'Menschlicher Erfindergeist',
         topics: [
           ['Entertainment', 'Unterhaltung'],
-          ['Artistic expressions', 'Künstlerische Ausdrucksformen'],
-          ['Communication and media', 'Kommunikation und Medien'],
+          [
+            'Artistic expressions',
+            'Künstlerische Ausdrucksformen',
+          ],
+          [
+            'Communication and media',
+            'Kommunikation und Medien',
+          ],
           ['Technology', 'Technologie'],
-          ['Scientific innovation', 'Wissenschaftliche Innovation'],
+          [
+            'Scientific innovation',
+            'Wissenschaftliche Innovation',
+          ],
         ],
       },
       {
         en: 'Social organization',
         local: 'Soziale Organisation',
         topics: [
-          ['Social relationships', 'Soziale Beziehungen'],
+          [
+            'Social relationships',
+            'Soziale Beziehungen',
+          ],
           ['Community', 'Gemeinschaft'],
-          ['Social engagement', 'Soziales Engagement'],
+          [
+            'Social engagement',
+            'Soziales Engagement',
+          ],
           ['Education', 'Bildung'],
-          ['The world of work', 'Arbeitswelt'],
-          ['Law and order', 'Recht und Ordnung'],
+          [
+            'The world of work',
+            'Arbeitswelt',
+          ],
+          [
+            'Law and order',
+            'Recht und Ordnung',
+          ],
         ],
       },
       {
@@ -349,11 +631,20 @@ const COURSE = {
         topics: [
           ['The environment', 'Die Umwelt'],
           ['Human rights', 'Menschenrechte'],
-          ['Peace and conflict', 'Frieden und Konflikte'],
+          [
+            'Peace and conflict',
+            'Frieden und Konflikte',
+          ],
           ['Equality', 'Gleichheit'],
-          ['Globalization', 'Globalisierung'],
+          [
+            'Globalization',
+            'Globalisierung',
+          ],
           ['Ethics', 'Ethik'],
-          ['Urban and rural environment', 'Städtische und ländliche Umwelt'],
+          [
+            'Urban and rural environment',
+            'Städtische und ländliche Umwelt',
+          ],
         ],
       },
     ],
@@ -366,21 +657,45 @@ const COURSE = {
         local: 'Identità',
         topics: [
           ['Lifestyles', 'Stili di vita'],
-          ['Health and wellbeing', 'Salute e benessere'],
-          ['Beliefs and values', 'Credenze e valori'],
+          [
+            'Health and wellbeing',
+            'Salute e benessere',
+          ],
+          [
+            'Beliefs and values',
+            'Credenze e valori',
+          ],
           ['Subcultures', 'Sottoculture'],
-          ['Language and identity', 'Lingua e identità'],
+          [
+            'Language and identity',
+            'Lingua e identità',
+          ],
         ],
       },
       {
         en: 'Experiences',
         local: 'Esperienze',
         topics: [
-          ['Leisure activities', 'Attività del tempo libero'],
-          ['Holidays and travel', 'Vacanze e viaggi'],
-          ['Life stories', 'Storie di vita'],
-          ['Rites of passage', 'Riti di passaggio'],
-          ['Customs and traditions', 'Usi e tradizioni'],
+          [
+            'Leisure activities',
+            'Attività del tempo libero',
+          ],
+          [
+            'Holidays and travel',
+            'Vacanze e viaggi',
+          ],
+          [
+            'Life stories',
+            'Storie di vita',
+          ],
+          [
+            'Rites of passage',
+            'Riti di passaggio',
+          ],
+          [
+            'Customs and traditions',
+            'Usi e tradizioni',
+          ],
           ['Migration', 'Migrazione'],
         ],
       },
@@ -388,36 +703,75 @@ const COURSE = {
         en: 'Human ingenuity',
         local: 'Ingegno umano',
         topics: [
-          ['Entertainment', 'Intrattenimento'],
-          ['Artistic expressions', 'Espressioni artistiche'],
-          ['Communication and media', 'Comunicazione e media'],
+          [
+            'Entertainment',
+            'Intrattenimento',
+          ],
+          [
+            'Artistic expressions',
+            'Espressioni artistiche',
+          ],
+          [
+            'Communication and media',
+            'Comunicazione e media',
+          ],
           ['Technology', 'Tecnologia'],
-          ['Scientific innovation', 'Innovazione scientifica'],
+          [
+            'Scientific innovation',
+            'Innovazione scientifica',
+          ],
         ],
       },
       {
         en: 'Social organization',
         local: 'Organizzazione sociale',
         topics: [
-          ['Social relationships', 'Relazioni sociali'],
+          [
+            'Social relationships',
+            'Relazioni sociali',
+          ],
           ['Community', 'Comunità'],
-          ['Social engagement', 'Impegno sociale'],
+          [
+            'Social engagement',
+            'Impegno sociale',
+          ],
           ['Education', 'Istruzione'],
-          ['The world of work', 'Mondo del lavoro'],
-          ['Law and order', 'Legge e ordine'],
+          [
+            'The world of work',
+            'Mondo del lavoro',
+          ],
+          [
+            'Law and order',
+            'Legge e ordine',
+          ],
         ],
       },
       {
         en: 'Sharing the planet',
         local: 'Condivisione del pianeta',
         topics: [
-          ['The environment', "L'ambiente"],
-          ['Human rights', 'Diritti umani'],
-          ['Peace and conflict', 'Pace e conflitto'],
+          [
+            'The environment',
+            "L'ambiente",
+          ],
+          [
+            'Human rights',
+            'Diritti umani',
+          ],
+          [
+            'Peace and conflict',
+            'Pace e conflitto',
+          ],
           ['Equality', 'Uguaglianza'],
-          ['Globalization', 'Globalizzazione'],
+          [
+            'Globalization',
+            'Globalizzazione',
+          ],
           ['Ethics', 'Etica'],
-          ['Urban and rural environment', 'Ambiente urbano e rurale'],
+          [
+            'Urban and rural environment',
+            'Ambiente urbano e rurale',
+          ],
         ],
       },
     ],
@@ -430,10 +784,19 @@ const COURSE = {
         local: 'アイデンティティ',
         topics: [
           ['Lifestyles', 'ライフスタイル'],
-          ['Health and wellbeing', '健康とウェルビーイング'],
-          ['Beliefs and values', '信念と価値観'],
+          [
+            'Health and wellbeing',
+            '健康とウェルビーイング',
+          ],
+          [
+            'Beliefs and values',
+            '信念と価値観',
+          ],
           ['Subcultures', 'サブカルチャー'],
-          ['Language and identity', '言語とアイデンティティ'],
+          [
+            'Language and identity',
+            '言語とアイデンティティ',
+          ],
         ],
       },
       {
@@ -441,10 +804,19 @@ const COURSE = {
         local: '経験',
         topics: [
           ['Leisure activities', '余暇活動'],
-          ['Holidays and travel', '休暇と旅行'],
+          [
+            'Holidays and travel',
+            '休暇と旅行',
+          ],
           ['Life stories', '人生の物語'],
-          ['Rites of passage', '通過儀礼'],
-          ['Customs and traditions', '習慣と伝統'],
+          [
+            'Rites of passage',
+            '通過儀礼',
+          ],
+          [
+            'Customs and traditions',
+            '習慣と伝統',
+          ],
           ['Migration', '移住'],
         ],
       },
@@ -452,23 +824,47 @@ const COURSE = {
         en: 'Human ingenuity',
         local: '人間の創意工夫',
         topics: [
-          ['Entertainment', 'エンターテインメント'],
-          ['Artistic expressions', '芸術表現'],
-          ['Communication and media', 'コミュニケーションとメディア'],
+          [
+            'Entertainment',
+            'エンターテインメント',
+          ],
+          [
+            'Artistic expressions',
+            '芸術表現',
+          ],
+          [
+            'Communication and media',
+            'コミュニケーションとメディア',
+          ],
           ['Technology', 'テクノロジー'],
-          ['Scientific innovation', '科学技術の革新'],
+          [
+            'Scientific innovation',
+            '科学技術の革新',
+          ],
         ],
       },
       {
         en: 'Social organization',
         local: '社会組織',
         topics: [
-          ['Social relationships', '社会的関係'],
+          [
+            'Social relationships',
+            '社会的関係',
+          ],
           ['Community', 'コミュニティ'],
-          ['Social engagement', '社会参加'],
+          [
+            'Social engagement',
+            '社会参加',
+          ],
           ['Education', '教育'],
-          ['The world of work', '仕事の世界'],
-          ['Law and order', '法律と秩序'],
+          [
+            'The world of work',
+            '仕事の世界',
+          ],
+          [
+            'Law and order',
+            '法律と秩序',
+          ],
         ],
       },
       {
@@ -477,60 +873,29 @@ const COURSE = {
         topics: [
           ['The environment', '環境'],
           ['Human rights', '人権'],
-          ['Peace and conflict', '平和と紛争'],
+          [
+            'Peace and conflict',
+            '平和と紛争',
+          ],
           ['Equality', '平等'],
-          ['Globalization', 'グローバル化'],
+          [
+            'Globalization',
+            'グローバル化',
+          ],
           ['Ethics', '倫理'],
-          ['Urban and rural environment', '都市と農村の環境'],
+          [
+            'Urban and rural environment',
+            '都市と農村の環境',
+          ],
         ],
       },
     ],
   },
 }
 
-/* ==========================================================================
-   HELPERS
-   ========================================================================== */
-
-function getCookie(name) {
-  const match = document.cookie
-    .split('; ')
-    .find((row) =>
-      row.startsWith(`${name}=`),
-    )
-
-  return match
-    ? decodeURIComponent(
-        match
-          .split('=')
-          .slice(1)
-          .join('='),
-      )
-    : ''
-}
-
-function setCookie(name, value, days = 365) {
-  const expires = new Date(
-    Date.now() +
-      days *
-        24 *
-        60 *
-        60 *
-        1000,
-  ).toUTCString()
-
-  document.cookie = `${name}=${encodeURIComponent(
-    value,
-  )}; expires=${expires}; path=/; SameSite=Lax`
-}
-
-function safeParseJSON(value) {
-  try {
-    return JSON.parse(value)
-  } catch {
-    return null
-  }
-}
+/* ========================================================================== */
+/* HELPERS                                                                    */
+/* ========================================================================== */
 
 function cleanModelJSON(text) {
   if (!text) {
@@ -555,9 +920,9 @@ function cleanModelJSON(text) {
   }
 }
 
-/* ==========================================================================
-   GROQ API
-   ========================================================================== */
+/* ========================================================================== */
+/* GROQ                                                                      */
+/* ========================================================================== */
 
 async function callGroq({
   system,
@@ -613,9 +978,9 @@ async function callGroq({
   return data?.content || ''
 }
 
-/* ==========================================================================
-   QUESTION GENERATION SCHEMA
-   ========================================================================== */
+/* ========================================================================== */
+/* QUESTION SCHEMA                                                            */
+/* ========================================================================== */
 
 const QUESTION_SCHEMA = {
   type: 'json_schema',
@@ -676,23 +1041,41 @@ const QUESTION_SCHEMA = {
   },
 }
 
-/* ==========================================================================
-   APP
-   ========================================================================== */
+/* ========================================================================== */
+/* APP                                                                        */
+/* ========================================================================== */
 
-function Dashboard() {
+function Dashboard({ navigate }) {
+  const [
+    authLoading,
+    setAuthLoading,
+  ] = useState(true)
+
+  const [user, setUser] =
+    useState(null)
+
+  const [
+    profileLoading,
+    setProfileLoading,
+  ] = useState(true)
+
+  const [language, setLanguage] =
+    useState('English B')
+
   const [
     activeTab,
     setActiveTab,
   ] = useState('course')
 
-  const [language, setLanguage] =
-    useState('')
-
   const [
     selectedTopics,
     setSelectedTopics,
   ] = useState([])
+
+  const [
+    savingTopic,
+    setSavingTopic,
+  ] = useState('')
 
   const [
     writingTopic,
@@ -708,8 +1091,6 @@ function Dashboard() {
     generatedPrompt,
     setGeneratedPrompt,
   ] = useState('')
-
-  /* Reading */
 
   const [
     readingType,
@@ -737,11 +1118,6 @@ function Dashboard() {
   ] = useState('')
 
   const [
-    answerDraft,
-    setAnswerDraft,
-  ] = useState('')
-
-  const [
     answerSubmission,
     setAnswerSubmission,
   ] = useState({
@@ -749,10 +1125,8 @@ function Dashboard() {
     2: '',
   })
 
-  const [
-    grading,
-    setGrading,
-  ] = useState(false)
+  const [grading, setGrading] =
+    useState(false)
 
   const [
     gradingResult,
@@ -774,9 +1148,118 @@ function Dashboard() {
     setChatTyping,
   ] = useState(false)
 
-  /* ==========================================================================
-     INITIALIZATION
-     ========================================================================== */
+  /* ------------------------------------------------------------------------ */
+  /* AUTH                                                                     */
+  /* ------------------------------------------------------------------------ */
+
+  useEffect(() => {
+    let mounted = true
+
+    async function initialiseAuth() {
+      try {
+        const currentUser =
+          await getCurrentUser()
+
+        if (!currentUser) {
+          navigate('/login')
+          return
+        }
+
+        if (mounted) {
+          setUser(currentUser)
+          setAuthLoading(false)
+        }
+
+        try {
+          const profile =
+            await getProfile(
+              currentUser.id,
+            )
+
+          if (mounted) {
+            setLanguage(
+              profile?.language ||
+                currentUser
+                  ?.user_metadata
+                  ?.language ||
+                'English B',
+            )
+          }
+        } catch (error) {
+          console.error(
+            'Profile loading failed:',
+            error,
+          )
+        }
+
+        try {
+          const savedProgress =
+            await getCourseProgress(
+              currentUser.id,
+            )
+
+          if (mounted) {
+            setSelectedTopics(
+              savedProgress,
+            )
+          }
+        } catch (error) {
+          console.error(
+            'Course progress loading failed:',
+            error,
+          )
+        } finally {
+          if (mounted) {
+            setProfileLoading(
+              false,
+            )
+          }
+        }
+      } catch (error) {
+        console.error(
+          'Dashboard auth check failed:',
+          error,
+        )
+
+        navigate('/login')
+      }
+    }
+
+    initialiseAuth()
+
+    const authSubscription =
+      onAuthStateChange(
+        (
+          event,
+          session,
+        ) => {
+          if (
+            event ===
+              'SIGNED_OUT' ||
+            !session
+          ) {
+            navigate('/login')
+            return
+          }
+
+          setUser(
+            session.user,
+          )
+          setAuthLoading(
+            false,
+          )
+        },
+      )
+
+    return () => {
+      mounted = false
+      authSubscription?.data?.subscription?.unsubscribe?.()
+    }
+  }, [navigate])
+
+  /* ------------------------------------------------------------------------ */
+  /* PAGE                                                                      */
+  /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
     document.body.dataset.page =
@@ -788,49 +1271,9 @@ function Dashboard() {
     }
   }, [])
 
-  useEffect(() => {
-    const savedLanguage =
-      getCookie(
-        'dino_language',
-      )
-
-    setLanguage(
-      savedLanguage ||
-        'English B',
-    )
-
-    try {
-      const savedTopics =
-        localStorage.getItem(
-          'dino_completed_topics',
-        )
-
-      if (savedTopics) {
-        const parsed =
-          JSON.parse(
-            savedTopics,
-          )
-
-        if (
-          Array.isArray(
-            parsed,
-          )
-        ) {
-          setSelectedTopics(
-            parsed,
-          )
-        }
-      }
-    } catch {
-      setSelectedTopics(
-        [],
-      )
-    }
-  }, [])
-
-  /* ==========================================================================
-     COURSE
-     ========================================================================== */
+  /* ------------------------------------------------------------------------ */
+  /* COURSE                                                                    */
+  /* ------------------------------------------------------------------------ */
 
   const course = useMemo(() => {
     return (
@@ -870,36 +1313,75 @@ function Dashboard() {
         )
       : 0
 
-  const toggleTopic = (
+  const toggleTopic = async (
     themeName,
     topicEnglish,
   ) => {
-    const id =
-      `${themeName}::${topicEnglish}`
+    if (!user || savingTopic) {
+      return
+    }
+
+    const topicId =
+      `${language}::${themeName}::${topicEnglish}`
+
+    const currentlyCompleted =
+      selectedTopics.includes(
+        topicId,
+      )
+
+    const nextCompleted =
+      !currentlyCompleted
+
+    setSavingTopic(topicId)
 
     setSelectedTopics(
       (current) => {
-        const next =
-          current.includes(id)
-            ? current.filter(
-                (item) =>
-                  item !== id,
-              )
-            : [
-                ...current,
-                id,
-              ]
+        if (nextCompleted) {
+          return [
+            ...current,
+            topicId,
+          ]
+        }
 
-        localStorage.setItem(
-          'dino_completed_topics',
-          JSON.stringify(
-            next,
-          ),
+        return current.filter(
+          (item) =>
+            item !== topicId,
         )
-
-        return next
       },
     )
+
+    try {
+      await setCourseTopicCompleted(
+        user.id,
+        topicId,
+        nextCompleted,
+      )
+    } catch (error) {
+      console.error(
+        'Saving course topic failed:',
+        error,
+      )
+
+      setSelectedTopics(
+        (current) => {
+          if (
+            currentlyCompleted
+          ) {
+            return [
+              ...current,
+              topicId,
+            ]
+          }
+
+          return current.filter(
+            (item) =>
+              item !== topicId,
+          )
+        },
+      )
+    } finally {
+      setSavingTopic('')
+    }
   }
 
   const isCompleted = (
@@ -907,13 +1389,13 @@ function Dashboard() {
     topicEnglish,
   ) => {
     return selectedTopics.includes(
-      `${themeName}::${topicEnglish}`,
+      `${language}::${themeName}::${topicEnglish}`,
     )
   }
 
-  /* ==========================================================================
-     READING QUESTION GENERATION
-     ========================================================================== */
+  /* ------------------------------------------------------------------------ */
+  /* READING                                                                   */
+  /* ------------------------------------------------------------------------ */
 
   const generateReadingQuestions =
     async () => {
@@ -926,18 +1408,11 @@ function Dashboard() {
 
       setQuestionError('')
       setGradingResult(null)
-
       setAnswerSubmission({
         1: '',
         2: '',
       })
-
-      setAnswerDraft('')
-
-      setGeneratedQuestions(
-        null,
-      )
-
+      setGeneratedQuestions(null)
       setIsGeneratingQuestions(
         true,
       )
@@ -953,49 +1428,41 @@ function Dashboard() {
         const systemPrompt = `
 You are Dino, an expert IB Language B tutor.
 
-Your task is to create high-quality reading comprehension practice for an IB Language B student.
+Create high-quality original reading comprehension practice for an IB Language B student.
 
-Follow these rules carefully:
+The student's Language B is:
+${language}
 
-1. The student's Language B is: ${language}.
-2. The IB theme is: ${selectedTopic?.theme || 'General Language B'}.
-3. The specific course topic is: ${selectedTopic?.topic || readingTopic}.
-4. The topic's equivalent in the student's language is:
-   ${selectedTopic?.local || readingTopic}.
-5. The requested question style is: ${readingType}.
-6. Produce exactly TWO questions.
-7. Questions must be appropriate for IB Language B students.
-8. Questions should test actual reading/comprehension ability rather than random trivia.
-9. The context can be a short original passage if needed.
-10. If a passage is used, write it yourself. Do not reproduce copyrighted source material.
-11. Questions should be answerable from the supplied context.
-12. The answer field must contain the correct answer.
-13. The explanation must briefly explain why that answer is correct.
-14. Keep the questions challenging enough to be useful but concise enough for a dashboard.
-15. The student will later answer through a tutor chat. Make the answer keys robust enough for semantic grading.
-16. Do not mention that you are an AI.
-17. Return ONLY the requested structured data.
+The IB theme is:
+${selectedTopic?.theme || 'General Language B'}
+
+The course topic is:
+${selectedTopic?.topic || readingTopic}
+
+Rules:
+- Produce exactly TWO questions.
+- Questions must test actual comprehension.
+- If context is needed, create an original short passage.
+- Never reproduce copyrighted source material.
+- Questions must be answerable from the context.
+- Include the correct answer and a concise explanation.
+- Return only structured data.
 `.trim()
 
         const userPrompt = `
-Create a two-question IB Language B reading practice set.
+Create two ${readingType} reading questions.
 
-Language B:
+Language:
 ${language}
 
-IB theme:
+Theme:
 ${selectedTopic?.theme || 'General'}
 
-Course topic:
+Topic:
 ${selectedTopic?.topic || readingTopic}
 
-Course topic in the target language:
+Target-language topic:
 ${selectedTopic?.local || readingTopic}
-
-Question type:
-${readingType}
-
-Make the two questions meaningfully different.
 `.trim()
 
         const raw =
@@ -1070,7 +1537,7 @@ Make the two questions meaningfully different.
         setChatMessages([
           {
             role: 'tutor',
-            text: `I've created two ${readingType.toLowerCase()} reading questions on ${readingTopic}. Answer both in the chat using "1: ..." and "2: ...". I'll mark them once I have both.`,
+            text: `I've created two ${readingType.toLowerCase()} reading questions on ${readingTopic}. Answer both using "1: ..." and "2: ...". I'll mark them once I have both.`,
           },
         ])
       } catch (error) {
@@ -1086,10 +1553,6 @@ Make the two questions meaningfully different.
         )
       }
     }
-
-  /* ==========================================================================
-     ANSWER EXTRACTION
-     ========================================================================== */
 
   const parseSubmittedAnswers =
     (text) => {
@@ -1132,10 +1595,6 @@ Make the two questions meaningfully different.
     )
   }
 
-  /* ==========================================================================
-     GRADE ANSWERS
-     ========================================================================== */
-
   const gradeReadingAnswers =
     async (
       providedAnswers,
@@ -1155,23 +1614,15 @@ Make the two questions meaningfully different.
         const systemPrompt = `
 You are Dino, an expert IB Language B reading tutor.
 
-You are grading a student's answers to exactly two reading questions.
+Grade the student's answers to exactly two reading questions.
 
-Be encouraging but academically honest.
-
-Your job is to:
-- judge whether each answer is correct
-- allow equivalent wording where the meaning is correct
-- consider the student's target Language B
-- distinguish fully correct, partially correct, and incorrect responses
-- explain mistakes clearly
-- do not invent requirements that the question did not ask for
-- do not penalize harmless wording differences
-- keep feedback concise
-- give one overall result
-- do not pretend to have access to a marking rubric that was not supplied
-
-Return ONLY the requested structured JSON.
+Rules:
+- Allow equivalent wording when meaning is correct.
+- Distinguish correct, partially correct and incorrect.
+- Do not invent requirements.
+- Explain mistakes clearly.
+- Be academically honest but encouraging.
+- Return only structured JSON.
 `.trim()
 
         const userPrompt = `
@@ -1204,83 +1655,80 @@ ${providedAnswers.one}
 
 STUDENT ANSWER 2:
 ${providedAnswers.two}
-
-Grade both answers.
 `.trim()
 
-        const responseFormat =
-          {
-            type: 'json_schema',
-            json_schema: {
-              name: 'ib_reading_grade',
-              strict: true,
-              schema: {
-                type: 'object',
-                properties: {
-                  overall: {
-                    type: 'string',
-                  },
-                  score: {
-                    type: 'integer',
-                  },
-                  feedback: {
-                    type: 'string',
-                  },
-                  question_1: {
-                    type: 'object',
-                    properties: {
-                      correct: {
-                        type: 'boolean',
-                      },
-                      score: {
-                        type: 'integer',
-                      },
-                      feedback: {
-                        type: 'string',
-                      },
-                    },
-                    required: [
-                      'correct',
-                      'score',
-                      'feedback',
-                    ],
-                    additionalProperties:
-                      false,
-                  },
-                  question_2: {
-                    type: 'object',
-                    properties: {
-                      correct: {
-                        type: 'boolean',
-                      },
-                      score: {
-                        type: 'integer',
-                      },
-                      feedback: {
-                        type: 'string',
-                      },
-                    },
-                    required: [
-                      'correct',
-                      'score',
-                      'feedback',
-                    ],
-                    additionalProperties:
-                      false,
-                  },
+        const responseFormat = {
+          type: 'json_schema',
+          json_schema: {
+            name: 'ib_reading_grade',
+            strict: true,
+            schema: {
+              type: 'object',
+              properties: {
+                overall: {
+                  type: 'string',
                 },
-                required: [
-                  'overall',
-                  'score',
-                  'feedback',
-                  'question_1',
-                  'question_2',
-                ],
-                additionalProperties:
-                  false,
+                score: {
+                  type: 'integer',
+                },
+                feedback: {
+                  type: 'string',
+                },
+                question_1: {
+                  type: 'object',
+                  properties: {
+                    correct: {
+                      type: 'boolean',
+                    },
+                    score: {
+                      type: 'integer',
+                    },
+                    feedback: {
+                      type: 'string',
+                    },
+                  },
+                  required: [
+                    'correct',
+                    'score',
+                    'feedback',
+                  ],
+                  additionalProperties:
+                    false,
+                },
+                question_2: {
+                  type: 'object',
+                  properties: {
+                    correct: {
+                      type: 'boolean',
+                    },
+                    score: {
+                      type: 'integer',
+                    },
+                    feedback: {
+                      type: 'string',
+                    },
+                  },
+                  required: [
+                    'correct',
+                    'score',
+                    'feedback',
+                  ],
+                  additionalProperties:
+                    false,
+                },
               },
+              required: [
+                'overall',
+                'score',
+                'feedback',
+                'question_1',
+                'question_2',
+              ],
+              additionalProperties:
+                false,
             },
-          }
+          },
+        }
 
         const raw =
           await callGroq({
@@ -1329,8 +1777,6 @@ Grade both answers.
             1: '',
             2: '',
           })
-
-          setAnswerDraft('')
         }, 2500)
       } catch (error) {
         setQuestionError(
@@ -1345,9 +1791,9 @@ Grade both answers.
       }
     }
 
-  /* ==========================================================================
-     CHAT
-     ========================================================================== */
+  /* ------------------------------------------------------------------------ */
+  /* CHAT                                                                      */
+  /* ------------------------------------------------------------------------ */
 
   const sendReadingChat =
     async () => {
@@ -1366,15 +1812,14 @@ Grade both answers.
           text,
         )
 
-      const updatedAnswers =
-        {
-          one:
-            parsedAnswers.one ||
-            answerSubmission[1],
-          two:
-            parsedAnswers.two ||
-            answerSubmission[2],
-        }
+      const updatedAnswers = {
+        one:
+          parsedAnswers.one ||
+          answerSubmission[1],
+        two:
+          parsedAnswers.two ||
+          answerSubmission[2],
+      }
 
       setChatMessages(
         (current) => [
@@ -1412,20 +1857,21 @@ Grade both answers.
         const tutorSystem = `
 You are Dino, an IB Language B reading tutor.
 
-The student's language is ${language}.
-The current course topic is ${readingTopic || 'not selected'}.
+Student language:
+${language}
 
-You are helping the student with a reading practice session.
+Current course topic:
+${readingTopic || 'not selected'}
 
-Rules:
-- Be concise.
-- Encourage the student to answer the generated questions.
+Be concise and encouraging.
+
+If a question set exists:
+- Encourage the student to answer it.
 - Do not reveal answer keys before grading.
-- If they ask about the questions, clarify rather than immediately giving the answer.
-- If they have not supplied both answers, remind them to answer using:
+- If only one answer has been provided, ask for the other.
+- Ask for answers in the format:
   1: ...
   2: ...
-- You are a tutor, not a generic chatbot.
 `.trim()
 
         const raw =
@@ -1482,9 +1928,9 @@ Rules:
       }
     }
 
-  /* ==========================================================================
-     WRITING
-     ========================================================================== */
+  /* ------------------------------------------------------------------------ */
+  /* WRITING                                                                  */
+  /* ------------------------------------------------------------------------ */
 
   const createPrompt =
     () => {
@@ -1511,9 +1957,61 @@ Rules:
       )
     }
 
-  /* ==========================================================================
-     RENDER
-     ========================================================================== */
+  /* ------------------------------------------------------------------------ */
+  /* LOGOUT                                                                    */
+  /* ------------------------------------------------------------------------ */
+
+  async function handleLogout() {
+    try {
+      await signOut()
+      navigate('/login')
+    } catch (error) {
+      console.error(
+        'Logout failed:',
+        error,
+      )
+    }
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* LOADING                                                                   */
+  /* ------------------------------------------------------------------------ */
+
+  if (
+    authLoading ||
+    profileLoading
+  ) {
+    return (
+      <AnimatedBackground className="onboarding-page">
+        <div
+          style={{
+            width: '100%',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              color: '#222',
+              fontSize: '12px',
+            }}
+          >
+            Loading your workspace…
+          </div>
+        </div>
+      </AnimatedBackground>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* RENDER                                                                    */
+  /* ------------------------------------------------------------------------ */
 
   return (
     <>
@@ -1579,6 +2077,32 @@ Rules:
           font-style: italic;
         }
 
+        .dino-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+        }
+
+        .dino-user-email {
+          max-width: 180px;
+          overflow: hidden;
+          color: #888;
+          font-size: 9px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .dino-logout-button {
+          height: 31px;
+          padding: 0 11px;
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 9px;
+          background: rgba(255,255,255,.75);
+          color: #666;
+          font-size: 8px;
+          cursor: pointer;
+        }
+
         .dino-progress {
           width: 210px;
           flex: 0 0 210px;
@@ -1635,6 +2159,7 @@ Rules:
           min-height: 38px;
           padding: 8px 14px;
           border-radius: 10px;
+          border: 0;
           background: transparent;
           color: #767676;
           font-family: Inter, sans-serif;
@@ -2239,68 +2764,6 @@ Rules:
           cursor: pointer;
         }
 
-        .dino-reading-placeholder {
-          flex: 1;
-          min-height: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 30px;
-          text-align: center;
-        }
-
-        .dino-reading-placeholder-content {
-          max-width: 350px;
-        }
-
-        .dino-reading-placeholder-icon {
-          width: 52px;
-          height: 52px;
-          margin: 0 auto 15px;
-          border: 1px solid rgba(0,0,0,.08);
-          border-radius: 15px;
-          background: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #888;
-          font-size: 20px;
-          box-shadow: 0 8px 20px rgba(0,0,0,.035);
-        }
-
-        .dino-reading-placeholder h3 {
-          margin: 0;
-          font-size: 19px;
-          line-height: 1.05;
-          font-weight: 600;
-          letter-spacing: -.055em;
-        }
-
-        .dino-reading-placeholder p {
-          margin: 9px 0 0;
-          color: #878787;
-          font-size: 10px;
-          line-height: 1.5;
-        }
-
-        .dino-grade {
-          margin-top: 12px;
-          padding: 11px 12px;
-          border: 1px solid rgba(23,201,100,.18);
-          border-radius: 11px;
-          background: rgba(23,201,100,.07);
-          color: #376346;
-          font-size: 9px;
-          line-height: 1.45;
-        }
-
-        .dino-grade strong {
-          display: block;
-          margin-bottom: 3px;
-          color: #20502e;
-          font-size: 10px;
-        }
-
         .dino-writing-workspace {
           height: calc(100% - 78px);
           display: grid;
@@ -2404,7 +2867,6 @@ Rules:
           border-radius: 20px;
           background: rgba(255,255,255,.77);
           backdrop-filter: blur(16px);
-          box-shadow: 0 12px 35px rgba(0,0,0,.025);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2428,7 +2890,6 @@ Rules:
           justify-content: center;
           color: #777;
           font-size: 22px;
-          box-shadow: 0 10px 25px rgba(0,0,0,.04);
         }
 
         .dino-coming-content h2 {
@@ -2446,66 +2907,6 @@ Rules:
           color: #808080;
           font-size: 12px;
           line-height: 1.5;
-        }
-
-        .dino-personal-grid {
-          margin-top: 18px;
-          display: grid;
-          grid-template-columns: 1.35fr 1fr;
-          gap: 10px;
-        }
-
-        .dino-personal-card {
-          min-height: 240px;
-          padding: 19px;
-          border: 1px solid rgba(0,0,0,.08);
-          border-radius: 18px;
-          background: rgba(255,255,255,.77);
-          backdrop-filter: blur(12px);
-        }
-
-        .dino-personal-label {
-          color: #888;
-          font-size: 9px;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .dino-empty {
-          margin-top: 50px;
-        }
-
-        .dino-empty strong {
-          font-size: 16px;
-        }
-
-        .dino-empty p {
-          max-width: 300px;
-          margin: 7px 0 0;
-          color: #888;
-          font-size: 10px;
-        }
-
-        .dino-settings {
-          margin-top: 27px;
-          border-top: 1px solid rgba(0,0,0,.06);
-        }
-
-        .dino-setting-row {
-          min-height: 48px;
-          border-bottom: 1px solid rgba(0,0,0,.06);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .dino-setting-row span {
-          color: #888;
-          font-size: 10px;
-        }
-
-        .dino-setting-row strong {
-          font-size: 10px;
         }
 
         @keyframes dinoTyping {
@@ -2547,6 +2948,11 @@ Rules:
             gap: 15px;
           }
 
+          .dino-header-actions {
+            width: 100%;
+            justify-content: space-between;
+          }
+
           .dino-progress {
             width: 100%;
           }
@@ -2566,6 +2972,10 @@ Rules:
           .dino-panel-heading {
             align-items: flex-start;
             flex-direction: column;
+          }
+
+          .dino-subtle-note {
+            text-align: left;
           }
 
           .dino-theme-grid {
@@ -2599,10 +3009,6 @@ Rules:
             grid-template-columns: 1fr;
           }
 
-          .dino-personal-grid {
-            grid-template-columns: 1fr;
-          }
-
           .dino-coming-page {
             height: 450px;
           }
@@ -2620,36 +3026,54 @@ Rules:
 
               <h1 className="dino-dashboard-heading">
                 Your language
-                <span> workspace.</span>
+                <span>
+                  {' '}
+                  workspace.
+                </span>
               </h1>
             </div>
 
-            <div className="dino-progress">
-              <div className="dino-progress-meta">
-                <span>
-                  Course progress
-                </span>
+            <div className="dino-header-actions">
+              <span className="dino-user-email">
+                {user.email}
+              </span>
 
-                <strong>
-                  {completedCount}/
-                  {totalCount}
-                </strong>
-              </div>
+              <button
+                type="button"
+                className="dino-logout-button"
+                onClick={
+                  handleLogout
+                }
+              >
+                Log out
+              </button>
 
-              <div className="dino-progress-track">
-                <div
-                  className="dino-progress-fill"
-                  style={{
-                    width:
-                      `${courseProgress}%`,
-                  }}
-                />
+              <div className="dino-progress">
+                <div className="dino-progress-meta">
+                  <span>
+                    Course progress
+                  </span>
+
+                  <strong>
+                    {completedCount}/
+                    {totalCount}
+                  </strong>
+                </div>
+
+                <div className="dino-progress-track">
+                  <div
+                    className="dino-progress-fill"
+                    style={{
+                      width:
+                        `${courseProgress}%`,
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </header>
 
           <nav className="dino-tabs">
-
             <button
               className={
                 activeTab === 'course'
@@ -2657,7 +3081,9 @@ Rules:
                   : 'dino-tab'
               }
               onClick={() =>
-                setActiveTab('course')
+                setActiveTab(
+                  'course',
+                )
               }
             >
               Course Outline
@@ -2670,7 +3096,9 @@ Rules:
                   : 'dino-tab'
               }
               onClick={() =>
-                setActiveTab('reading')
+                setActiveTab(
+                  'reading',
+                )
               }
             >
               Reading Questionbank
@@ -2683,7 +3111,9 @@ Rules:
                   : 'dino-tab'
               }
               onClick={() =>
-                setActiveTab('writing')
+                setActiveTab(
+                  'writing',
+                )
               }
             >
               Writing Practice
@@ -2696,32 +3126,20 @@ Rules:
                   : 'dino-tab'
               }
               onClick={() =>
-                setActiveTab('coming')
+                setActiveTab(
+                  'coming',
+                )
               }
             >
               Grammar and Sentence Structures
             </button>
-
-            <button
-              className={
-                activeTab === 'vocab'
-                  ? 'dino-tab active'
-                  : 'dino-tab'
-              }
-              onClick={() =>
-                setActiveTab('vocab')
-              }
-            >
-              Personal Vocab and Settings
-            </button>
-
           </nav>
 
           <main className="dino-content">
 
-            {activeTab === 'course' && (
+            {activeTab ===
+              'course' && (
               <section className="dino-panel">
-
                 <div className="dino-panel-heading">
                   <div>
                     <span className="dino-kicker">
@@ -2739,12 +3157,12 @@ Rules:
                   </div>
 
                   <div className="dino-subtle-note">
-                    Tick each topic after you've finished it.
+                    Your checklist is synced to your
+                    Supabase account.
                   </div>
                 </div>
 
                 <div className="dino-theme-grid">
-
                   {course.themes.map(
                     (
                       theme,
@@ -2808,6 +3226,9 @@ Rules:
                                   english,
                                 )
 
+                              const topicId =
+                                `${language}::${theme.en}::${english}`
+
                               return (
                                 <label
                                   key={
@@ -2818,12 +3239,15 @@ Rules:
                                       ? 'dino-topic completed'
                                       : 'dino-topic'
                                   }
-                                  title="Mark this topic complete"
                                 >
                                   <input
                                     type="checkbox"
                                     checked={
                                       complete
+                                    }
+                                    disabled={
+                                      savingTopic ===
+                                      topicId
                                     }
                                     onChange={() =>
                                       toggleTopic(
@@ -2860,14 +3284,13 @@ Rules:
                       </article>
                     ),
                   )}
-
                 </div>
               </section>
             )}
 
-            {activeTab === 'reading' && (
+            {activeTab ===
+              'reading' && (
               <section className="dino-panel dino-reading-panel">
-
                 <div className="dino-panel-heading">
                   <div>
                     <span className="dino-kicker">
@@ -2883,15 +3306,9 @@ Rules:
                     </h2>
 
                     <p className="dino-panel-description">
-                      Choose what you want to practise,
-                      generate two questions, then answer
-                      them directly through your Dino tutor.
+                      Generate two questions, then answer
+                      them through your Dino tutor.
                     </p>
-                  </div>
-
-                  <div className="dino-subtle-note">
-                    Groq generates the questions and marks
-                    your submitted answers.
                   </div>
                 </div>
 
@@ -2919,8 +3336,8 @@ Rules:
                         </h3>
 
                         <p className="dino-generator-description">
-                          Pick the style of question and the
-                          IB course topic you want to practise.
+                          Pick a question style and IB
+                          course topic.
                         </p>
 
                         <div className="dino-generator-fields">
@@ -3083,27 +3500,6 @@ Rules:
                             : 'Generate questions →'}
                         </button>
 
-                        {isGeneratingQuestions && (
-                          <div
-                            style={{
-                              marginTop:
-                                '14px',
-                            }}
-                            className="dino-generating"
-                          >
-                            <span>
-                              Dino is writing your
-                              questions
-                            </span>
-
-                            <span className="dino-generating-dots">
-                              <span className="dino-generating-dot" />
-                              <span className="dino-generating-dot" />
-                              <span className="dino-generating-dot" />
-                            </span>
-                          </div>
-                        )}
-
                         {questionError && (
                           <div className="dino-error">
                             {questionError}
@@ -3115,15 +3511,18 @@ Rules:
                       <div className="dino-generator-body">
 
                         <h3 className="dino-generator-title">
-                          {generatedQuestions.title}
+                          {
+                            generatedQuestions.title
+                          }
                         </h3>
 
                         <p className="dino-generator-description">
-                          {generatedQuestions.instructions}
+                          {
+                            generatedQuestions.instructions
+                          }
                         </p>
 
                         <div className="dino-question-list">
-
                           {generatedQuestions.questions.map(
                             (
                               question,
@@ -3156,15 +3555,10 @@ Rules:
                               </article>
                             ),
                           )}
-
                         </div>
 
                         <div className="dino-answer-instruction">
-                          <strong>
-                            Answer both through the tutor →
-                          </strong>
-                          <br />
-                          Tell the tutor your answers as:
+                          Answer both through the tutor:
                           <br />
                           <strong>
                             1: your answer
@@ -3173,31 +3567,27 @@ Rules:
                           <strong>
                             2: your answer
                           </strong>
-                          <br />
-                          Once both are submitted, Dino will
-                          mark them and this question set will
-                          disappear automatically.
                         </div>
 
                         {gradingResult && (
-                          <div className="dino-grade">
+                          <div className="dino-error">
                             <strong>
                               {gradingResult.score}/2
                             </strong>
-
-                            {gradingResult.feedback}
+                            <br />
+                            {
+                              gradingResult.feedback
+                            }
                           </div>
                         )}
 
                       </div>
                     )}
-
                   </div>
 
                   <div className="dino-reading-card dino-tutor-card">
 
                     <div className="dino-tutor-head">
-
                       <div className="dino-tutor-identity">
                         <div className="dino-tutor-avatar">
                           D
@@ -3218,15 +3608,14 @@ Rules:
                         <span className="dino-tutor-online-dot" />
                         Connected
                       </div>
-
                     </div>
 
                     <div className="dino-chat-area">
-
-                      {chatMessages.length === 0 && (
+                      {chatMessages.length ===
+                        0 && (
                         <div className="dino-chat-message tutor">
-                          Generate a reading set on the left
-                          and I'll help you work through it.
+                          Generate a reading set and I'll
+                          help you work through it.
                         </div>
                       )}
 
@@ -3260,11 +3649,9 @@ Rules:
                           <span className="dino-typing-dot" />
                         </div>
                       )}
-
                     </div>
 
                     <div className="dino-chat-bottom">
-
                       <textarea
                         className="dino-chat-input"
                         value={
@@ -3284,7 +3671,7 @@ Rules:
                         }
                         placeholder={
                           generatedQuestions
-                            ? 'Answer both questions here...'
+                            ? '1: ... 2: ...'
                             : 'Ask your tutor...'
                         }
                         rows={1}
@@ -3302,17 +3689,15 @@ Rules:
                       >
                         ↑
                       </button>
-
                     </div>
-
                   </div>
 
                 </div>
-
               </section>
             )}
 
-            {activeTab === 'writing' && (
+            {activeTab ===
+              'writing' && (
               <section className="dino-panel">
 
                 <div className="dino-panel-heading">
@@ -3323,7 +3708,10 @@ Rules:
 
                     <h2 className="dino-panel-title">
                       Practice
-                      <span> smarter.</span>
+                      <span>
+                        {' '}
+                        smarter.
+                      </span>
                     </h2>
 
                     <p className="dino-panel-description">
@@ -3456,7 +3844,6 @@ Rules:
 
                     {!generatedPrompt ? (
                       <div className="dino-prompt-empty">
-
                         <div className="dino-prompt-icon">
                           ✦
                         </div>
@@ -3469,20 +3856,41 @@ Rules:
                           Select a course topic and text
                           type, then generate your task.
                         </p>
-
                       </div>
                     ) : (
-                      <div className="dino-prompt-content">
-
-                        <span className="dino-prompt-label">
+                      <div
+                        style={{
+                          width:
+                            '100%',
+                        }}
+                      >
+                        <span className="dino-kicker">
                           Generated task
                         </span>
 
-                        <h3>
+                        <h3
+                          style={{
+                            margin:
+                              '10px 0 0',
+                            fontSize:
+                              '23px',
+                          }}
+                        >
                           {writingType}
                         </h3>
 
-                        <p>
+                        <p
+                          style={{
+                            margin:
+                              '12px 0 22px',
+                            color:
+                              '#666',
+                            fontSize:
+                              '12px',
+                            lineHeight:
+                              1.55,
+                          }}
+                        >
                           {generatedPrompt}
                         </p>
 
@@ -3492,27 +3900,18 @@ Rules:
                         >
                           Start writing →
                         </button>
-
                       </div>
                     )}
 
                   </div>
 
                 </div>
-
               </section>
             )}
 
-            {activeTab === 'coming' && (
+            {activeTab ===
+              'coming' && (
               <section className="dino-panel">
-
-                <div className="dino-panel-heading">
-                  <div>
-                    <span className="dino-kicker">
-                      Grammar & Sentence Structures
-                    </span>
-                  </div>
-                </div>
 
                 <div className="dino-coming-page">
 
@@ -3535,89 +3934,8 @@ Rules:
                   </div>
 
                 </div>
-
               </section>
             )}
-
-            {activeTab === 'vocab' && (
-              <section className="dino-panel">
-
-                <div className="dino-panel-heading">
-                  <div>
-                    <span className="dino-kicker">
-                      Personal
-                    </span>
-
-                    <h2 className="dino-panel-title">
-                      Vocabulary and
-                      <span> settings.</span>
-                    </h2>
-
-                    <p className="dino-panel-description">
-                      Your personal vocabulary bank and study
-                      preferences will live here.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="dino-personal-grid">
-
-                  <div className="dino-personal-card">
-                    <span className="dino-personal-label">
-                      Personal vocabulary
-                    </span>
-
-                    <div className="dino-empty">
-                      <strong>
-                        Your vocabulary bank is empty.
-                      </strong>
-
-                      <p>
-                        Words you save while studying will
-                        appear here.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="dino-personal-card">
-                    <span className="dino-personal-label">
-                      Settings
-                    </span>
-
-                    <div className="dino-settings">
-
-                      <div className="dino-setting-row">
-                        <span>
-                          Language
-                        </span>
-
-                        <strong>
-                          {language}
-                        </strong>
-                      </div>
-
-                      <div className="dino-setting-row">
-                        <span>
-                          Goals
-                        </span>
-
-                        <strong>
-                          {getCookie(
-                            'dino_goals',
-                          )
-                            ? 'Configured'
-                            : 'Not configured'}
-                        </strong>
-                      </div>
-
-                    </div>
-                  </div>
-
-                </div>
-
-              </section>
-            )}
-
           </main>
         </div>
       </AnimatedBackground>
