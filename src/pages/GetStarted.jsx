@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
 import AnimatedBackground from '../components/AnimatedBackground'
+import {
+  getCurrentUser,
+  getProfile,
+  signUp,
+} from '../api/credentials'
 
 const languages = [
   'French B',
@@ -26,13 +31,16 @@ function getCookie(name) {
     .find((row) => row.startsWith(`${name}=`))
 
   return match
-    ? decodeURIComponent(match.split('=').slice(1).join('='))
+    ? decodeURIComponent(
+        match.split('=').slice(1).join('='),
+      )
     : ''
 }
 
 function setCookie(name, value, days = 365) {
   const expires = new Date(
-    Date.now() + days * 24 * 60 * 60 * 1000,
+    Date.now() +
+      days * 24 * 60 * 60 * 1000,
   ).toUTCString()
 
   document.cookie = `${name}=${encodeURIComponent(
@@ -45,82 +53,226 @@ function GetStarted({ navigate }) {
 
   const [language, setLanguage] = useState('')
   const [examDate, setExamDate] = useState('')
-  const [selectedGoals, setSelectedGoals] = useState([])
+  const [selectedGoals, setSelectedGoals] =
+    useState([])
 
-  /*
-   * Check whether the user has already completed onboarding.
-   * If all required cookies exist, skip the onboarding entirely.
-   */
+  const [email, setEmail] = useState('')
+  const [password, setPassword] =
+    useState('')
+  const [confirmPassword, setConfirmPassword] =
+    useState('')
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] =
+    useState('')
+
   useEffect(() => {
-    const savedLanguage = getCookie('dino_language')
-    const savedExamDate = getCookie('dino_exam_date')
-    const savedGoals = getCookie('dino_goals')
-
-    if (savedLanguage && savedExamDate && savedGoals) {
-      navigate('/dashboard')
-      return
-    }
-
-    // Restore partially completed onboarding if available.
-    if (savedLanguage) {
-      setLanguage(savedLanguage)
-    }
-
-    if (savedExamDate) {
-      setExamDate(savedExamDate)
-    }
-
-    if (savedGoals) {
+    const checkExistingUser = async () => {
       try {
-        const parsedGoals = JSON.parse(savedGoals)
+        const user = await getCurrentUser()
 
-        if (Array.isArray(parsedGoals)) {
-          setSelectedGoals(parsedGoals)
+        if (!user) {
+          const savedLanguage =
+            getCookie('dino_language')
+          const savedExamDate =
+            getCookie('dino_exam_date')
+          const savedGoals =
+            getCookie('dino_goals')
+
+          if (savedLanguage) {
+            setLanguage(savedLanguage)
+          }
+
+          if (savedExamDate) {
+            setExamDate(savedExamDate)
+          }
+
+          if (savedGoals) {
+            try {
+              const parsedGoals =
+                JSON.parse(savedGoals)
+
+              if (Array.isArray(parsedGoals)) {
+                setSelectedGoals(parsedGoals)
+              }
+            } catch {
+              setSelectedGoals([])
+            }
+          }
+
+          return
         }
-      } catch {
-        setSelectedGoals([])
+
+        const profile = await getProfile(user.id)
+
+        if (
+          profile?.onboarding_complete
+        ) {
+          navigate('/dashboard')
+        }
+      } catch (err) {
+        console.error(
+          'Failed to restore session:',
+          err,
+        )
       }
     }
+
+    checkExistingUser()
   }, [navigate])
 
   const toggleGoal = (goal) => {
     setSelectedGoals((current) =>
       current.includes(goal)
-        ? current.filter((item) => item !== goal)
+        ? current.filter(
+            (item) => item !== goal,
+          )
         : [...current, goal],
     )
   }
 
   const nextStep = () => {
+    setError('')
+
     if (step === 1 && !language) {
+      setError(
+        'Choose your Language B first.',
+      )
       return
     }
 
     if (step === 2 && !examDate) {
+      setError(
+        'Choose your exam date first.',
+      )
       return
     }
 
-    setStep((current) => Math.min(current + 1, 3))
+    if (step === 3 && selectedGoals.length === 0) {
+      setError(
+        'Choose at least one goal.',
+      )
+      return
+    }
+
+    setStep((current) =>
+      Math.min(current + 1, 4),
+    )
   }
 
   const previousStep = () => {
-    setStep((current) => Math.max(current - 1, 1))
+    setError('')
+    setSuccessMessage('')
+
+    setStep((current) =>
+      Math.max(current - 1, 1),
+    )
   }
 
-  const finish = () => {
-    if (selectedGoals.length === 0) {
+  const finish = async () => {
+    setError('')
+    setSuccessMessage('')
+
+    if (!email.trim()) {
+      setError(
+        'Enter your email address.',
+      )
       return
     }
 
-    setCookie('dino_language', language)
-    setCookie('dino_exam_date', examDate)
-    setCookie('dino_goals', JSON.stringify(selectedGoals))
+    if (password.length < 6) {
+      setError(
+        'Your password must be at least 6 characters.',
+      )
+      return
+    }
 
-    navigate('/dashboard')
+    if (password !== confirmPassword) {
+      setError(
+        'Your passwords do not match.',
+      )
+      return
+    }
+
+    if (!language || !examDate) {
+      setError(
+        'Your onboarding information is incomplete.',
+      )
+      return
+    }
+
+    if (selectedGoals.length === 0) {
+      setError(
+        'Choose at least one goal.',
+      )
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const data = await signUp(
+        email,
+        password,
+        {
+          language,
+          examDate,
+          selectedGoals,
+        },
+      )
+
+      /*
+       * Save the local onboarding state as a
+       * convenience for this browser.
+       */
+      setCookie(
+        'dino_language',
+        language,
+      )
+
+      setCookie(
+        'dino_exam_date',
+        examDate,
+      )
+
+      setCookie(
+        'dino_goals',
+        JSON.stringify(
+          selectedGoals,
+        ),
+      )
+
+      /*
+       * Supabase may require email confirmation.
+       * In that case data.session is null.
+       */
+      if (!data.session) {
+        setSuccessMessage(
+          'Account created. Check your email to confirm your account, then log in.',
+        )
+
+        return
+      }
+
+      navigate('/dashboard')
+    } catch (err) {
+      console.error(
+        'Signup failed:',
+        err,
+      )
+
+      setError(
+        err?.message ||
+          'Could not create your account. Please try again.',
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   const bypassOnboarding = () => {
-    navigate('/dashboard')
+    navigate('/login')
   }
 
   return (
@@ -132,7 +284,7 @@ function GetStarted({ navigate }) {
           </div>
 
           <div className="step-counter">
-            {step} / 3
+            {step} / 4
           </div>
         </div>
 
@@ -140,7 +292,7 @@ function GetStarted({ navigate }) {
           <div
             className="progress-line-active"
             style={{
-              width: `${(step / 3) * 100}%`,
+              width: `${(step / 4) * 100}%`,
             }}
           />
         </div>
@@ -166,15 +318,20 @@ function GetStarted({ navigate }) {
                   <button
                     type="button"
                     className={`choice-card ${
-                      language === item ? 'selected' : ''
+                      language === item
+                        ? 'selected'
+                        : ''
                     }`}
                     key={item}
-                    onClick={() => setLanguage(item)}
+                    onClick={() =>
+                      setLanguage(item)
+                    }
                   >
                     <span>{item}</span>
 
                     <span className="choice-circle">
-                      {language === item && '✓'}
+                      {language === item &&
+                        '✓'}
                     </span>
                   </button>
                 ))}
@@ -210,10 +367,16 @@ function GetStarted({ navigate }) {
                   type="date"
                   value={examDate}
                   onChange={(event) =>
-                    setExamDate(event.target.value)
+                    setExamDate(
+                      event.target.value,
+                    )
                   }
                   className="exam-date"
-                  min={new Date().toISOString().split('T')[0]}
+                  min={
+                    new Date()
+                      .toISOString()
+                      .split('T')[0]
+                  }
                 />
               </div>
 
@@ -243,23 +406,108 @@ function GetStarted({ navigate }) {
                   <button
                     type="button"
                     className={`goal-card ${
-                      selectedGoals.includes(goal)
+                      selectedGoals.includes(
+                        goal,
+                      )
                         ? 'selected'
                         : ''
                     }`}
                     key={goal}
-                    onClick={() => toggleGoal(goal)}
+                    onClick={() =>
+                      toggleGoal(goal)
+                    }
                   >
                     <span>{goal}</span>
 
                     <span className="goal-check">
-                      {selectedGoals.includes(goal)
+                      {selectedGoals.includes(
+                        goal,
+                      )
                         ? '✓'
                         : '+'}
                     </span>
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="onboarding-step">
+              <span className="page-eyebrow">
+                Almost there
+              </span>
+
+              <h1 className="onboarding-title">
+                Create your
+                <span> Dino account.</span>
+              </h1>
+
+              <p className="onboarding-description">
+                Your onboarding data will be saved to your Dino account.
+              </p>
+
+              <div className="auth-form">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(
+                      event.target.value,
+                    )
+                    setError('')
+                  }}
+                  className="auth-input"
+                  placeholder="Email address"
+                  autoComplete="email"
+                />
+
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(
+                      event.target.value,
+                    )
+                    setError('')
+                  }}
+                  className="auth-input"
+                  placeholder="Password"
+                  autoComplete="new-password"
+                />
+
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => {
+                    setConfirmPassword(
+                      event.target.value,
+                    )
+                    setError('')
+                  }}
+                  className="auth-input"
+                  placeholder="Confirm password"
+                  autoComplete="new-password"
+                />
+              </div>
+
+              {error && (
+                <div className="auth-error">
+                  {error}
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="auth-success">
+                  {successMessage}
+                </div>
+              )}
+            </div>
+          )}
+
+          {step !== 4 && error && (
+            <div className="auth-error">
+              {error}
             </div>
           )}
         </div>
@@ -269,20 +517,19 @@ function GetStarted({ navigate }) {
             type="button"
             className="back-button"
             onClick={previousStep}
-            disabled={step === 1}
+            disabled={
+              step === 1 || loading
+            }
           >
             Back
           </button>
 
-          {step < 3 ? (
+          {step < 4 ? (
             <button
               type="button"
               className="next-button"
               onClick={nextStep}
-              disabled={
-                (step === 1 && !language) ||
-                (step === 2 && !examDate)
-              }
+              disabled={loading}
             >
               Next
             </button>
@@ -291,9 +538,11 @@ function GetStarted({ navigate }) {
               type="button"
               className="next-button"
               onClick={finish}
-              disabled={selectedGoals.length === 0}
+              disabled={loading}
             >
-              Enter Dino
+              {loading
+                ? 'Creating account...'
+                : 'Create account'}
             </button>
           )}
         </div>
