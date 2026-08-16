@@ -127,6 +127,32 @@ export async function signUp(
     throw error
   }
 
+  if (data?.user?.id) {
+    const { error: pointsError } =
+      await supabase
+        .from('user_dino_points')
+        .upsert(
+          {
+            user_id: data.user.id,
+            credits: 10,
+            last_refill_at:
+              new Date().toISOString(),
+            updated_at:
+              new Date().toISOString(),
+          },
+          {
+            onConflict: 'user_id',
+          },
+        )
+
+    if (pointsError) {
+      console.error(
+        'Dino points signup seed failed:',
+        pointsError,
+      )
+    }
+  }
+
   return data
 }
 

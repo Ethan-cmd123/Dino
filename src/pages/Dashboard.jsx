@@ -2085,9 +2085,8 @@ ${writingAnswer}
           width: 14px;
           height: 14px;
           border-radius: 50%;
-          background: #0a0a0a;
-          color: #fff;
-          font-size: 7px;
+          font-size: 10px;
+          line-height: 1;
         }
 
         .dino-logout-button {
@@ -3241,7 +3240,7 @@ ${writingAnswer}
               <span className="dino-user-email">{user.email}</span>
 
               <div className="dino-points-pill" aria-label="Dino points balance">
-                <span className="dino-points-coin">◉</span>
+                <span className="dino-points-coin">🦖</span>
                 <strong>{dinoPoints}</strong>
               </div>
 
@@ -3486,7 +3485,7 @@ ${writingAnswer}
                           disabled={!readingTopic || isGeneratingQuestions}
                           onClick={generateReadingQuestions}
                         >
-                          {isGeneratingQuestions ? 'Generating...' : 'Generate questions →'}
+                          {isGeneratingQuestions ? 'Generating...' : `Generate questions → 1 🦖`}
                         </button>
 
                         {isGeneratingQuestions && (
@@ -3762,7 +3761,7 @@ ${writingAnswer}
                       disabled={!writingTopic || writingGenerating}
                       onClick={createPrompt}
                     >
-                      {writingGenerating ? 'Generating...' : 'Generate prompt →'}
+                      {writingGenerating ? 'Generating...' : 'Generate prompt → 1 🦖'}
                     </button>
 
                     {writingGenerating && (
