@@ -374,55 +374,6 @@ export async function setCourseTopicCompleted(
 }
 
 /* -------------------------------------------------------------------------- */
-/* DINOPOINTS                                                                 */
-/* -------------------------------------------------------------------------- */
-
-export async function getDinoPoints() {
-  const { data, error } = await supabase.rpc(
-    'claim_daily_dinopoints',
-  )
-
-  if (error) {
-    throw error
-  }
-
-  return data
-}
-
-export async function spendDinoPoints(
-  amount = 2,
-) {
-  const numericAmount = Number(amount)
-
-  if (
-    !Number.isFinite(numericAmount) ||
-    numericAmount <= 0
-  ) {
-    throw new Error(
-      'DinoPoints cost must be greater than zero.',
-    )
-  }
-
-  const cost = Math.floor(
-    numericAmount,
-  )
-
-  const { data, error } =
-    await supabase.rpc(
-      'spend_dinopoints',
-      {
-        amount: cost,
-      },
-    )
-
-  if (error) {
-    throw error
-  }
-
-  return data
-}
-
-/* -------------------------------------------------------------------------- */
 /* AUTH STATE                                                                 */
 /* -------------------------------------------------------------------------- */
 

@@ -9,8 +9,6 @@ import {
   getProfile,
   getCourseProgress,
   setCourseTopicCompleted,
-  getDinoPoints,
-  spendDinoPoints,
   onAuthStateChange,
   signOut,
 } from '../api/credentials'
@@ -32,9 +30,6 @@ const GROQ_ENDPOINT = '/api/generate'
 
 const GROQ_MODEL =
   'openai/gpt-oss-120b'
-
-const DINOPOINT_READING_COST = 2
-const DINOPOINT_WRITING_COST = 2
 
 /* ========================================================================== */
 /* WRITING                                                                   */
@@ -78,7 +73,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Experiences',
         local: 'Expériences',
@@ -106,7 +100,6 @@ const COURSE = {
           ['Migration', 'Migration'],
         ],
       },
-
       {
         en: 'Human ingenuity',
         local: 'Ingéniosité humaine',
@@ -127,7 +120,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Social organization',
         local: 'Organisation sociale',
@@ -152,7 +144,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Sharing the planet',
         local: 'Partage de la planète',
@@ -199,11 +190,10 @@ const COURSE = {
           ['Subcultures', 'Subculturas'],
           [
             'Language and identity',
-            'Lengua y identidad',
+            'Lengua e identidad',
           ],
         ],
       },
-
       {
         en: 'Experiences',
         local: 'Experiencias',
@@ -231,7 +221,6 @@ const COURSE = {
           ['Migration', 'Migración'],
         ],
       },
-
       {
         en: 'Human ingenuity',
         local: 'Ingenio humano',
@@ -255,7 +244,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Social organization',
         local: 'Organización social',
@@ -280,7 +268,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Sharing the planet',
         local: 'Compartir el planeta',
@@ -334,7 +321,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Experiences',
         local: '经历',
@@ -344,7 +330,10 @@ const COURSE = {
             'Holidays and travel',
             '假期与旅行',
           ],
-          ['Life stories', '人生故事'],
+          [
+            'Life stories',
+            '人生故事',
+          ],
           [
             'Rites of passage',
             '人生阶段仪式',
@@ -353,10 +342,12 @@ const COURSE = {
             'Customs and traditions',
             '习俗与传统',
           ],
-          ['Migration', '移民与迁徙'],
+          [
+            'Migration',
+            '移民与迁徙',
+          ],
         ],
       },
-
       {
         en: 'Human ingenuity',
         local: '人类智慧',
@@ -374,7 +365,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Social organization',
         local: '社会组织',
@@ -393,10 +383,12 @@ const COURSE = {
             'The world of work',
             '工作世界',
           ],
-          ['Law and order', '法律与秩序'],
+          [
+            'Law and order',
+            '法律与秩序',
+          ],
         ],
       },
-
       {
         en: 'Sharing the planet',
         local: '共享地球',
@@ -441,7 +433,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Experiences',
         local: 'Experiences',
@@ -454,7 +445,10 @@ const COURSE = {
             'Holidays and travel',
             'Holidays and travel',
           ],
-          ['Life stories', 'Life stories'],
+          [
+            'Life stories',
+            'Life stories',
+          ],
           [
             'Rites of passage',
             'Rites of passage',
@@ -466,7 +460,6 @@ const COURSE = {
           ['Migration', 'Migration'],
         ],
       },
-
       {
         en: 'Human ingenuity',
         local: 'Human ingenuity',
@@ -487,7 +480,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Social organization',
         local: 'Social organization',
@@ -506,10 +498,12 @@ const COURSE = {
             'The world of work',
             'The world of work',
           ],
-          ['Law and order', 'Law and order'],
+          [
+            'Law and order',
+            'Law and order',
+          ],
         ],
       },
-
       {
         en: 'Sharing the planet',
         local: 'Sharing the planet',
@@ -524,7 +518,10 @@ const COURSE = {
             'Peace and conflict',
           ],
           ['Equality', 'Equality'],
-          ['Globalization', 'Globalization'],
+          [
+            'Globalization',
+            'Globalization',
+          ],
           ['Ethics', 'Ethics'],
           [
             'Urban and rural environment',
@@ -557,7 +554,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Experiences',
         local: 'Erfahrungen',
@@ -585,7 +581,6 @@ const COURSE = {
           ['Migration', 'Migration'],
         ],
       },
-
       {
         en: 'Human ingenuity',
         local: 'Menschlicher Erfindergeist',
@@ -606,7 +601,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Social organization',
         local: 'Soziale Organisation',
@@ -625,10 +619,12 @@ const COURSE = {
             'The world of work',
             'Arbeitswelt',
           ],
-          ['Law and order', 'Recht und Ordnung'],
+          [
+            'Law and order',
+            'Recht und Ordnung',
+          ],
         ],
       },
-
       {
         en: 'Sharing the planet',
         local: 'Den Planeten teilen',
@@ -676,7 +672,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Experiences',
         local: 'Esperienze',
@@ -689,7 +684,10 @@ const COURSE = {
             'Holidays and travel',
             'Vacanze e viaggi',
           ],
-          ['Life stories', 'Storie di vita'],
+          [
+            'Life stories',
+            'Storie di vita',
+          ],
           [
             'Rites of passage',
             'Riti di passaggio',
@@ -701,12 +699,14 @@ const COURSE = {
           ['Migration', 'Migrazione'],
         ],
       },
-
       {
         en: 'Human ingenuity',
         local: 'Ingegno umano',
         topics: [
-          ['Entertainment', 'Intrattenimento'],
+          [
+            'Entertainment',
+            'Intrattenimento',
+          ],
           [
             'Artistic expressions',
             'Espressioni artistiche',
@@ -722,7 +722,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Social organization',
         local: 'Organizzazione sociale',
@@ -741,19 +740,27 @@ const COURSE = {
             'The world of work',
             'Mondo del lavoro',
           ],
-          ['Law and order', 'Legge e ordine'],
+          [
+            'Law and order',
+            'Legge e ordine',
+          ],
         ],
       },
-
       {
         en: 'Sharing the planet',
         local: 'Condivisione del pianeta',
         topics: [
-          ['The environment', "L'ambiente"],
-          ['Human rights', 'Diritti umani'],
+          [
+            'The environment',
+            "L'ambiente",
+          ],
+          [
+            'Human rights',
+            'Diritti umani',
+          ],
           [
             'Peace and conflict',
-            'Pace e conflitti',
+            'Pace e conflitto',
           ],
           ['Equality', 'Uguaglianza'],
           [
@@ -792,7 +799,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Experiences',
         local: '経験',
@@ -814,7 +820,6 @@ const COURSE = {
           ['Migration', '移住'],
         ],
       },
-
       {
         en: 'Human ingenuity',
         local: '人間の創意工夫',
@@ -838,7 +843,6 @@ const COURSE = {
           ],
         ],
       },
-
       {
         en: 'Social organization',
         local: '社会組織',
@@ -857,10 +861,12 @@ const COURSE = {
             'The world of work',
             '仕事の世界',
           ],
-          ['Law and order', '法律と秩序'],
+          [
+            'Law and order',
+            '法律と秩序',
+          ],
         ],
       },
-
       {
         en: 'Sharing the planet',
         local: '地球を共有すること',
@@ -1012,11 +1018,7 @@ const QUESTION_SCHEMA = {
           },
         },
       },
-      required: [
-        'title',
-        'instructions',
-        'questions',
-      ],
+      required: ['title', 'instructions', 'questions'],
       additionalProperties: false,
     },
   },
@@ -1036,16 +1038,10 @@ const WRITING_PROMPT_SCHEMA = {
           type: 'array',
           minItems: 3,
           maxItems: 4,
-          items: {
-            type: 'string',
-          },
+          items: { type: 'string' },
         },
-        suggestedLength: {
-          type: 'string',
-        },
-        marks: {
-          type: 'integer',
-        },
+        suggestedLength: { type: 'string' },
+        marks: { type: 'integer' },
       },
       required: [
         'title',
@@ -1063,289 +1059,123 @@ const WRITING_PROMPT_SCHEMA = {
 /* MARKDOWN RENDERING                                                         */
 /* ========================================================================== */
 
-function splitInlineMarkdown(
-  text,
-  keyPrefix = 'md',
-) {
-  const tokens = text.split(
-    /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g,
-  )
+function splitInlineMarkdown(text, keyPrefix = 'md') {
+  const tokens = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g)
 
-  return tokens.map(
-    (token, index) => {
-      if (!token) return null
+  return tokens.map((token, index) => {
+    if (!token) return null
 
-      if (
-        /^\*\*[^*]+\*\*$/.test(
-          token,
-        )
-      ) {
-        return (
-          <strong
-            key={`${keyPrefix}-b-${index}`}
-          >
-            {token.slice(2, -2)}
-          </strong>
-        )
-      }
-
-      if (
-        /^\*[^*]+\*$/.test(
-          token,
-        )
-      ) {
-        return (
-          <em
-            key={`${keyPrefix}-i-${index}`}
-          >
-            {token.slice(1, -1)}
-          </em>
-        )
-      }
-
-      if (
-        /^`[^`]+`$/.test(
-          token,
-        )
-      ) {
-        return (
-          <code
-            key={`${keyPrefix}-c-${index}`}
-          >
-            {token.slice(1, -1)}
-          </code>
-        )
-      }
-
-      const linkMatch =
-        token.match(
-          /^\[([^\]]+)\]\(([^)]+)\)$/,
-        )
-
-      if (linkMatch) {
-        return (
-          <a
-            key={`${keyPrefix}-a-${index}`}
-            href={linkMatch[2]}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {linkMatch[1]}
-          </a>
-        )
-      }
-
+    if (/^\*\*[^*]+\*\*$/.test(token)) {
       return (
-        <span
-          key={`${keyPrefix}-t-${index}`}
-        >
-          {token}
-        </span>
+        <strong key={`${keyPrefix}-b-${index}`}>
+          {token.slice(2, -2)}
+        </strong>
       )
-    },
-  )
+    }
+
+    if (/^\*[^*]+\*$/.test(token)) {
+      return (
+        <em key={`${keyPrefix}-i-${index}`}>
+          {token.slice(1, -1)}
+        </em>
+      )
+    }
+
+    if (/^`[^`]+`$/.test(token)) {
+      return (
+        <code key={`${keyPrefix}-c-${index}`}>
+          {token.slice(1, -1)}
+        </code>
+      )
+    }
+
+    const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+    if (linkMatch) {
+      return (
+        <a
+          key={`${keyPrefix}-a-${index}`}
+          href={linkMatch[2]}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {linkMatch[1]}
+        </a>
+      )
+    }
+
+    return <span key={`${keyPrefix}-t-${index}`}>{token}</span>
+  })
 }
 
-function renderMarkdown(
-  text,
-  className = '',
-) {
-  const source = String(
-    text || '',
-  ).replace(/\r/g, '')
-
-  const blocks =
-    source.split('\n\n')
+function renderMarkdown(text, className = '') {
+  const source = String(text || '').replace(/\r/g, '')
+  const blocks = source.split('\n\n')
 
   return (
-    <div
-      className={`dino-markdown ${className}`.trim()}
-    >
-      {blocks.map(
-        (
-          block,
-          blockIndex,
-        ) => {
-          const lines =
-            block.split('\n')
+    <div className={`dino-markdown ${className}`.trim()}>
+      {blocks.map((block, blockIndex) => {
+        const lines = block.split('\n')
+        const firstLine = lines[0]?.trim() || ''
 
-          const firstLine =
-            lines[0]?.trim() || ''
-
-          if (
-            /^###\s+/.test(
-              firstLine,
-            )
-          ) {
-            return (
-              <h5
-                key={
-                  blockIndex
-                }
-              >
-                {splitInlineMarkdown(
-                  firstLine.replace(
-                    /^###\s+/,
-                    '',
-                  ),
-                  `h3-${blockIndex}`,
-                )}
-              </h5>
-            )
-          }
-
-          if (
-            /^##\s+/.test(
-              firstLine,
-            )
-          ) {
-            return (
-              <h4
-                key={
-                  blockIndex
-                }
-              >
-                {splitInlineMarkdown(
-                  firstLine.replace(
-                    /^##\s+/,
-                    '',
-                  ),
-                  `h2-${blockIndex}`,
-                )}
-              </h4>
-            )
-          }
-
-          if (
-            /^#\s+/.test(
-              firstLine,
-            )
-          ) {
-            return (
-              <h3
-                key={
-                  blockIndex
-                }
-              >
-                {splitInlineMarkdown(
-                  firstLine.replace(
-                    /^#\s+/,
-                    '',
-                  ),
-                  `h1-${blockIndex}`,
-                )}
-              </h3>
-            )
-          }
-
-          if (
-            lines.every(
-              (line) =>
-                /^[-*]\s+/.test(
-                  line.trim(),
-                ),
-            )
-          ) {
-            return (
-              <ul
-                key={
-                  blockIndex
-                }
-              >
-                {lines.map(
-                  (
-                    line,
-                    index,
-                  ) => (
-                    <li
-                      key={
-                        index
-                      }
-                    >
-                      {splitInlineMarkdown(
-                        line
-                          .trim()
-                          .replace(
-                            /^[-*]\s+/,
-                            '',
-                          ),
-                        `li-${blockIndex}-${index}`,
-                      )}
-                    </li>
-                  ),
-                )}
-              </ul>
-            )
-          }
-
-          if (
-            lines.every(
-              (line) =>
-                /^\d+\.\s+/.test(
-                  line.trim(),
-                ),
-            )
-          ) {
-            return (
-              <ol
-                key={
-                  blockIndex
-                }
-              >
-                {lines.map(
-                  (
-                    line,
-                    index,
-                  ) => (
-                    <li
-                      key={
-                        index
-                      }
-                    >
-                      {splitInlineMarkdown(
-                        line
-                          .trim()
-                          .replace(
-                            /^\d+\.\s+/,
-                            '',
-                          ),
-                        `oli-${blockIndex}-${index}`,
-                      )}
-                    </li>
-                  ),
-                )}
-              </ol>
-            )
-          }
-
+        if (/^###\s+/.test(firstLine)) {
           return (
-            <p
-              key={
-                blockIndex
-              }
-            >
-              {lines.map(
-                (
-                  line,
-                  index,
-                ) => (
-                  <React.Fragment
-                    key={index}
-                  >
-                    {index > 0 && (
-                      <br />
-                    )}
-                    {splitInlineMarkdown(
-                      line,
-                      `p-${blockIndex}-${index}`,
-                    )}
-                  </React.Fragment>
-                ),
-              )}
-            </p>
+            <h5 key={blockIndex}>
+              {splitInlineMarkdown(firstLine.replace(/^###\s+/, ''), `h3-${blockIndex}`)}
+            </h5>
           )
-        },
-      )}
+        }
+
+        if (/^##\s+/.test(firstLine)) {
+          return (
+            <h4 key={blockIndex}>
+              {splitInlineMarkdown(firstLine.replace(/^##\s+/, ''), `h2-${blockIndex}`)}
+            </h4>
+          )
+        }
+
+        if (/^#\s+/.test(firstLine)) {
+          return (
+            <h3 key={blockIndex}>
+              {splitInlineMarkdown(firstLine.replace(/^#\s+/, ''), `h1-${blockIndex}`)}
+            </h3>
+          )
+        }
+
+        if (lines.every((line) => /^[-*]\s+/.test(line.trim()))) {
+          return (
+            <ul key={blockIndex}>
+              {lines.map((line, index) => (
+                <li key={index}>
+                  {splitInlineMarkdown(line.trim().replace(/^[-*]\s+/, ''), `li-${blockIndex}-${index}`)}
+                </li>
+              ))}
+            </ul>
+          )
+        }
+
+        if (lines.every((line) => /^\d+\.\s+/.test(line.trim()))) {
+          return (
+            <ol key={blockIndex}>
+              {lines.map((line, index) => (
+                <li key={index}>
+                  {splitInlineMarkdown(line.trim().replace(/^\d+\.\s+/, ''), `oli-${blockIndex}-${index}`)}
+                </li>
+              ))}
+            </ol>
+          )
+        }
+
+        return (
+          <p key={blockIndex}>
+            {lines.map((line, index) => (
+              <React.Fragment key={index}>
+                {index > 0 && <br />}
+                {splitInlineMarkdown(line, `p-${blockIndex}-${index}`)}
+              </React.Fragment>
+            ))}
+          </p>
+        )
+      })}
     </div>
   )
 }
@@ -1354,156 +1184,37 @@ function renderMarkdown(
 /* APP                                                                        */
 /* ========================================================================== */
 
-function Dashboard({
-  navigate,
-}) {
-  const [
-    authLoading,
-    setAuthLoading,
-  ] = useState(true)
+function Dashboard({ navigate }) {
+  const [authLoading, setAuthLoading] = useState(true)
+  const [user, setUser] = useState(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [language, setLanguage] = useState('English B')
+  const [activeTab, setActiveTab] = useState('course')
+  const [selectedTopics, setSelectedTopics] = useState([])
+  const [savingTopic, setSavingTopic] = useState('')
 
-  const [user, setUser] =
-    useState(null)
+  const [writingTopic, setWritingTopic] = useState('')
+  const [writingType, setWritingType] = useState('Article')
+  const [writingDifficulty, setWritingDifficulty] = useState('Intermediate')
+  const [writingTask, setWritingTask] = useState(null)
+  const [writingAnswer, setWritingAnswer] = useState('')
+  const [writingGrade, setWritingGrade] = useState(null)
+  const [writingGenerating, setWritingGenerating] = useState(false)
+  const [writingGrading, setWritingGrading] = useState(false)
 
-  const [
-    profileLoading,
-    setProfileLoading,
-  ] = useState(true)
+  const [readingType, setReadingType] = useState('Mixed')
+  const [readingDifficulty, setReadingDifficulty] = useState('Intermediate')
+  const [readingTopic, setReadingTopic] = useState('')
+  const [generatedQuestions, setGeneratedQuestions] = useState(null)
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false)
+  const [questionError, setQuestionError] = useState('')
+  const [answerSubmission, setAnswerSubmission] = useState({})
+  const [readingGrades, setReadingGrades] = useState({})
+  const [gradingQuestion, setGradingQuestion] = useState(null)
 
-  const [
-    language,
-    setLanguage,
-  ] = useState('English B')
-
-  const [
-    dinoPoints,
-    setDinoPoints,
-  ] = useState(0)
-
-  const [
-    dinoPointsLoading,
-    setDinoPointsLoading,
-  ] = useState(true)
-
-  const [
-    dinoPointsError,
-    setDinoPointsError,
-  ] = useState('')
-
-  const [
-    activeTab,
-    setActiveTab,
-  ] = useState('course')
-
-  const [
-    selectedTopics,
-    setSelectedTopics,
-  ] = useState([])
-
-  const [
-    savingTopic,
-    setSavingTopic,
-  ] = useState('')
-
-  const [
-    writingTopic,
-    setWritingTopic,
-  ] = useState('')
-
-  const [
-    writingType,
-    setWritingType,
-  ] = useState('Article')
-
-  const [
-    writingDifficulty,
-    setWritingDifficulty,
-  ] = useState('Intermediate')
-
-  const [
-    writingTask,
-    setWritingTask,
-  ] = useState(null)
-
-  const [
-    writingAnswer,
-    setWritingAnswer,
-  ] = useState('')
-
-  const [
-    writingGrade,
-    setWritingGrade,
-  ] = useState(null)
-
-  const [
-    writingGenerating,
-    setWritingGenerating,
-  ] = useState(false)
-
-  const [
-    writingGrading,
-    setWritingGrading,
-  ] = useState(false)
-
-  const [
-    readingType,
-    setReadingType,
-  ] = useState('Mixed')
-
-  const [
-    readingDifficulty,
-    setReadingDifficulty,
-  ] = useState('Intermediate')
-
-  const [
-    readingTopic,
-    setReadingTopic,
-  ] = useState('')
-
-  const [
-    generatedQuestions,
-    setGeneratedQuestions,
-  ] = useState(null)
-
-  const [
-    isGeneratingQuestions,
-    setIsGeneratingQuestions,
-  ] = useState(false)
-
-  const [
-    questionError,
-    setQuestionError,
-  ] = useState('')
-
-  const [
-    answerSubmission,
-    setAnswerSubmission,
-  ] = useState({})
-
-  const [
-    readingGrades,
-    setReadingGrades,
-  ] = useState({})
-
-  const [
-    gradingQuestion,
-    setGradingQuestion,
-  ] = useState(null)
-
-  const [
-    chatMessages,
-    setChatMessages,
-  ] = useState([])
-
-  const [
-    chatInput,
-    setChatInput,
-  ] = useState('')
-
-  const [
-    chatTyping,
-    setChatTyping,
-  ] = useState(false)
+  const [chatMessages, setChatMessages] = useState([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatTyping, setChatTyping] = useState(false)
 
   /* ------------------------------------------------------------------------ */
   /* AUTH                                                                     */
@@ -1514,8 +1225,7 @@ function Dashboard({
 
     async function initialiseAuth() {
       try {
-        const currentUser =
-          await getCurrentUser()
+        const currentUser = await getCurrentUser()
 
         if (!currentUser) {
           navigate('/login')
@@ -1528,339 +1238,139 @@ function Dashboard({
         }
 
         try {
-          const profile =
-            await getProfile(
-              currentUser.id,
-            )
+          const profile = await getProfile(currentUser.id)
 
           if (mounted) {
             setLanguage(
               profile?.language ||
-                currentUser
-                  ?.user_metadata
-                  ?.language ||
+                currentUser?.user_metadata?.language ||
                 'English B',
             )
           }
         } catch (error) {
-          console.error(
-            'Profile loading failed:',
-            error,
-          )
+          console.error('Profile loading failed:', error)
         }
 
         try {
-          const savedProgress =
-            await getCourseProgress(
-              currentUser.id,
-            )
+          const savedProgress = await getCourseProgress(currentUser.id)
 
           if (mounted) {
-            setSelectedTopics(
-              savedProgress,
-            )
+            setSelectedTopics(savedProgress)
           }
         } catch (error) {
-          console.error(
-            'Course progress loading failed:',
-            error,
-          )
-        }
-
-        try {
-          const points =
-            await getDinoPoints()
-
-          if (mounted) {
-            setDinoPoints(
-              Number(
-                points?.balance ??
-                  0,
-              ),
-            )
-
-            setDinoPointsError('')
-          }
-        } catch (error) {
-          console.error(
-            'DinoPoints loading failed:',
-            error,
-          )
-
-          if (mounted) {
-            setDinoPointsError(
-              error instanceof
-                Error
-                ? error.message
-                : 'Could not load DinoPoints.',
-            )
-          }
+          console.error('Course progress loading failed:', error)
         } finally {
           if (mounted) {
-            setDinoPointsLoading(
-              false,
-            )
-
-            setProfileLoading(
-              false,
-            )
+            setProfileLoading(false)
           }
         }
       } catch (error) {
-        console.error(
-          'Dashboard auth check failed:',
-          error,
-        )
-
+        console.error('Dashboard auth check failed:', error)
         navigate('/login')
       }
     }
 
     initialiseAuth()
 
-    const authSubscription =
-      onAuthStateChange(
-        (
-          event,
-          session,
-        ) => {
-          if (
-            event ===
-              'SIGNED_OUT' ||
-            !session
-          ) {
-            navigate('/login')
-            return
-          }
+    const authSubscription = onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate('/login')
+        return
+      }
 
-          setUser(
-            session.user,
-          )
-
-          setAuthLoading(
-            false,
-          )
-        },
-      )
+      setUser(session.user)
+      setAuthLoading(false)
+    })
 
     return () => {
       mounted = false
-
-      authSubscription
-        ?.data
-        ?.subscription
-        ?.unsubscribe?.()
+      authSubscription?.data?.subscription?.unsubscribe?.()
     }
   }, [navigate])
 
   useEffect(() => {
-    document.body.dataset.page =
-      'dashboard'
+    document.body.dataset.page = 'dashboard'
 
     return () => {
-      delete document.body
-        .dataset.page
+      delete document.body.dataset.page
     }
   }, [])
 
   /* ------------------------------------------------------------------------ */
-  /* COURSE                                                                  */
+  /* COURSE                                                                    */
   /* ------------------------------------------------------------------------ */
 
-  const course = useMemo(
-    () =>
-      COURSE[language] ||
-      COURSE['English B'],
-    [language],
-  )
+  const course = useMemo(() => {
+    return COURSE[language] || COURSE['English B']
+  }, [language])
 
-  const allTopics =
-    useMemo(
-      () =>
-        course.themes.flatMap(
-          (theme) =>
-            theme.topics.map(
-              (topic) => ({
-                theme:
-                  theme.en,
-                themeLocal:
-                  theme.local,
-                topic:
-                  topic[0],
-                local:
-                  topic[1],
-              }),
-            ),
-        ),
-      [course],
+  const allTopics = useMemo(() => {
+    return course.themes.flatMap((theme) =>
+      theme.topics.map((topic) => ({
+        theme: theme.en,
+        themeLocal: theme.local,
+        topic: topic[0],
+        local: topic[1],
+      })),
     )
+  }, [course])
 
-  const completedCount =
-    selectedTopics.length
-
-  const totalCount =
-    allTopics.length
+  const completedCount = selectedTopics.length
+  const totalCount = allTopics.length
 
   const courseProgress =
-    totalCount > 0
-      ? Math.round(
-          (completedCount /
-            totalCount) *
-            100,
-        )
-      : 0
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
-  const toggleTopic = async (
-    themeName,
-    topicEnglish,
-  ) => {
-    if (
-      !user ||
-      savingTopic
-    ) {
-      return
-    }
+  const toggleTopic = async (themeName, topicEnglish) => {
+    if (!user || savingTopic) return
 
-    const topicId =
-      `${language}::${themeName}::${topicEnglish}`
+    const topicId = `${language}::${themeName}::${topicEnglish}`
+    const currentlyCompleted = selectedTopics.includes(topicId)
+    const nextCompleted = !currentlyCompleted
 
-    const currentlyCompleted =
-      selectedTopics.includes(
-        topicId,
-      )
+    setSavingTopic(topicId)
 
-    const nextCompleted =
-      !currentlyCompleted
-
-    setSavingTopic(
-      topicId,
-    )
-
-    setSelectedTopics(
-      (current) =>
-        nextCompleted
-          ? [
-              ...current,
-              topicId,
-            ]
-          : current.filter(
-              (item) =>
-                item !==
-                topicId,
-            ),
+    setSelectedTopics((current) =>
+      nextCompleted
+        ? [...current, topicId]
+        : current.filter((item) => item !== topicId),
     )
 
     try {
-      await setCourseTopicCompleted(
-        user.id,
-        topicId,
-        nextCompleted,
-      )
+      await setCourseTopicCompleted(user.id, topicId, nextCompleted)
     } catch (error) {
-      console.error(
-        'Saving course topic failed:',
-        error,
-      )
+      console.error('Saving course topic failed:', error)
 
-      setSelectedTopics(
-        (current) => {
-          if (
-            currentlyCompleted
-          ) {
-            return [
-              ...current,
-              topicId,
-            ]
-          }
-
-          return current.filter(
-            (item) =>
-              item !==
-              topicId,
-          )
-        },
-      )
+      setSelectedTopics((current) => {
+        if (currentlyCompleted) return [...current, topicId]
+        return current.filter((item) => item !== topicId)
+      })
     } finally {
       setSavingTopic('')
     }
   }
 
-  const isCompleted = (
-    themeName,
-    topicEnglish,
-  ) => {
-    return selectedTopics.includes(
-      `${language}::${themeName}::${topicEnglish}`,
-    )
+  const isCompleted = (themeName, topicEnglish) => {
+    return selectedTopics.includes(`${language}::${themeName}::${topicEnglish}`)
   }
 
   /* ------------------------------------------------------------------------ */
-  /* DINOPOINTS                                                               */
+  /* READING                                                                   */
   /* ------------------------------------------------------------------------ */
 
-  const payDinoPoints =
-    async (cost = 2) => {
-      if (!user) {
-        throw new Error(
-          'You must be logged in to use DinoPoints.',
-        )
-      }
+  const generateReadingQuestions = async () => {
+    if (!readingTopic || !readingType) return
 
-      const result =
-        await spendDinoPoints(
-          cost,
-        )
+    setQuestionError('')
+    setGeneratedQuestions(null)
+    setAnswerSubmission({})
+    setReadingGrades({})
+    setIsGeneratingQuestions(true)
 
-      setDinoPoints(
-        Number(
-          result?.balance ??
-            0,
-        ),
-      )
+    const selectedTopic = allTopics.find((item) => item.topic === readingTopic)
 
-      setDinoPointsError('')
-
-      return result
-    }
-
-  /* ------------------------------------------------------------------------ */
-  /* READING                                                                  */
-  /* ------------------------------------------------------------------------ */
-
-  const generateReadingQuestions =
-    async () => {
-      if (
-        !readingTopic ||
-        !readingType ||
-        isGeneratingQuestions
-      ) {
-        return
-      }
-
-      setQuestionError('')
-      setGeneratedQuestions(
-        null,
-      )
-
-      setAnswerSubmission({})
-      setReadingGrades({})
-      setIsGeneratingQuestions(
-        true,
-      )
-
-      const selectedTopic =
-        allTopics.find(
-          (item) =>
-            item.topic ===
-            readingTopic,
-        )
-
-      try {
-        await payDinoPoints(
-          DINOPOINT_READING_COST,
-        )
-
-        const systemPrompt = `
+    try {
+      const systemPrompt = `
 You are Dino, an expert IB Language B tutor.
 
 Create original, high-quality reading comprehension practice for an IB Language B student.
@@ -1878,7 +1388,7 @@ IMPORTANT:
 - Return only structured data.
 `.trim()
 
-        const userPrompt = `
+      const userPrompt = `
 Create exactly TWO ${readingType} reading questions.
 
 Language:
@@ -1904,189 +1414,97 @@ Each question must include:
 - a concise explanation
 `.trim()
 
-        const raw =
-          await callGroq({
-            system:
-              systemPrompt,
-            user:
-              userPrompt,
-            responseFormat:
-              QUESTION_SCHEMA,
-            temperature:
-              0.35,
-            maxTokens:
-              2200,
-          })
+      const raw = await callGroq({
+        system: systemPrompt,
+        user: userPrompt,
+        responseFormat: QUESTION_SCHEMA,
+        temperature: 0.35,
+        maxTokens: 2200,
+      })
 
-        const parsed =
-          cleanModelJSON(
-            raw,
-          )
+      const parsed = cleanModelJSON(raw)
 
-        if (
-          !parsed ||
-          !Array.isArray(
-            parsed.questions,
-          ) ||
-          parsed.questions
-            .length !== 2
-        ) {
-          throw new Error(
-            'Groq returned an unexpected question format.',
-          )
-        }
-
-        const normalizedQuestions =
-          parsed.questions.map(
-            (
-              question,
-              index,
-            ) => ({
-              id:
-                question.id ||
-                index + 1,
-              question:
-                question.question,
-              context:
-                question.context ||
-                '',
-              answer:
-                question.answer,
-              explanation:
-                question.explanation ||
-                '',
-              marks:
-                Math.max(
-                  1,
-                  Number(
-                    question.marks,
-                  ) || 1,
-                ),
-            }),
-          )
-
-        const result = {
-          title:
-            parsed.title ||
-            `${readingTopic} practice`,
-          instructions:
-            parsed.instructions ||
-            'Answer each question in its own answer box. Use the tutor for hints or clarification without asking for the answer.',
-          questions:
-            normalizedQuestions,
-        }
-
-        setGeneratedQuestions(
-          result,
-        )
-
-        setChatMessages([
-          {
-            role: 'tutor',
-            text:
-              `I generated a ${readingDifficulty.toLowerCase()} reading set on ${readingTopic}. You can answer directly under each question, ask me for help, or use Mark when you are ready. I will not reveal answer keys before marking.`,
-          },
-        ])
-      } catch (error) {
-        setQuestionError(
-          error instanceof
-            Error
-            ? error.message
-            : 'Something went wrong while generating the questions.',
-        )
-      } finally {
-        setIsGeneratingQuestions(
-          false,
-        )
+      if (!parsed || !Array.isArray(parsed.questions) || parsed.questions.length !== 2) {
+        throw new Error('Groq returned an unexpected question format.')
       }
+
+      const normalizedQuestions = parsed.questions.map((question, index) => ({
+        id: question.id || index + 1,
+        question: question.question,
+        context: question.context || '',
+        answer: question.answer,
+        explanation: question.explanation || '',
+        marks: Math.max(1, Number(question.marks) || 1),
+      }))
+
+      const result = {
+        title: parsed.title || `${readingTopic} practice`,
+        instructions:
+          parsed.instructions ||
+          'Answer each question in its own answer box. Use the tutor for hints or clarification without asking for the answer.',
+        questions: normalizedQuestions,
+      }
+
+      setGeneratedQuestions(result)
+
+      setChatMessages([
+        {
+          role: 'tutor',
+          text:
+            `I generated a ${readingDifficulty.toLowerCase()} reading set on ${readingTopic}. You can answer directly under each question, ask me for help, or use Mark when you are ready. I will not reveal answer keys before marking.`,
+        },
+      ])
+    } catch (error) {
+      setQuestionError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong while generating the questions.',
+      )
+    } finally {
+      setIsGeneratingQuestions(false)
+    }
+  }
+
+  const markReadingQuestion = async (questionId) => {
+    if (!generatedQuestions || gradingQuestion !== null) return
+
+    const question = generatedQuestions.questions.find(
+      (item) => item.id === questionId,
+    )
+
+    if (!question) return
+
+    const answer = String(answerSubmission[questionId] || '').trim()
+
+    if (!answer) {
+      setQuestionError(`Write an answer for question ${questionId} before marking it.`)
+      return
     }
 
-  const markReadingQuestion =
-    async (
-      questionId,
-    ) => {
-      if (
-        !generatedQuestions ||
-        gradingQuestion !==
-          null
-      ) {
-        return
-      }
+    setQuestionError('')
+    setGradingQuestion(questionId)
+    setChatTyping(true)
 
-      const question =
-        generatedQuestions.questions.find(
-          (item) =>
-            item.id ===
-            questionId,
-        )
-
-      if (!question) {
-        return
-      }
-
-      const answer =
-        String(
-          answerSubmission[
-            questionId
-          ] || '',
-        ).trim()
-
-      if (!answer) {
-        setQuestionError(
-          `Write an answer for question ${questionId} before marking it.`,
-        )
-
-        return
-      }
-
-      setQuestionError('')
-      setGradingQuestion(
-        questionId,
-      )
-
-      setChatTyping(true)
-
-      try {
-        const responseFormat =
-          {
-            type:
-              'json_schema',
-            json_schema: {
-              name:
-                'ib_reading_single_grade',
-              strict: true,
-              schema: {
-                type:
-                  'object',
-                properties: {
-                  score:
-                    {
-                      type:
-                        'integer',
-                    },
-                  feedback:
-                    {
-                      type:
-                        'string',
-                    },
-                  nextStep:
-                    {
-                      type:
-                        'string',
-                    },
-                },
-                required: [
-                  'score',
-                  'feedback',
-                  'nextStep',
-                ],
-                additionalProperties:
-                  false,
-              },
+    try {
+      const responseFormat = {
+        type: 'json_schema',
+        json_schema: {
+          name: 'ib_reading_single_grade',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              score: { type: 'integer' },
+              feedback: { type: 'string' },
+              nextStep: { type: 'string' },
             },
-          }
+            required: ['score', 'feedback', 'nextStep'],
+            additionalProperties: false,
+          },
+        },
+      }
 
-        const systemPrompt = `
+      const systemPrompt = `
 You are Dino, an expert IB Language B reading tutor.
 
 IMPORTANT:
@@ -2101,7 +1519,7 @@ IMPORTANT:
 - Return only structured JSON.
 `.trim()
 
-        const userPrompt = `
+      const userPrompt = `
 LANGUAGE:
 ${language}
 
@@ -2127,156 +1545,92 @@ STUDENT ANSWER:
 ${answer}
 `.trim()
 
-        const raw =
-          await callGroq({
-            system:
-              systemPrompt,
-            user:
-              userPrompt,
-            responseFormat,
-            temperature:
-              0.1,
-            maxTokens:
-              800,
-          })
+      const raw = await callGroq({
+        system: systemPrompt,
+        user: userPrompt,
+        responseFormat,
+        temperature: 0.1,
+        maxTokens: 800,
+      })
 
-        const parsed =
-          cleanModelJSON(
-            raw,
-          )
+      const parsed = cleanModelJSON(raw)
 
-        if (!parsed) {
-          throw new Error(
-            'Groq returned an invalid grading response.',
-          )
-        }
-
-        const safeScore =
-          Math.min(
-            Math.max(
-              0,
-              Number(
-                parsed.score,
-              ) || 0,
-            ),
-            question.marks,
-          )
-
-        setReadingGrades(
-          (current) => ({
-            ...current,
-            [questionId]:
-              {
-                ...parsed,
-                score:
-                  safeScore,
-                maxMarks:
-                  question.marks,
-              },
-          }),
-        )
-
-        setChatMessages(
-          (current) => [
-            ...current,
-            {
-              role: 'tutor',
-              text:
-                `Question ${questionId}: ${safeScore}/${question.marks}. ${parsed.feedback}\n\nNext step: ${parsed.nextStep}`,
-            },
-          ],
-        )
-      } catch (error) {
-        setQuestionError(
-          error instanceof
-            Error
-            ? error.message
-            : 'Something went wrong while marking the answer.',
-        )
-      } finally {
-        setGradingQuestion(
-          null,
-        )
-
-        setChatTyping(false)
-      }
-    }
-
-  const readingTotalMarks =
-    generatedQuestions
-      ? generatedQuestions.questions.reduce(
-          (
-            sum,
-            question,
-          ) =>
-            sum +
-            question.marks,
-          0,
-        )
-      : 0
-
-  const readingEarnedMarks =
-    generatedQuestions
-      ? generatedQuestions.questions.reduce(
-          (
-            sum,
-            question,
-          ) =>
-            sum +
-            Number(
-              readingGrades[
-                question.id
-              ]?.score || 0,
-            ),
-          0,
-        )
-      : 0
-
-  /* ------------------------------------------------------------------------ */
-  /* READING TUTOR                                                            */
-  /* ------------------------------------------------------------------------ */
-
-  const sendReadingChat =
-    async () => {
-      const text =
-        chatInput.trim()
-
-      if (
-        !text ||
-        chatTyping
-      ) {
-        return
+      if (!parsed) {
+        throw new Error('Groq returned an invalid grading response.')
       }
 
-      setChatMessages(
-        (current) => [
-          ...current,
-          {
-            role: 'user',
-            text,
-          },
-        ],
+      const safeScore = Math.min(
+        Math.max(0, Number(parsed.score) || 0),
+        question.marks,
       )
 
-      setChatInput('')
-      setChatTyping(true)
+      setReadingGrades((current) => ({
+        ...current,
+        [questionId]: {
+          ...parsed,
+          score: safeScore,
+          maxMarks: question.marks,
+        },
+      }))
 
-      try {
-        const questionContext =
-          generatedQuestions
-            ? generatedQuestions.questions
-                .map(
-                  (
-                    question,
-                  ) =>
-                    `Question ${question.id}: ${question.question}\nContext: ${question.context}`,
-                )
-                .join(
-                  '\n\n',
-                )
-            : 'No reading question set has been generated yet.'
+      setChatMessages((current) => [
+        ...current,
+        {
+          role: 'tutor',
+          text: `Question ${questionId}: ${safeScore}/${question.marks}. ${parsed.feedback}\n\nNext step: ${parsed.nextStep}`,
+        },
+      ])
+    } catch (error) {
+      setQuestionError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong while marking the answer.',
+      )
+    } finally {
+      setGradingQuestion(null)
+      setChatTyping(false)
+    }
+  }
 
-        const tutorSystem = `
+  const readingTotalMarks = generatedQuestions
+    ? generatedQuestions.questions.reduce(
+        (sum, question) => sum + question.marks,
+        0,
+      )
+    : 0
+
+  const readingEarnedMarks = generatedQuestions
+    ? generatedQuestions.questions.reduce(
+        (sum, question) =>
+          sum + Number(readingGrades[question.id]?.score || 0),
+        0,
+      )
+    : 0
+
+  /* ------------------------------------------------------------------------ */
+  /* READING TUTOR                                                             */
+  /* ------------------------------------------------------------------------ */
+
+  const sendReadingChat = async () => {
+    const text = chatInput.trim()
+
+    if (!text || chatTyping) return
+
+    setChatMessages((current) => [...current, { role: 'user', text }])
+    setChatInput('')
+    setChatTyping(true)
+
+    try {
+      const questionContext = generatedQuestions
+        ? generatedQuestions.questions
+            .map(
+              (question) =>
+                `Question ${question.id}: ${question.question}\nContext: ${question.context}`,
+            )
+            .join('\n\n')
+        : 'No reading question set has been generated yet.'
+
+      const tutorSystem = `
 You are Dino, an expert IB Language B tutor helping the student with reading practice.
 
 IMPORTANT:
@@ -2303,97 +1657,60 @@ CURRENT QUESTIONS:
 ${questionContext}
 `.trim()
 
-        const raw =
-          await callGroq({
-            system:
-              tutorSystem,
-            user:
-              text,
-            temperature:
-              0.3,
-            maxTokens:
-              700,
-          })
+      const raw = await callGroq({
+        system: tutorSystem,
+        user: text,
+        temperature: 0.3,
+        maxTokens: 700,
+      })
 
-        setChatMessages(
-          (current) => [
-            ...current,
-            {
-              role: 'tutor',
-              text:
-                raw ||
-                'I could not generate a response.',
-            },
-          ],
-        )
-      } catch (error) {
-        setChatMessages(
-          (current) => [
-            ...current,
-            {
-              role: 'tutor',
-              text:
-                error instanceof
-                  Error
-                  ? error.message
-                  : 'Tutor connection failed.',
-            },
-          ],
-        )
-      } finally {
-        setChatTyping(false)
-      }
+      setChatMessages((current) => [
+        ...current,
+        {
+          role: 'tutor',
+          text: raw || 'I could not generate a response.',
+        },
+      ])
+    } catch (error) {
+      setChatMessages((current) => [
+        ...current,
+        {
+          role: 'tutor',
+          text:
+            error instanceof Error
+              ? error.message
+              : 'Tutor connection failed.',
+        },
+      ])
+    } finally {
+      setChatTyping(false)
     }
+  }
 
-  const handleChatKeyDown =
-    (event) => {
-      if (
-        event.key ===
-          'Enter' &&
-        !event.shiftKey
-      ) {
-        event.preventDefault()
-        sendReadingChat()
-      }
+  const handleChatKeyDown = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      sendReadingChat()
     }
+  }
 
   /* ------------------------------------------------------------------------ */
   /* WRITING                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  const createPrompt =
-    async () => {
-      if (
-        !writingTopic ||
-        writingGenerating
-      ) {
-        return
-      }
+  const createPrompt = async () => {
+    if (!writingTopic || writingGenerating) return
 
-      const selected =
-        allTopics.find(
-          (item) =>
-            item.topic ===
-            writingTopic,
-        )
+    const selected = allTopics.find((item) => item.topic === writingTopic)
 
-      if (!selected) {
-        return
-      }
+    if (!selected) return
 
-      setWritingGenerating(
-        true,
-      )
+    setWritingGenerating(true)
+    setWritingGrade(null)
+    setWritingAnswer('')
 
-      setWritingGrade(null)
-      setWritingAnswer('')
-
-      try {
-        await payDinoPoints(
-          DINOPOINT_WRITING_COST,
-        )
-
-        const systemPrompt = `
+    try {
+      const systemPrompt = `
 You are Dino, an expert IB Language B writing tutor.
 
 IMPORTANT:
@@ -2407,7 +1724,7 @@ IMPORTANT:
 - Return only structured data.
 `.trim()
 
-        const userPrompt = `
+      const userPrompt = `
 Language:
 ${language}
 
@@ -2434,134 +1751,78 @@ Create one writing task with:
 - a maximum mark total between 10 and 20
 `.trim()
 
-        const raw =
-          await callGroq({
-            system:
-              systemPrompt,
-            user:
-              userPrompt,
-            responseFormat:
-              WRITING_PROMPT_SCHEMA,
-            temperature:
-              0.45,
-            maxTokens:
-              1200,
-          })
+      const raw = await callGroq({
+        system: systemPrompt,
+        user: userPrompt,
+        responseFormat: WRITING_PROMPT_SCHEMA,
+        temperature: 0.45,
+        maxTokens: 1200,
+      })
 
-        const parsed =
-          cleanModelJSON(
-            raw,
-          )
+      const parsed = cleanModelJSON(raw)
 
-        if (!parsed) {
-          throw new Error(
-            'Groq returned an invalid writing prompt.',
-          )
-        }
-
-        setWritingTask({
-          ...parsed,
-          marks:
-            Math.max(
-              10,
-              Number(
-                parsed.marks,
-              ) || 15,
-            ),
-        })
-      } catch (error) {
-        setQuestionError(
-          error instanceof
-            Error
-            ? error.message
-            : 'Something went wrong while generating the writing task.',
-        )
-      } finally {
-        setWritingGenerating(
-          false,
-        )
+      if (!parsed) {
+        throw new Error('Groq returned an invalid writing prompt.')
       }
+
+      setWritingTask({
+        ...parsed,
+        marks: Math.max(10, Number(parsed.marks) || 15),
+      })
+    } catch (error) {
+      setQuestionError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong while generating the writing task.',
+      )
+    } finally {
+      setWritingGenerating(false)
     }
+  }
 
-  const markWriting =
-    async () => {
-      if (
-        !writingTask ||
-        !writingAnswer.trim() ||
-        writingGrading
-      ) {
-        return
+  const markWriting = async () => {
+    if (!writingTask || !writingAnswer.trim() || writingGrading) return
+
+    setWritingGrading(true)
+
+    try {
+      const responseFormat = {
+        type: 'json_schema',
+        json_schema: {
+          name: 'ib_writing_grade',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              score: { type: 'integer' },
+              feedback: { type: 'string' },
+              strengths: {
+                type: 'array',
+                minItems: 1,
+                maxItems: 5,
+                items: { type: 'string' },
+              },
+              improvements: {
+                type: 'array',
+                minItems: 1,
+                maxItems: 5,
+                items: { type: 'string' },
+              },
+              nextStep: { type: 'string' },
+            },
+            required: [
+              'score',
+              'feedback',
+              'strengths',
+              'improvements',
+              'nextStep',
+            ],
+            additionalProperties: false,
+          },
+        },
       }
 
-      setWritingGrading(true)
-
-      try {
-        const responseFormat =
-          {
-            type:
-              'json_schema',
-            json_schema: {
-              name:
-                'ib_writing_grade',
-              strict: true,
-              schema: {
-                type:
-                  'object',
-                properties: {
-                  score:
-                    {
-                      type:
-                        'integer',
-                    },
-                  feedback:
-                    {
-                      type:
-                        'string',
-                    },
-                  strengths:
-                    {
-                      type:
-                        'array',
-                      minItems: 1,
-                      maxItems: 5,
-                      items:
-                        {
-                          type:
-                            'string',
-                        },
-                    },
-                  improvements:
-                    {
-                      type:
-                        'array',
-                      minItems: 1,
-                      maxItems: 5,
-                      items:
-                        {
-                          type:
-                            'string',
-                        },
-                    },
-                  nextStep:
-                    {
-                      type:
-                        'string',
-                    },
-                },
-                required: [
-                  'score',
-                  'feedback',
-                  'strengths',
-                  'improvements',
-                  'nextStep',
-                ],
-                additionalProperties:
-                  false,
-              },
-            },
-          }
-
-        const systemPrompt = `
+      const systemPrompt = `
 You are Dino, an expert IB Language B writing examiner and tutor.
 
 IMPORTANT:
@@ -2577,7 +1838,7 @@ IMPORTANT:
 - Return only structured JSON.
 `.trim()
 
-        const userPrompt = `
+      const userPrompt = `
 LANGUAGE:
 ${language}
 
@@ -2591,15 +1852,7 @@ TASK:
 ${writingTask.prompt}
 
 CRITERIA:
-${writingTask.criteria
-  .map(
-    (
-      item,
-      index,
-    ) =>
-      `${index + 1}. ${item}`,
-  )
-  .join('\n')}
+${writingTask.criteria.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 
 SUGGESTED LENGTH:
 ${writingTask.suggestedLength}
@@ -2611,59 +1864,40 @@ STUDENT RESPONSE:
 ${writingAnswer}
 `.trim()
 
-        const raw =
-          await callGroq({
-            system:
-              systemPrompt,
-            user:
-              userPrompt,
-            responseFormat,
-            temperature:
-              0.1,
-            maxTokens:
-              1600,
-          })
+      const raw = await callGroq({
+        system: systemPrompt,
+        user: userPrompt,
+        responseFormat,
+        temperature: 0.1,
+        maxTokens: 1600,
+      })
 
-        const parsed =
-          cleanModelJSON(
-            raw,
-          )
+      const parsed = cleanModelJSON(raw)
 
-        if (!parsed) {
-          throw new Error(
-            'Groq returned an invalid writing grade.',
-          )
-        }
-
-        setWritingGrade({
-          ...parsed,
-          score:
-            Math.min(
-              Math.max(
-                0,
-                Number(
-                  parsed.score,
-                ) || 0,
-              ),
-              writingTask.marks,
-            ),
-        })
-      } catch (error) {
-        setQuestionError(
-          error instanceof
-            Error
-            ? error.message
-            : 'Something went wrong while marking the writing.',
-        )
-      } finally {
-        setWritingGrading(
-          false,
-        )
+      if (!parsed) {
+        throw new Error('Groq returned an invalid writing grade.')
       }
+
+      setWritingGrade({
+        ...parsed,
+        score: Math.min(
+          Math.max(0, Number(parsed.score) || 0),
+          writingTask.marks,
+        ),
+      })
+    } catch (error) {
+      setQuestionError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong while marking the writing.',
+      )
+    } finally {
+      setWritingGrading(false)
     }
+  }
 
   /* ------------------------------------------------------------------------ */
-  /* LOGOUT                                                                   */
+  /* LOGOUT                                                                    */
   /* ------------------------------------------------------------------------ */
 
   async function handleLogout() {
@@ -2671,17 +1905,11 @@ ${writingAnswer}
       await signOut()
       navigate('/login')
     } catch (error) {
-      console.error(
-        'Logout failed:',
-        error,
-      )
+      console.error('Logout failed:', error)
     }
   }
 
-  if (
-    authLoading ||
-    profileLoading
-  ) {
+  if (authLoading || profileLoading) {
     return (
       <AnimatedBackground className="onboarding-page">
         <div
@@ -2693,12 +1921,7 @@ ${writingAnswer}
             justifyContent: 'center',
           }}
         >
-          <div
-            style={{
-              color: '#222',
-              fontSize: '12px',
-            }}
-          >
+          <div style={{ color: '#222', fontSize: '12px' }}>
             Loading your workspace…
           </div>
         </div>
@@ -2706,9 +1929,7 @@ ${writingAnswer}
     )
   }
 
-  if (!user) {
-    return null
-  }
+  if (!user) return null
 
   return (
     <>
@@ -2779,72 +2000,6 @@ ${writingAnswer}
           display: flex;
           align-items: center;
           gap: 9px;
-        }
-
-        .dino-points-badge {
-          min-height: 31px;
-          padding: 0 10px 0 7px;
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          border: 1px solid rgba(0,0,0,.08);
-          border-radius: 10px;
-          background: rgba(255,255,255,.82);
-          color: #0a0a0a;
-          box-shadow: 0 6px 18px rgba(0,0,0,.025);
-        }
-
-        .dino-points-badge.loading {
-          opacity: .6;
-        }
-
-        .dino-points-icon {
-          width: 20px;
-          height: 20px;
-          border-radius: 7px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          background: #0a0a0a;
-          color: #fff;
-          font-size: 8px;
-          font-weight: 700;
-        }
-
-        .dino-points-copy {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          line-height: 1;
-        }
-
-        .dino-points-copy small {
-          color: #8a8a8a;
-          font-size: 7px;
-          font-weight: 600;
-          letter-spacing: .01em;
-        }
-
-        .dino-points-copy strong {
-          margin-top: 3px;
-          color: #0a0a0a;
-          font-size: 11px;
-          font-weight: 700;
-        }
-
-        .dino-points-error {
-          position: absolute;
-          top: 7px;
-          right: 34px;
-          max-width: 340px;
-          padding: 6px 9px;
-          border: 1px solid rgba(0,0,0,.07);
-          border-radius: 8px;
-          background: rgba(255,255,255,.9);
-          color: #777;
-          font-size: 7px;
-          line-height: 1.35;
-          pointer-events: none;
         }
 
         .dino-user-email {
@@ -3088,9 +2243,13 @@ ${writingAnswer}
           font-weight: 700;
         }
 
-        .dino-topic.completed .dino-check {
-          background: #0a0a0a;
+        .dino-topic:hover .dino-check {
           border-color: #0a0a0a;
+        }
+
+        .dino-topic.completed .dino-check {
+          border-color: #0a0a0a;
+          background: #0a0a0a;
         }
 
         .dino-topic-copy {
@@ -3101,8 +2260,9 @@ ${writingAnswer}
 
         .dino-topic-copy strong {
           overflow: hidden;
-          color: #282828;
-          font-size: 9px;
+          color: #1b1b1b;
+          font-size: 8.5px;
+          line-height: 1.15;
           font-weight: 600;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -3111,71 +2271,115 @@ ${writingAnswer}
         .dino-topic-copy small {
           margin-top: 2px;
           overflow: hidden;
-          color: #999;
-          font-size: 7px;
+          color: #929292;
+          font-size: 7.5px;
+          line-height: 1.15;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        .dino-progress-card {
-          padding: 16px;
-          border: 1px solid rgba(0,0,0,.08);
-          border-radius: 15px;
-          background: rgba(255,255,255,.76);
+        .dino-topic.completed .dino-topic-copy {
+          opacity: .38;
         }
 
-        .dino-progress-card strong {
-          color: #0a0a0a;
-        }
-
-        .dino-reading-workspace,
-        .dino-writing-workspace {
-          min-width: 0;
-          display: grid;
-          gap: 10px;
+        .dino-reading-panel {
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
         }
 
         .dino-reading-workspace {
-          grid-template-columns: minmax(0,1fr) 330px;
+          min-height: 0;
+          flex: 1;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 380px;
+          gap: 14px;
         }
 
-        .dino-writing-workspace {
-          grid-template-columns: 310px minmax(0,1fr);
-        }
-
-        .dino-reading-card,
-        .dino-writing-card {
+        .dino-reading-card {
           min-width: 0;
+          min-height: 0;
           border: 1px solid rgba(0,0,0,.08);
-          border-radius: 16px;
-          background: rgba(255,255,255,.76);
+          border-radius: 20px;
+          background: rgba(255,255,255,.78);
           backdrop-filter: blur(16px);
+          box-shadow: 0 12px 35px rgba(0,0,0,.025);
         }
 
-        .dino-reading-controls,
-        .dino-writing-controls {
-          padding: 17px;
+        .dino-reading-generator {
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
         }
 
-        .dino-reading-results,
-        .dino-writing-editor {
-          min-width: 0;
-          padding: 19px;
+        .dino-card-topbar {
+          min-height: 51px;
+          padding: 0 17px;
+          border-bottom: 1px solid rgba(0,0,0,.06);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex: 0 0 51px;
+        }
+
+        .dino-card-label,
+        .dino-field-label,
+        .dino-prompt-label {
+          color: #898989;
+          font-size: 9px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: .02em;
+        }
+
+        .dino-card-status {
+          padding: 5px 8px;
+          border-radius: 99px;
+          background: rgba(0,0,0,.035);
+          color: #8a8a8a;
+          font-size: 8px;
+        }
+
+        .dino-generator-body {
+          min-height: 0;
+          flex: 1;
+          padding: 22px;
+          overflow-y: auto;
+        }
+
+        .dino-generator-title {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 600;
+          letter-spacing: -.055em;
+        }
+
+        .dino-generator-description {
+          max-width: 650px;
+          margin: 7px 0 20px;
+          color: #808080;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .dino-generator-fields {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
         }
 
         .dino-field {
           min-width: 0;
-          margin-bottom: 12px;
+        }
+
+        .dino-field-full {
+          grid-column: 1 / -1;
         }
 
         .dino-field-label {
           display: block;
           margin-bottom: 6px;
-          color: #6e6e6e;
-          font-size: 8px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: .03em;
         }
 
         .dino-select {
@@ -3235,37 +2439,6 @@ ${writingAnswer}
           line-height: 1.45;
         }
 
-        .dino-generating {
-          margin-top: 10px;
-          color: #888;
-          font-size: 9px;
-        }
-
-        .dino-generator-title {
-          margin: 0;
-          font-size: 20px;
-          font-weight: 600;
-          letter-spacing: -.055em;
-        }
-
-        .dino-generator-description {
-          max-width: 650px;
-          margin: 7px 0 20px;
-          color: #808080;
-          font-size: 10px;
-          line-height: 1.5;
-        }
-
-        .dino-generator-fields {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-
-        .dino-field-full {
-          grid-column: 1 / -1;
-        }
-
         .dino-question-list {
           margin-top: 22px;
           display: flex;
@@ -3291,154 +2464,263 @@ ${writingAnswer}
           display: inline-flex;
           min-width: 28px;
           height: 28px;
-          align-items: center;
-          justify-content: center;
+          padding: 0 8px;
           border-radius: 8px;
           background: #0a0a0a;
           color: #fff;
-          font-size: 9px;
-          font-weight: 700;
-        }
-
-        .dino-question-marks {
-          color: #777;
+          align-items: center;
+          justify-content: center;
           font-size: 9px;
           font-weight: 600;
         }
 
-        .dino-question-context {
-          margin: 14px 0;
-          padding: 12px;
-          border-left: 2px solid #0a0a0a;
-          background: rgba(0,0,0,.025);
-          color: #555;
+        .dino-question-marks {
+          color: #747474;
           font-size: 10px;
-          line-height: 1.55;
+          font-weight: 600;
         }
 
-        .dino-question-copy {
-          margin-top: 12px;
-          color: #181818;
-          font-size: 11px;
-          line-height: 1.55;
-        }
-
-        .dino-answer-label {
-          display: flex;
-          justify-content: space-between;
-          gap: 10px;
+        .dino-reading-context {
           margin-top: 14px;
-          color: #6b6b6b;
-          font-size: 8px;
-          text-transform: uppercase;
-          letter-spacing: .03em;
+          padding: 16px;
+          border-radius: 12px;
+          background: #fff;
+          border: 1px solid rgba(0,0,0,.05);
         }
 
-        .dino-answer-textarea,
-        .dino-writing-textarea,
-        .dino-chat-input {
+        .dino-reading-context-label {
+          margin-bottom: 8px;
+          color: #929292;
+          font-size: 8px;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
+        .dino-reading-context-copy {
+          color: #363636;
+          font-size: 14px;
+          line-height: 1.7;
+          letter-spacing: -.01em;
+        }
+
+        .dino-question-text {
+          margin: 17px 0 0;
+          color: #111;
+          font-size: 18px;
+          line-height: 1.45;
+          font-weight: 650;
+          letter-spacing: -.025em;
+        }
+
+        .dino-answer-box,
+        .dino-writing-textarea {
           width: 100%;
-          resize: vertical;
+          margin-top: 13px;
+          padding: 13px 14px;
+          border: 1px solid rgba(0,0,0,.09);
+          border-radius: 12px;
           outline: none;
-          border: 1px solid rgba(0,0,0,.08);
-          border-radius: 11px;
+          resize: vertical;
           background: #fff;
           color: #111;
           font-family: Inter, sans-serif;
-          font-size: 10px;
-          line-height: 1.5;
+          font-size: 12px;
+          line-height: 1.55;
         }
 
-        .dino-answer-textarea {
-          min-height: 110px;
-          margin-top: 8px;
-          padding: 10px;
+        .dino-answer-box {
+          min-height: 115px;
         }
 
         .dino-writing-textarea {
-          min-height: 300px;
+          min-height: 380px;
+          font-size: 13px;
+        }
+
+        .dino-answer-box:focus,
+        .dino-writing-textarea:focus,
+        .dino-chat-input:focus {
+          border-color: rgba(0,0,0,.22);
+          box-shadow: 0 0 0 3px rgba(0,0,0,.035);
+        }
+
+        .dino-question-actions {
           margin-top: 10px;
-          padding: 13px;
-        }
-
-        .dino-answer-actions {
-          display: flex;
-          justify-content: flex-end;
-          margin-top: 9px;
-        }
-
-        .dino-mark-button {
-          min-height: 37px;
-          padding: 0 14px;
-        }
-
-        .dino-grade {
-          margin-top: 12px;
-          padding: 12px;
-          border: 1px solid rgba(0,0,0,.07);
-          border-radius: 12px;
-          background: rgba(0,0,0,.025);
-        }
-
-        .dino-grade-score {
-          font-size: 11px;
-          font-weight: 700;
-        }
-
-        .dino-grade-feedback {
-          margin-top: 7px;
-          color: #555;
-          font-size: 9px;
-          line-height: 1.5;
-        }
-
-        .dino-reading-summary {
-          margin-top: 16px;
-          padding: 12px;
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          border-radius: 12px;
-          background: #0a0a0a;
-          color: #fff;
-        }
-
-        .dino-reading-summary strong {
-          display: block;
-          font-size: 17px;
-          letter-spacing: -.04em;
-        }
-
-        .dino-reading-summary span {
-          color: rgba(255,255,255,.62);
-          font-size: 8px;
-        }
-
-        .dino-chat {
-          display: flex;
-          flex-direction: column;
-          min-height: 0;
-          height: 100%;
-        }
-
-        .dino-chat-title {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 10px;
-          margin-bottom: 10px;
         }
 
-        .dino-chat-title strong {
+        .dino-mark-button {
+          min-height: 38px;
+          padding: 0 13px;
+        }
+
+        .dino-grade-pill {
+          padding: 6px 9px;
+          border-radius: 999px;
+          background: rgba(0,0,0,.04);
+          color: #595959;
+          font-size: 9px;
+          font-weight: 600;
+        }
+
+        .dino-feedback {
+          margin-top: 11px;
+          padding: 13px;
+          border-radius: 12px;
+          background: rgba(0,0,0,.035);
+          border: 1px solid rgba(0,0,0,.06);
+        }
+
+        .dino-feedback-score {
+          font-size: 11px;
+          font-weight: 700;
           color: #111;
-          font-size: 12px;
         }
 
-        .dino-chat-messages {
-          min-height: 0;
+        .dino-markdown {
+          color: #3d3d3d;
+          font-size: 10px;
+          line-height: 1.58;
+        }
+
+        .dino-markdown p {
+          margin: 0 0 8px;
+        }
+
+        .dino-markdown p:last-child {
+          margin-bottom: 0;
+        }
+
+        .dino-markdown h3,
+        .dino-markdown h4,
+        .dino-markdown h5 {
+          margin: 0 0 8px;
+          color: #141414;
+          line-height: 1.25;
+        }
+
+        .dino-markdown h3 { font-size: 14px; }
+        .dino-markdown h4 { font-size: 12px; }
+        .dino-markdown h5 { font-size: 11px; }
+
+        .dino-markdown ul,
+        .dino-markdown ol {
+          margin: 0 0 8px 16px;
+          padding: 0;
+        }
+
+        .dino-markdown li {
+          margin: 3px 0;
+        }
+
+        .dino-markdown code {
+          padding: 2px 5px;
+          border-radius: 5px;
+          background: rgba(0,0,0,.05);
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: .9em;
+        }
+
+        .dino-markdown a {
+          color: #111;
+          text-decoration: underline;
+        }
+
+        .dino-total-score {
+          margin-top: 15px;
+          padding: 12px 13px;
+          border-radius: 12px;
+          background: #0a0a0a;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .dino-total-score span {
+          font-size: 9px;
+          opacity: .7;
+        }
+
+        .dino-total-score strong {
+          font-size: 13px;
+        }
+
+        .dino-tutor-card {
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .dino-tutor-head {
+          min-height: 58px;
+          padding: 9px 13px;
+          border-bottom: 1px solid rgba(0,0,0,.06);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex: 0 0 58px;
+        }
+
+        .dino-tutor-identity {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .dino-tutor-avatar {
+          width: 30px;
+          height: 30px;
+          border-radius: 10px;
+          background: #0a0a0a;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .dino-tutor-name {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .dino-tutor-name strong {
+          font-size: 10px;
+        }
+
+        .dino-tutor-name span {
+          color: #909090;
+          font-size: 8px;
+        }
+
+        .dino-tutor-online {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          color: #888;
+          font-size: 8px;
+        }
+
+        .dino-tutor-online-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #17c964;
+        }
+
+        .dino-chat-area {
           flex: 1;
+          min-height: 0;
+          padding: 15px;
           overflow-y: auto;
-          padding: 2px;
+          background: rgba(250,250,250,.55);
           display: flex;
           flex-direction: column;
           gap: 8px;
@@ -3446,262 +2728,318 @@ ${writingAnswer}
 
         .dino-chat-message {
           max-width: 92%;
-          padding: 9px 10px;
-          border-radius: 11px;
-          font-size: 9px;
-          line-height: 1.45;
+          padding: 10px 11px;
+          border-radius: 12px;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .dino-chat-message.tutor {
+          align-self: flex-start;
+          border: 1px solid rgba(0,0,0,.05);
+          background: #fff;
+          color: #333;
         }
 
         .dino-chat-message.user {
           align-self: flex-end;
           background: #0a0a0a;
           color: #fff;
+          white-space: pre-wrap;
         }
 
-        .dino-chat-message.tutor {
-          align-self: flex-start;
-          background: rgba(0,0,0,.035);
-          color: #4f4f4f;
+        .dino-chat-message.user .dino-markdown {
+          color: #fff;
         }
 
-        .dino-chat-compose {
-          margin-top: 10px;
+        .dino-chat-bottom {
+          min-height: 70px;
+          padding: 10px;
+          border-top: 1px solid rgba(0,0,0,.06);
           display: flex;
-          gap: 6px;
+          align-items: flex-end;
+          gap: 7px;
+          background: rgba(255,255,255,.7);
+          flex: 0 0 70px;
         }
 
         .dino-chat-input {
-          min-height: 40px;
-          padding: 8px 9px;
+          min-width: 0;
+          flex: 1;
+          min-height: 42px;
+          max-height: 120px;
+          padding: 10px 12px;
+          outline: none;
+          border: 1px solid rgba(0,0,0,.07);
+          border-radius: 11px;
+          background: #fff;
+          color: #111;
+          font-family: Inter, sans-serif;
+          font-size: 10px;
           resize: none;
+          line-height: 1.45;
+        }
+
+        .dino-chat-input::placeholder {
+          color: #999;
         }
 
         .dino-chat-send {
-          min-width: 65px;
+          width: 42px;
+          height: 42px;
+          flex: 0 0 42px;
           border: 0;
-          border-radius: 10px;
+          border-radius: 11px;
           background: #0a0a0a;
           color: #fff;
-          font-size: 8px;
-          font-weight: 600;
+          font-size: 14px;
           cursor: pointer;
         }
 
-        .dino-writing-task {
-          padding-bottom: 18px;
+        .dino-writing-workspace {
+          min-height: 0;
+          height: calc(100% - 78px);
+          display: grid;
+          grid-template-columns: 340px minmax(0,1fr);
+          gap: 14px;
         }
 
-        .dino-prompt-label {
-          display: block;
-          color: #8d8d8d;
-          font-size: 8px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: .03em;
+        .dino-writing-card {
+          min-height: 0;
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 20px;
+          background: rgba(255,255,255,.77);
+          backdrop-filter: blur(16px);
+          overflow: hidden;
         }
 
-        .dino-writing-task h3 {
-          margin: 6px 0 11px;
-          color: #111;
-          font-size: 24px;
-          line-height: 1;
-          letter-spacing: -.06em;
-        }
-
-        .dino-writing-meta {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
-        .dino-writing-meta span {
-          padding: 5px 7px;
-          border-radius: 7px;
-          background: rgba(0,0,0,.04);
-          color: #707070;
-          font-size: 8px;
-        }
-
-        .dino-writing-task-prompt {
-          margin-top: 17px;
-          color: #222;
-          font-size: 11px;
-          line-height: 1.55;
-        }
-
-        .dino-writing-answer-label {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 18px;
-          color: #777;
-          font-size: 9px;
-        }
-
-        .dino-criteria {
-          margin: 8px 0 0;
-          padding-left: 18px;
-          color: #555;
-          font-size: 9px;
-          line-height: 1.45;
-        }
-
-        .dino-writing-grade {
-          margin-top: 15px;
-          padding: 15px;
-          border: 1px solid rgba(0,0,0,.07);
-          border-radius: 14px;
-          background: rgba(0,0,0,.025);
-        }
-
-        .dino-writing-grade-score {
+        .dino-writing-controls {
+          padding: 20px;
+          overflow-y: auto;
           display: flex;
           flex-direction: column;
-          gap: 4px;
         }
 
-        .dino-writing-grade-score strong {
-          color: #111;
-          font-size: 25px;
-          letter-spacing: -.06em;
+        .dino-writing-controls .dino-select {
+          margin-bottom: 17px;
         }
 
-        .dino-writing-grade-section {
-          margin-top: 13px;
-        }
-
-        .dino-writing-grade-section strong {
-          color: #222;
-          font-size: 9px;
-        }
-
-        .dino-writing-grade-section ul {
-          margin: 5px 0 0;
-          padding-left: 17px;
-          color: #575757;
-          font-size: 9px;
-          line-height: 1.45;
-        }
-
-        .dino-writing-grade-section p {
-          margin-top: 5px;
-          color: #555;
-          font-size: 9px;
-          line-height: 1.45;
+        .dino-writing-editor {
+          padding: 22px;
+          overflow-y: auto;
         }
 
         .dino-prompt-empty {
           height: 100%;
           min-height: 420px;
+          max-width: 520px;
+          margin: 0 auto;
           display: flex;
           flex-direction: column;
-          align-items: center;
           justify-content: center;
           text-align: center;
-          padding: 40px;
         }
 
         .dino-prompt-icon {
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
+          width: 44px;
+          height: 44px;
+          margin: 0 auto 13px;
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 13px;
+          background: #fff;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #0a0a0a;
-          color: #fff;
-          font-size: 12px;
-          margin-bottom: 12px;
+          color: #777;
         }
 
         .dino-prompt-empty h3 {
           margin: 0;
-          color: #222;
           font-size: 18px;
-          letter-spacing: -.04em;
+          letter-spacing: -.05em;
         }
 
         .dino-prompt-empty p {
-          max-width: 400px;
           margin: 8px 0 0;
-          color: #898989;
-          font-size: 9px;
-          line-height: 1.5;
-        }
-
-        .dino-markdown {
-          color: inherit;
-        }
-
-        .dino-markdown h3,
-        .dino-markdown h4,
-        .dino-markdown h5 {
-          margin: 9px 0 5px;
-        }
-
-        .dino-markdown p {
-          margin: 0 0 8px;
-        }
-
-        .dino-markdown ul,
-        .dino-markdown ol {
-          margin: 5px 0 8px;
-          padding-left: 18px;
-        }
-
-        .dino-markdown code {
-          padding: 1px 4px;
-          border-radius: 4px;
-          background: rgba(0,0,0,.05);
-          font-size: .92em;
-        }
-
-        .dino-markdown a {
-          color: inherit;
-        }
-
-        .dino-coming-page {
-          min-height: 450px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .dino-coming-content {
-          max-width: 520px;
-          padding: 40px;
-          text-align: center;
-        }
-
-        .dino-coming-icon {
-          width: 40px;
-          height: 40px;
-          margin: 0 auto 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 12px;
-          background: #0a0a0a;
-          color: #fff;
-        }
-
-        .dino-coming-content h2 {
-          margin: 0;
-          font-size: 32px;
-          letter-spacing: -.06em;
-        }
-
-        .dino-coming-content p {
-          margin: 10px auto 0;
-          max-width: 420px;
-          color: #777;
+          color: #858585;
           font-size: 10px;
           line-height: 1.5;
         }
 
-        @media (max-width: 1080px) {
+        .dino-writing-task {
+          padding: 16px;
+          border: 1px solid rgba(0,0,0,.06);
+          border-radius: 14px;
+          background: rgba(250,250,250,.7);
+        }
+
+        .dino-writing-task h3 {
+          margin: 8px 0 0;
+          font-size: 23px;
+          letter-spacing: -.045em;
+        }
+
+        .dino-writing-task-prompt {
+          margin: 12px 0 18px;
+          color: #292929;
+          font-size: 15px;
+          line-height: 1.65;
+        }
+
+        .dino-criteria {
+          margin: 0;
+          padding-left: 17px;
+          color: #5d5d5d;
+          font-size: 10px;
+          line-height: 1.55;
+        }
+
+        .dino-criteria li {
+          margin: 5px 0;
+        }
+
+        .dino-writing-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 7px;
+          margin: 10px 0 0;
+        }
+
+        .dino-writing-meta span {
+          padding: 6px 8px;
+          border-radius: 999px;
+          background: rgba(0,0,0,.045);
+          color: #696969;
+          font-size: 8px;
+          font-weight: 600;
+        }
+
+        .dino-writing-answer-label {
+          margin-top: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .dino-writing-answer-label strong {
+          font-size: 11px;
+        }
+
+        .dino-writing-answer-label span {
+          color: #8a8a8a;
+          font-size: 8px;
+        }
+
+        .dino-writing-grade {
+          margin-top: 14px;
+          padding: 15px;
+          border: 1px solid rgba(0,0,0,.07);
+          border-radius: 14px;
+          background: #fff;
+        }
+
+        .dino-writing-grade-score {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 11px;
+        }
+
+        .dino-writing-grade-score strong {
+          font-size: 16px;
+        }
+
+        .dino-writing-grade-section {
+          margin-top: 11px;
+        }
+
+        .dino-writing-grade-section strong {
+          display: block;
+          margin-bottom: 6px;
+          font-size: 9px;
+          text-transform: uppercase;
+          color: #898989;
+        }
+
+        .dino-writing-grade-section ul {
+          margin: 0;
+          padding-left: 17px;
+        }
+
+        .dino-writing-grade-section li {
+          margin: 4px 0;
+          color: #4b4b4b;
+          font-size: 10px;
+          line-height: 1.45;
+        }
+
+        .dino-small-button {
+          width: 100%;
+          margin-top: 12px;
+          padding: 0 15px;
+        }
+
+        .dino-coming-page {
+          width: 100%;
+          height: calc(100% - 78px);
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 20px;
+          background: rgba(255,255,255,.77);
+          backdrop-filter: blur(16px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+        }
+
+        .dino-coming-content {
+          max-width: 620px;
+          padding: 30px;
+        }
+
+        .dino-coming-icon {
+          width: 64px;
+          height: 64px;
+          margin: 0 auto 20px;
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 18px;
+          background: rgba(255,255,255,.9);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #777;
+          font-size: 22px;
+        }
+
+        .dino-coming-content h2 {
+          margin: 0;
+          color: #0a0a0a;
+          font-size: clamp(48px,7vw,82px);
+          line-height: .9;
+          font-weight: 600;
+          letter-spacing: -.09em;
+        }
+
+        .dino-coming-content p {
+          max-width: 430px;
+          margin: 17px auto 0;
+          color: #808080;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .dino-generating {
+          margin-top: 12px;
+          color: #777;
+          font-size: 9px;
+        }
+
+        @media (max-width: 1050px) {
           .dino-theme-grid {
-            height: auto;
-            grid-template-columns: repeat(2, minmax(0,1fr));
+            grid-template-columns: repeat(3,minmax(0,1fr));
+            overflow-y: auto;
           }
 
           .dino-theme {
@@ -3732,7 +3070,6 @@ ${writingAnswer}
           .dino-header-actions {
             width: 100%;
             justify-content: space-between;
-            flex-wrap: wrap;
           }
 
           .dino-progress {
@@ -3762,12 +3099,29 @@ ${writingAnswer}
           }
 
           .dino-theme-grid {
+            height: auto;
             grid-template-columns: 1fr;
           }
 
-          .dino-reading-workspace,
-          .dino-writing-workspace {
+          .dino-theme {
+            height: auto;
+          }
+
+          .dino-reading-panel {
+            overflow: visible;
+          }
+
+          .dino-reading-workspace {
+            height: auto;
             grid-template-columns: 1fr;
+          }
+
+          .dino-reading-generator {
+            overflow: visible;
+          }
+
+          .dino-tutor-card {
+            min-height: 620px;
           }
 
           .dino-generator-fields {
@@ -3778,181 +3132,97 @@ ${writingAnswer}
             grid-column: auto;
           }
 
-          .dino-prompt-empty {
-            min-height: 280px;
+          .dino-writing-workspace {
+            height: auto;
+            grid-template-columns: 1fr;
+          }
+
+          .dino-writing-editor {
+            min-height: 700px;
+          }
+
+          .dino-coming-page {
+            height: 450px;
           }
         }
       `}</style>
 
       <AnimatedBackground className="dino-dashboard">
         <div className="dino-dashboard-shell">
+
           <header className="dino-dashboard-header">
             <div>
-              <span className="dino-kicker">
-                Dino / {language}
-              </span>
-
+              <span className="dino-kicker">Dino / {language}</span>
               <h1 className="dino-dashboard-heading">
-                Your language{' '}
-                <span>
-                  workspace.
-                </span>
+                Your language <span>workspace.</span>
               </h1>
             </div>
 
             <div className="dino-header-actions">
-              <span className="dino-user-email">
-                {user.email}
-              </span>
-
-              <div
-                className={`dino-points-badge ${
-                  dinoPointsLoading
-                    ? 'loading'
-                    : ''
-                }`}
-                title={
-                  dinoPointsError ||
-                  'You receive 10 DinoPoints every 24 hours.'
-                }
-              >
-                <span className="dino-points-icon">
-                  D
-                </span>
-
-                <span className="dino-points-copy">
-                  <small>
-                    DinoPoints
-                  </small>
-
-                  <strong>
-                    {dinoPointsLoading
-                      ? '...'
-                      : dinoPoints}
-                  </strong>
-                </span>
-              </div>
+              <span className="dino-user-email">{user.email}</span>
 
               <button
                 type="button"
                 className="dino-logout-button"
-                onClick={
-                  handleLogout
-                }
+                onClick={handleLogout}
               >
                 Log out
               </button>
 
               <div className="dino-progress">
                 <div className="dino-progress-meta">
-                  <span>
-                    Course progress
-                  </span>
-
-                  <strong>
-                    {completedCount}/
-                    {totalCount}
-                  </strong>
+                  <span>Course progress</span>
+                  <strong>{completedCount}/{totalCount}</strong>
                 </div>
 
                 <div className="dino-progress-track">
                   <div
                     className="dino-progress-fill"
-                    style={{
-                      width: `${courseProgress}%`,
-                    }}
+                    style={{ width: `${courseProgress}%` }}
                   />
                 </div>
               </div>
             </div>
-
-            {dinoPointsError && (
-              <div className="dino-points-error">
-                {dinoPointsError}
-              </div>
-            )}
           </header>
 
           <nav className="dino-tabs">
             <button
-              className={
-                activeTab ===
-                'course'
-                  ? 'dino-tab active'
-                  : 'dino-tab'
-              }
-              onClick={() =>
-                setActiveTab(
-                  'course',
-                )
-              }
+              className={activeTab === 'course' ? 'dino-tab active' : 'dino-tab'}
+              onClick={() => setActiveTab('course')}
             >
               Course Outline
             </button>
 
             <button
-              className={
-                activeTab ===
-                'reading'
-                  ? 'dino-tab active'
-                  : 'dino-tab'
-              }
-              onClick={() =>
-                setActiveTab(
-                  'reading',
-                )
-              }
+              className={activeTab === 'reading' ? 'dino-tab active' : 'dino-tab'}
+              onClick={() => setActiveTab('reading')}
             >
-              Reading
+              Reading Questionbank
             </button>
 
             <button
-              className={
-                activeTab ===
-                'writing'
-                  ? 'dino-tab active'
-                  : 'dino-tab'
-              }
-              onClick={() =>
-                setActiveTab(
-                  'writing',
-                )
-              }
+              className={activeTab === 'writing' ? 'dino-tab active' : 'dino-tab'}
+              onClick={() => setActiveTab('writing')}
             >
-              Writing
+              Writing Practice
             </button>
 
             <button
-              className={
-                activeTab ===
-                'coming'
-                  ? 'dino-tab active'
-                  : 'dino-tab'
-              }
-              onClick={() =>
-                setActiveTab(
-                  'coming',
-                )
-              }
+              className={activeTab === 'coming' ? 'dino-tab active' : 'dino-tab'}
+              onClick={() => setActiveTab('coming')}
             >
               Grammar and Sentence Structures
             </button>
           </nav>
 
           <main className="dino-content">
-            {activeTab ===
-              'course' && (
+
+            {activeTab === 'course' && (
               <section className="dino-panel">
                 <div className="dino-panel-heading">
                   <div>
-                    <span className="dino-kicker">
-                      IB Language B
-                    </span>
-
-                    <h2 className="dino-panel-title">
-                      Course outline
-                    </h2>
-
+                    <span className="dino-kicker">IB Language B</span>
+                    <h2 className="dino-panel-title">Course outline</h2>
                     <p className="dino-panel-description">
                       Your five IB themes and recommended topic areas in English and {language}.
                     </p>
@@ -3964,812 +3234,452 @@ ${writingAnswer}
                 </div>
 
                 <div className="dino-theme-grid">
-                  {course.themes.map(
-                    (
-                      theme,
-                      index,
-                    ) => (
-                      <article
-                        className="dino-theme"
-                        key={
-                          theme.en
-                        }
-                      >
-                        <div className="dino-theme-top">
-                          <span className="dino-theme-number">
-                            {String(
-                              index +
-                                1,
-                            ).padStart(
-                              2,
-                              '0',
-                            )}
-                          </span>
+                  {course.themes.map((theme, index) => (
+                    <article className="dino-theme" key={theme.en}>
+                      <div className="dino-theme-top">
+                        <span className="dino-theme-number">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
 
-                          <span className="dino-theme-count">
-                            {
-                              theme.topics.filter(
-                                (
-                                  topic,
-                                ) =>
-                                  isCompleted(
-                                    theme.en,
-                                    topic[0],
-                                  ),
-                              ).length
-                            }
-                            /
-                            {
-                              theme.topics
-                                .length
-                            }
-                          </span>
-                        </div>
+                        <span className="dino-theme-count">
+                          {theme.topics.filter((topic) =>
+                            isCompleted(theme.en, topic[0]),
+                          ).length}/{theme.topics.length}
+                        </span>
+                      </div>
 
-                        <h3 className="dino-theme-title">
-                          {theme.en}
-                        </h3>
+                      <h3 className="dino-theme-title">{theme.en}</h3>
+                      <div className="dino-theme-local">{theme.local}</div>
 
-                        <div className="dino-theme-local">
-                          {theme.local}
-                        </div>
+                      <div className="dino-topic-list">
+                        {theme.topics.map(([english, local]) => {
+                          const complete = isCompleted(theme.en, english)
+                          const topicId = `${language}::${theme.en}::${english}`
 
-                        <div className="dino-topic-list">
-                          {theme.topics.map(
-                            ([
-                              english,
-                              local,
-                            ]) => {
-                              const complete =
-                                isCompleted(
-                                  theme.en,
-                                  english,
-                                )
+                          return (
+                            <label
+                              key={english}
+                              className={complete ? 'dino-topic completed' : 'dino-topic'}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={complete}
+                                disabled={savingTopic === topicId}
+                                onChange={() => toggleTopic(theme.en, english)}
+                              />
 
-                              const topicId =
-                                `${language}::${theme.en}::${english}`
+                              <span className="dino-check">
+                                {complete ? '✓' : ''}
+                              </span>
 
-                              return (
-                                <label
-                                  key={
-                                    english
-                                  }
-                                  className={
-                                    complete
-                                      ? 'dino-topic completed'
-                                      : 'dino-topic'
-                                  }
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={
-                                      complete
-                                    }
-                                    disabled={
-                                      savingTopic ===
-                                      topicId
-                                    }
-                                    onChange={() =>
-                                      toggleTopic(
-                                        theme.en,
-                                        english,
-                                      )
-                                    }
-                                  />
-
-                                  <span className="dino-check">
-                                    {complete
-                                      ? '✓'
-                                      : ''}
-                                  </span>
-
-                                  <span className="dino-topic-copy">
-                                    <strong>
-                                      {
-                                        english
-                                      }
-                                    </strong>
-
-                                    <small>
-                                      {local}
-                                    </small>
-                                  </span>
-                                </label>
-                              )
-                            },
-                          )}
-                        </div>
-                      </article>
-                    ),
-                  )}
+                              <span className="dino-topic-copy">
+                                <strong>{english}</strong>
+                                <small>{local}</small>
+                              </span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </article>
+                  ))}
                 </div>
               </section>
             )}
 
-            {activeTab ===
-              'reading' && (
-              <section className="dino-panel">
+            {activeTab === 'reading' && (
+              <section className="dino-panel dino-reading-panel">
                 <div className="dino-panel-heading">
                   <div>
-                    <span className="dino-kicker">
-                      Reading practice
-                    </span>
-
+                    <span className="dino-kicker">Reading</span>
                     <h2 className="dino-panel-title">
-                      Read. Think. <span>Answer.</span>
+                      Reading <span>questionbank.</span>
                     </h2>
-
                     <p className="dino-panel-description">
-                      Generate marked IB-style reading questions and use Dino as a tutor while you work.
+                      Generate marked reading questions, answer them in place, and use Dino as a tutor when you get stuck.
                     </p>
-                  </div>
-
-                  <div className="dino-subtle-note">
-                    Each generated reading set costs {DINOPOINT_READING_COST} DinoPoints.
                   </div>
                 </div>
 
                 <div className="dino-reading-workspace">
-                  <div className="dino-reading-card dino-reading-controls">
-                    <div className="dino-generator-fields">
-                      <div className="dino-field">
-                        <label className="dino-field-label">
-                          Question type
-                        </label>
 
-                        <select
-                          className="dino-select"
-                          value={
-                            readingType
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            setReadingType(
-                              event
-                                .target
-                                .value,
-                            )
-                          }
-                        >
-                          <option>
-                            Mixed
-                          </option>
-                          <option>
-                            Multiple choice
-                          </option>
-                          <option>
-                            Short answer
-                          </option>
-                          <option>
-                            Inference
-                          </option>
-                        </select>
-                      </div>
-
-                      <div className="dino-field">
-                        <label className="dino-field-label">
-                          Difficulty
-                        </label>
-
-                        <select
-                          className="dino-select"
-                          value={
-                            readingDifficulty
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            setReadingDifficulty(
-                              event
-                                .target
-                                .value,
-                            )
-                          }
-                        >
-                          <option>
-                            Beginner
-                          </option>
-                          <option>
-                            Intermediate
-                          </option>
-                          <option>
-                            Advanced
-                          </option>
-                        </select>
-                      </div>
-
-                      <div className="dino-field dino-field-full">
-                        <label className="dino-field-label">
-                          Language
-                        </label>
-
-                        <div
-                          style={{
-                            minHeight:
-                              '42px',
-                            padding:
-                              '0 11px',
-                            border:
-                              '1px solid rgba(0,0,0,.08)',
-                            borderRadius:
-                              '11px',
-                            background:
-                              '#fff',
-                            display:
-                              'flex',
-                            alignItems:
-                              'center',
-                            fontSize:
-                              '10px',
-                            fontWeight:
-                              500,
-                          }}
-                        >
-                          {
-                            language
-                          }
-                        </div>
-                      </div>
-
-                      <div className="dino-field dino-field-full">
-                        <label className="dino-field-label">
-                          IB course topic
-                        </label>
-
-                        <select
-                          className="dino-select"
-                          value={
-                            readingTopic
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            setReadingTopic(
-                              event
-                                .target
-                                .value,
-                            )
-                          }
-                        >
-                          <option value="">
-                            Select a course topic
-                          </option>
-
-                          {course.themes.map(
-                            (
-                              theme,
-                            ) => (
-                              <optgroup
-                                key={
-                                  theme.en
-                                }
-                                label={`${theme.en} / ${theme.local}`}
-                              >
-                                {theme.topics.map(
-                                  ([
-                                    english,
-                                    local,
-                                  ]) => (
-                                    <option
-                                      key={
-                                        english
-                                      }
-                                      value={
-                                        english
-                                      }
-                                    >
-                                      {english} / {local}
-                                    </option>
-                                  ),
-                                )}
-                              </optgroup>
-                            ),
-                          )}
-                        </select>
-                      </div>
+                  <div className="dino-reading-card dino-reading-generator">
+                    <div className="dino-card-topbar">
+                      <span className="dino-card-label">Reading questionbank</span>
+                      <span className="dino-card-status">
+                        {generatedQuestions ? 'Questions ready' : 'Ready'}
+                      </span>
                     </div>
 
-                    <button
-                      type="button"
-                      className="dino-generate"
-                      disabled={
-                        !readingTopic ||
-                        isGeneratingQuestions ||
-                        dinoPointsLoading ||
-                        dinoPoints <
-                          DINOPOINT_READING_COST
-                      }
-                      onClick={
-                        generateReadingQuestions
-                      }
-                    >
-                      {isGeneratingQuestions
-                        ? 'Generating...'
-                        : `Generate questions · ${DINOPOINT_READING_COST} DinoPoints →`}
-                    </button>
+                    {!generatedQuestions ? (
+                      <div className="dino-generator-body">
+                        <h3 className="dino-generator-title">Build a reading set.</h3>
 
-                    {dinoPoints <
-                      DINOPOINT_READING_COST &&
-                      !dinoPointsLoading &&
-                      !isGeneratingQuestions && (
-                        <div className="dino-error">
-                          You need at least {DINOPOINT_READING_COST} DinoPoints to generate a reading set.
+                        <p className="dino-generator-description">
+                          Choose the question style, difficulty, and IB course topic.
+                        </p>
+
+                        <div className="dino-generator-fields">
+                          <div className="dino-field">
+                            <label className="dino-field-label">Question type</label>
+
+                            <select
+                              className="dino-select"
+                              value={readingType}
+                              onChange={(event) => setReadingType(event.target.value)}
+                            >
+                              <option>Mixed</option>
+                              <option>Multiple choice</option>
+                              <option>Short answer</option>
+                              <option>True / false</option>
+                              <option>Vocabulary in context</option>
+                              <option>Inference</option>
+                            </select>
+                          </div>
+
+                          <div className="dino-field">
+                            <label className="dino-field-label">Difficulty</label>
+
+                            <select
+                              className="dino-select"
+                              value={readingDifficulty}
+                              onChange={(event) => setReadingDifficulty(event.target.value)}
+                            >
+                              <option>Beginner</option>
+                              <option>Intermediate</option>
+                              <option>Advanced</option>
+                            </select>
+                          </div>
+
+                          <div className="dino-field">
+                            <label className="dino-field-label">Language</label>
+
+                            <div
+                              style={{
+                                minHeight: '42px',
+                                padding: '0 11px',
+                                border: '1px solid rgba(0,0,0,.08)',
+                                borderRadius: '11px',
+                                background: '#fff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                fontSize: '10px',
+                                fontWeight: 500,
+                              }}
+                            >
+                              {language}
+                            </div>
+                          </div>
+
+                          <div className="dino-field">
+                            <label className="dino-field-label">IB course topic</label>
+
+                            <select
+                              className="dino-select"
+                              value={readingTopic}
+                              onChange={(event) => setReadingTopic(event.target.value)}
+                            >
+                              <option value="">Select a course topic</option>
+
+                              {course.themes.map((theme) => (
+                                <optgroup
+                                  key={theme.en}
+                                  label={`${theme.en} / ${theme.local}`}
+                                >
+                                  {theme.topics.map(([english, local]) => (
+                                    <option key={english} value={english}>
+                                      {english} / {local}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
+                          </div>
                         </div>
-                      )}
 
-                    {isGeneratingQuestions && (
-                      <div className="dino-generating">
-                        Dino is building the reading set...
+                        <button
+                          type="button"
+                          className="dino-generate"
+                          disabled={!readingTopic || isGeneratingQuestions}
+                          onClick={generateReadingQuestions}
+                        >
+                          {isGeneratingQuestions ? 'Generating...' : 'Generate questions →'}
+                        </button>
+
+                        {isGeneratingQuestions && (
+                          <div className="dino-generating">
+                            Dino is building the reading set...
+                          </div>
+                        )}
+
+                        {questionError && <div className="dino-error">{questionError}</div>}
                       </div>
-                    )}
+                    ) : (
+                      <div className="dino-generator-body">
+                        <h3 className="dino-generator-title">{generatedQuestions.title}</h3>
 
-                    {questionError && (
-                      <div className="dino-error">
-                        {questionError}
+                        <p className="dino-generator-description">
+                          {generatedQuestions.instructions}
+                        </p>
+
+                        <div className="dino-question-list">
+                          {generatedQuestions.questions.map((question) => {
+                            const grade = readingGrades[question.id]
+
+                            return (
+                              <article className="dino-generated-question" key={question.id}>
+                                <div className="dino-question-header">
+                                  <span className="dino-question-number">
+                                    Question {question.id}
+                                  </span>
+
+                                  <span className="dino-question-marks">
+                                    {question.marks} {question.marks === 1 ? 'mark' : 'marks'}
+                                  </span>
+                                </div>
+
+                                {question.context && (
+                                  <div className="dino-reading-context">
+                                    <div className="dino-reading-context-label">
+                                      Reading text
+                                    </div>
+
+                                    <div className="dino-reading-context-copy">
+                                      {renderMarkdown(question.context)}
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="dino-question-text">
+                                  {renderMarkdown(question.question)}
+                                </div>
+
+                                <textarea
+                                  className="dino-answer-box"
+                                  value={answerSubmission[question.id] || ''}
+                                  onChange={(event) =>
+                                    setAnswerSubmission((current) => ({
+                                      ...current,
+                                      [question.id]: event.target.value,
+                                    }))
+                                  }
+                                  placeholder={`Write your answer here. Maximum ${question.marks} ${question.marks === 1 ? 'mark' : 'marks'}.`}
+                                />
+
+                                <div className="dino-question-actions">
+                                  <span className="dino-grade-pill">
+                                    {grade
+                                      ? `${grade.score}/${grade.maxMarks} marked`
+                                      : `${question.marks} marks available`}
+                                  </span>
+
+                                  <button
+                                    type="button"
+                                    className="dino-mark-button"
+                                    disabled={
+                                      gradingQuestion !== null ||
+                                      !String(answerSubmission[question.id] || '').trim()
+                                    }
+                                    onClick={() => markReadingQuestion(question.id)}
+                                  >
+                                    {gradingQuestion === question.id
+                                      ? 'Marking...'
+                                      : grade
+                                        ? 'Mark again'
+                                        : 'Mark answer'}
+                                  </button>
+                                </div>
+
+                                {grade && (
+                                  <div className="dino-feedback">
+                                    <div className="dino-feedback-score">
+                                      {grade.score}/{grade.maxMarks}
+                                    </div>
+
+                                    <div style={{ marginTop: '8px' }}>
+                                      {renderMarkdown(grade.feedback)}
+                                    </div>
+
+                                    <div style={{ marginTop: '8px' }}>
+                                      {renderMarkdown(`**Next step:** ${grade.nextStep}`)}
+                                    </div>
+                                  </div>
+                                )}
+                              </article>
+                            )
+                          })}
+                        </div>
+
+                        <div className="dino-total-score">
+                          <span>Current reading score</span>
+                          <strong>
+                            {readingEarnedMarks}/{readingTotalMarks}
+                          </strong>
+                        </div>
+
+                        {questionError && <div className="dino-error">{questionError}</div>}
+
+                        <button
+                          type="button"
+                          className="dino-small-button"
+                          onClick={() => {
+                            setGeneratedQuestions(null)
+                            setAnswerSubmission({})
+                            setReadingGrades({})
+                            setQuestionError('')
+                          }}
+                        >
+                          Generate a new set
+                        </button>
                       </div>
                     )}
                   </div>
 
-                  <div className="dino-reading-card dino-reading-results">
-                    {!generatedQuestions ? (
-                      <div className="dino-prompt-empty">
-                        <div className="dino-prompt-icon">
-                          ✦
-                        </div>
+                  <div className="dino-reading-card dino-tutor-card">
+                    <div className="dino-tutor-head">
+                      <div className="dino-tutor-identity">
+                        <div className="dino-tutor-avatar">D</div>
 
-                        <h3>
-                          Your reading set will appear here.
-                        </h3>
-
-                        <p>
-                          Choose the format, difficulty, and IB course topic, then let Dino build two original questions with marks and answer guidance.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="dino-generator-body">
-                        <h3 className="dino-generator-title">
-                          {
-                            generatedQuestions.title
-                          }
-                        </h3>
-
-                        <p className="dino-generator-description">
-                          {
-                            generatedQuestions.instructions
-                          }
-                        </p>
-
-                        <div className="dino-question-list">
-                          {generatedQuestions.questions.map(
-                            (
-                              question,
-                            ) => {
-                              const grade =
-                                readingGrades[
-                                  question
-                                    .id
-                                ]
-
-                              return (
-                                <article
-                                  className="dino-generated-question"
-                                  key={
-                                    question.id
-                                  }
-                                >
-                                  <div className="dino-question-header">
-                                    <span className="dino-question-number">
-                                      {
-                                        question.id
-                                      }
-                                    </span>
-
-                                    <span className="dino-question-marks">
-                                      {
-                                        question.marks
-                                      } marks
-                                    </span>
-                                  </div>
-
-                                  {question.context && (
-                                    <div className="dino-question-context">
-                                      {renderMarkdown(
-                                        question.context,
-                                      )}
-                                    </div>
-                                  )}
-
-                                  <div className="dino-question-copy">
-                                    {renderMarkdown(
-                                      question.question,
-                                    )}
-                                  </div>
-
-                                  <div className="dino-answer-label">
-                                    <strong>
-                                      Your answer
-                                    </strong>
-
-                                    <span>
-                                      {question.marks} marks
-                                    </span>
-                                  </div>
-
-                                  <textarea
-                                    className="dino-answer-textarea"
-                                    value={
-                                      answerSubmission[
-                                        question.id
-                                      ] || ''
-                                    }
-                                    onChange={(
-                                      event,
-                                    ) =>
-                                      setAnswerSubmission(
-                                        (
-                                          current,
-                                        ) => ({
-                                          ...current,
-                                          [question.id]:
-                                            event
-                                              .target
-                                              .value,
-                                        }),
-                                      )
-                                    }
-                                    placeholder="Write your answer here..."
-                                  />
-
-                                  <div className="dino-answer-actions">
-                                    <button
-                                      type="button"
-                                      className="dino-mark-button"
-                                      disabled={
-                                        !String(
-                                          answerSubmission[
-                                            question.id
-                                          ] || '',
-                                        ).trim() ||
-                                        gradingQuestion ===
-                                          question.id
-                                      }
-                                      onClick={() =>
-                                        markReadingQuestion(
-                                          question.id,
-                                        )
-                                      }
-                                    >
-                                      {gradingQuestion ===
-                                      question.id
-                                        ? 'Marking...'
-                                        : 'Mark'}
-                                    </button>
-                                  </div>
-
-                                  {grade && (
-                                    <div className="dino-grade">
-                                      <div className="dino-grade-score">
-                                        {grade.score}/{grade.maxMarks}
-                                      </div>
-
-                                      <div className="dino-grade-feedback">
-                                        <strong>
-                                          Feedback
-                                        </strong>
-
-                                        <div style={{ marginTop: '5px' }}>
-                                          {renderMarkdown(
-                                            grade.feedback,
-                                          )}
-                                        </div>
-
-                                        <div style={{ marginTop: '8px' }}>
-                                          <strong>
-                                            Next step
-                                          </strong>
-                                        </div>
-
-                                        <div style={{ marginTop: '4px' }}>
-                                          {grade.nextStep}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </article>
-                              )
-                            },
-                          )}
-                        </div>
-
-                        <div className="dino-reading-summary">
-                          <div>
-                            <span>
-                              Current score
-                            </span>
-
-                            <strong>
-                              {readingEarnedMarks}/
-                              {readingTotalMarks}
-                            </strong>
-                          </div>
-
-                          <div>
-                            <span>
-                              Generation
-                            </span>
-
-                            <strong>
-                              {DINOPOINT_READING_COST}
-                            </strong>
-                            <span>
-                              DinoPoints
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="dino-chat" style={{ marginTop: '18px', minHeight: '280px' }}>
-                          <div className="dino-chat-title">
-                            <strong>
-                              Dino Tutor
-                            </strong>
-
-                            <span
-                              style={{
-                                color: '#888',
-                                fontSize: '8px',
-                              }}
-                            >
-                              Hints, strategy, vocabulary
-                            </span>
-                          </div>
-
-                          <div className="dino-chat-messages">
-                            {chatMessages.map(
-                              (
-                                message,
-                                index,
-                              ) => (
-                                <div
-                                  key={
-                                    index
-                                  }
-                                  className={`dino-chat-message ${message.role}`}
-                                >
-                                  {renderMarkdown(
-                                    message.text,
-                                  )}
-                                </div>
-                              ),
-                            )}
-
-                            {chatTyping && (
-                              <div className="dino-chat-message tutor">
-                                Dino is thinking...
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="dino-chat-compose">
-                            <textarea
-                              className="dino-chat-input"
-                              value={
-                                chatInput
-                              }
-                              onChange={(
-                                event,
-                              ) =>
-                                setChatInput(
-                                  event
-                                    .target
-                                    .value,
-                                )
-                              }
-                              onKeyDown={
-                                handleChatKeyDown
-                              }
-                              placeholder="Ask Dino for a hint..."
-                              rows={2}
-                            />
-
-                            <button
-                              type="button"
-                              className="dino-chat-send"
-                              disabled={
-                                chatTyping ||
-                                !chatInput.trim()
-                              }
-                              onClick={
-                                sendReadingChat
-                              }
-                            >
-                              Send
-                            </button>
-                          </div>
+                        <div className="dino-tutor-name">
+                          <strong>Dino Tutor</strong>
+                          <span>Reading assistant</span>
                         </div>
                       </div>
-                    )}
+
+                      <div className="dino-tutor-online">
+                        <span className="dino-tutor-online-dot" />
+                        Connected
+                      </div>
+                    </div>
+
+                    <div className="dino-chat-area">
+                      {chatMessages.length === 0 && (
+                        <div className="dino-chat-message tutor">
+                          Generate a reading set and I’ll help you work through the questions.
+                        </div>
+                      )}
+
+                      {chatMessages.map((message, index) => (
+                        <div
+                          key={index}
+                          className={
+                            message.role === 'user'
+                              ? 'dino-chat-message user'
+                              : 'dino-chat-message tutor'
+                          }
+                        >
+                          {message.role === 'tutor'
+                            ? renderMarkdown(message.text)
+                            : message.text}
+                        </div>
+                      ))}
+
+                      {chatTyping && (
+                        <div className="dino-typing">
+                          <span className="dino-typing-dot" />
+                          <span className="dino-typing-dot" />
+                          <span className="dino-typing-dot" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="dino-chat-bottom">
+                      <textarea
+                        className="dino-chat-input"
+                        value={chatInput}
+                        onChange={(event) => setChatInput(event.target.value)}
+                        onKeyDown={handleChatKeyDown}
+                        placeholder="Ask the tutor for a hint, explanation, or strategy..."
+                        rows={2}
+                      />
+
+                      <button
+                        type="button"
+                        className="dino-chat-send"
+                        onClick={sendReadingChat}
+                        disabled={chatTyping}
+                      >
+                        ↑
+                      </button>
+                    </div>
                   </div>
                 </div>
               </section>
             )}
 
-            {activeTab ===
-              'writing' && (
+            {activeTab === 'writing' && (
               <section className="dino-panel">
                 <div className="dino-panel-heading">
                   <div>
-                    <span className="dino-kicker">
-                      Writing practice
-                    </span>
-
+                    <span className="dino-kicker">Writing</span>
                     <h2 className="dino-panel-title">
-                      Write with <span>purpose.</span>
+                      Practice <span>smarter.</span>
                     </h2>
-
                     <p className="dino-panel-description">
-                      Generate an original IB-style writing task and get detailed marking feedback.
+                      Generate an AI writing task, write your response, then get an examiner-style mark and actionable feedback.
                     </p>
-                  </div>
-
-                  <div className="dino-subtle-note">
-                    Each generated writing task costs {DINOPOINT_WRITING_COST} DinoPoints.
                   </div>
                 </div>
 
                 <div className="dino-writing-workspace">
+
                   <div className="dino-writing-card dino-writing-controls">
-                    <label className="dino-field-label">
-                      Course topic
-                    </label>
+                    <label className="dino-field-label">Course topic</label>
 
                     <select
                       className="dino-select"
-                      value={
-                        writingTopic
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        setWritingTopic(
-                          event
-                            .target
-                            .value,
-                        )
-                      }
+                      value={writingTopic}
+                      onChange={(event) => setWritingTopic(event.target.value)}
                     >
-                      <option value="">
-                        Select a course topic
-                      </option>
+                      <option value="">Select a course topic</option>
 
-                      {course.themes.map(
-                        (
-                          theme,
-                        ) => (
-                          <optgroup
-                            key={
-                              theme.en
-                            }
-                            label={`${theme.en} / ${theme.local}`}
-                          >
-                            {theme.topics.map(
-                              ([
-                                english,
-                                local,
-                              ]) => (
-                                <option
-                                  value={
-                                    english
-                                  }
-                                  key={
-                                    english
-                                  }
-                                >
-                                  {english} / {local}
-                                </option>
-                              ),
-                            )}
-                          </optgroup>
-                        ),
-                      )}
+                      {course.themes.map((theme) => (
+                        <optgroup
+                          key={theme.en}
+                          label={`${theme.en} / ${theme.local}`}
+                        >
+                          {theme.topics.map(([english, local]) => (
+                            <option value={english} key={english}>
+                              {english} / {local}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
 
-                    <label className="dino-field-label" style={{ marginTop: '14px' }}>
-                      Text type
-                    </label>
+                    <label className="dino-field-label">Text type</label>
 
                     <select
                       className="dino-select"
-                      value={
-                        writingType
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        setWritingType(
-                          event
-                            .target
-                            .value,
-                        )
-                      }
+                      value={writingType}
+                      onChange={(event) => setWritingType(event.target.value)}
                     >
-                      {writingTypes.map(
-                        (
-                          type,
-                        ) => (
-                          <option
-                            value={
-                              type
-                            }
-                            key={
-                              type
-                            }
-                          >
-                            {type}
-                          </option>
-                        ),
-                      )}
+                      {writingTypes.map((type) => (
+                        <option value={type} key={type}>
+                          {type}
+                        </option>
+                      ))}
                     </select>
 
-                    <label className="dino-field-label" style={{ marginTop: '14px' }}>
-                      Difficulty
-                    </label>
+                    <label className="dino-field-label">Difficulty</label>
 
                     <select
                       className="dino-select"
-                      value={
-                        writingDifficulty
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        setWritingDifficulty(
-                          event
-                            .target
-                            .value,
-                        )
-                      }
+                      value={writingDifficulty}
+                      onChange={(event) => setWritingDifficulty(event.target.value)}
                     >
-                      <option>
-                        Beginner
-                      </option>
-
-                      <option>
-                        Intermediate
-                      </option>
-
-                      <option>
-                        Advanced
-                      </option>
+                      <option>Beginner</option>
+                      <option>Intermediate</option>
+                      <option>Advanced</option>
                     </select>
 
                     <button
                       type="button"
                       className="dino-generate"
-                      disabled={
-                        !writingTopic ||
-                        writingGenerating ||
-                        dinoPointsLoading ||
-                        dinoPoints <
-                          DINOPOINT_WRITING_COST
-                      }
-                      onClick={
-                        createPrompt
-                      }
+                      disabled={!writingTopic || writingGenerating}
+                      onClick={createPrompt}
                     >
-                      {writingGenerating
-                        ? 'Generating...'
-                        : `Generate prompt · ${DINOPOINT_WRITING_COST} DinoPoints →`}
+                      {writingGenerating ? 'Generating...' : 'Generate prompt →'}
                     </button>
-
-                    {dinoPoints <
-                      DINOPOINT_WRITING_COST &&
-                      !dinoPointsLoading &&
-                      !writingGenerating && (
-                        <div className="dino-error">
-                          You need at least {DINOPOINT_WRITING_COST} DinoPoints to generate a writing task.
-                        </div>
-                      )}
 
                     {writingGenerating && (
                       <div className="dino-generating">
@@ -4777,24 +3687,17 @@ ${writingAnswer}
                       </div>
                     )}
 
-                    {questionError &&
-                      !writingTask && (
-                        <div className="dino-error">
-                          {questionError}
-                        </div>
-                      )}
+                    {questionError && !writingTask && (
+                      <div className="dino-error">{questionError}</div>
+                    )}
                   </div>
 
                   <div className="dino-writing-card dino-writing-editor">
                     {!writingTask ? (
                       <div className="dino-prompt-empty">
-                        <div className="dino-prompt-icon">
-                          ✦
-                        </div>
+                        <div className="dino-prompt-icon">✦</div>
 
-                        <h3>
-                          Your writing task will appear here.
-                        </h3>
+                        <h3>Your writing task will appear here.</h3>
 
                         <p>
                           Select a course topic, text type, and difficulty, then let Dino generate the task and marking criteria.
@@ -4803,98 +3706,39 @@ ${writingAnswer}
                     ) : (
                       <>
                         <div className="dino-writing-task">
-                          <span className="dino-prompt-label">
-                            Generated task
-                          </span>
+                          <span className="dino-prompt-label">Generated task</span>
 
-                          <h3>
-                            {
-                              writingTask.title
-                            }
-                          </h3>
+                          <h3>{writingTask.title}</h3>
 
                           <div className="dino-writing-meta">
-                            <span>
-                              {
-                                writingType
-                              }
-                            </span>
-
-                            <span>
-                              {
-                                writingDifficulty
-                              }
-                            </span>
-
-                            <span>
-                              {
-                                writingTask.marks
-                              } marks
-                            </span>
-
-                            <span>
-                              {
-                                writingTask.suggestedLength
-                              }
-                            </span>
+                            <span>{writingType}</span>
+                            <span>{writingDifficulty}</span>
+                            <span>{writingTask.marks} marks</span>
+                            <span>{writingTask.suggestedLength}</span>
                           </div>
 
                           <div className="dino-writing-task-prompt">
-                            {renderMarkdown(
-                              writingTask.prompt,
-                            )}
+                            {renderMarkdown(writingTask.prompt)}
                           </div>
 
-                          <div className="dino-prompt-label">
-                            Criteria
-                          </div>
+                          <div className="dino-prompt-label">Criteria</div>
 
                           <ol className="dino-criteria">
-                            {writingTask.criteria.map(
-                              (
-                                criterion,
-                                index,
-                              ) => (
-                                <li
-                                  key={
-                                    index
-                                  }
-                                >
-                                  {
-                                    criterion
-                                  }
-                                </li>
-                              ),
-                            )}
+                            {writingTask.criteria.map((criterion, index) => (
+                              <li key={index}>{criterion}</li>
+                            ))}
                           </ol>
                         </div>
 
                         <div className="dino-writing-answer-label">
-                          <strong>
-                            Your response
-                          </strong>
-
-                          <span>
-                            {
-                              writingTask.marks
-                            } marks available
-                          </span>
+                          <strong>Your response</strong>
+                          <span>{writingTask.marks} marks available</span>
                         </div>
 
                         <textarea
                           className="dino-writing-textarea"
-                          value={
-                            writingAnswer
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            setWritingAnswer(
-                              event
-                                .target
-                                .value,
-                            )
-                          }
+                          value={writingAnswer}
+                          onChange={(event) => setWritingAnswer(event.target.value)}
                           placeholder="Write your response here..."
                         />
 
@@ -4902,130 +3746,62 @@ ${writingAnswer}
                           type="button"
                           className="dino-mark-button"
                           style={{
-                            width:
-                              '100%',
-                            marginTop:
-                              '10px',
+                            width: '100%',
+                            marginTop: '10px',
                           }}
-                          disabled={
-                            !writingAnswer.trim() ||
-                            writingGrading
-                          }
-                          onClick={
-                            markWriting
-                          }
+                          disabled={!writingAnswer.trim() || writingGrading}
+                          onClick={markWriting}
                         >
-                          {writingGrading
-                            ? 'Marking response...'
-                            : 'Mark response'}
+                          {writingGrading ? 'Marking response...' : 'Mark response'}
                         </button>
 
-                        {questionError &&
-                          writingTask && (
-                            <div className="dino-error">
-                              {
-                                questionError
-                              }
-                            </div>
-                          )}
+                        {questionError && writingTask && (
+                          <div className="dino-error">{questionError}</div>
+                        )}
 
                         {writingGrade && (
                           <div className="dino-writing-grade">
                             <div className="dino-writing-grade-score">
-                              <span className="dino-prompt-label">
-                                Result
-                              </span>
-
+                              <span className="dino-prompt-label">Result</span>
                               <strong>
-                                {
-                                  writingGrade.score
-                                }/
-                                {
-                                  writingTask.marks
-                                }
+                                {writingGrade.score}/{writingTask.marks}
                               </strong>
                             </div>
 
-                            {renderMarkdown(
-                              writingGrade.feedback,
-                            )}
+                            {renderMarkdown(writingGrade.feedback)}
 
                             <div className="dino-writing-grade-section">
-                              <strong>
-                                Strengths
-                              </strong>
-
+                              <strong>Strengths</strong>
                               <ul>
-                                {writingGrade.strengths.map(
-                                  (
-                                    item,
-                                    index,
-                                  ) => (
-                                    <li
-                                      key={
-                                        index
-                                      }
-                                    >
-                                      {
-                                        item
-                                      }
-                                    </li>
-                                  ),
-                                )}
+                                {writingGrade.strengths.map((item, index) => (
+                                  <li key={index}>{item}</li>
+                                ))}
                               </ul>
                             </div>
 
                             <div className="dino-writing-grade-section">
-                              <strong>
-                                Improve next
-                              </strong>
-
+                              <strong>Improve next</strong>
                               <ul>
-                                {writingGrade.improvements.map(
-                                  (
-                                    item,
-                                    index,
-                                  ) => (
-                                    <li
-                                      key={
-                                        index
-                                      }
-                                    >
-                                      {
-                                        item
-                                      }
-                                    </li>
-                                  ),
-                                )}
+                                {writingGrade.improvements.map((item, index) => (
+                                  <li key={index}>{item}</li>
+                                ))}
                               </ul>
                             </div>
 
                             <div className="dino-writing-grade-section">
-                              <strong>
-                                Next step
-                              </strong>
-
-                              <p>
-                                {
-                                  writingGrade.nextStep
-                                }
+                              <strong>Next step</strong>
+                              <p style={{ margin: 0, color: '#4b4b4b', fontSize: '10px', lineHeight: 1.45 }}>
+                                {writingGrade.nextStep}
                               </p>
                             </div>
 
                             <button
                               type="button"
                               className="dino-small-button"
-                              onClick={
-                                createPrompt
-                              }
-                              disabled={
-                                writingGenerating ||
-                                dinoPointsLoading ||
-                                dinoPoints <
-                                  DINOPOINT_WRITING_COST
-                              }
+                              onClick={createPrompt}
+                              disabled={writingGenerating}
                             >
-                              Generate another task · {DINOPOINT_WRITING_COST} DinoPoints
+                              Generate another task
                             </button>
                           </div>
                         )}
@@ -5036,18 +3812,13 @@ ${writingAnswer}
               </section>
             )}
 
-            {activeTab ===
-              'coming' && (
+            {activeTab === 'coming' && (
               <section className="dino-panel">
                 <div className="dino-coming-page">
                   <div className="dino-coming-content">
-                    <div className="dino-coming-icon">
-                      ✦
-                    </div>
+                    <div className="dino-coming-icon">✦</div>
 
-                    <h2>
-                      Coming Soon...
-                    </h2>
+                    <h2>Coming Soon...</h2>
 
                     <p>
                       Grammar activities and sentence structure practice are currently being developed for Dino.
