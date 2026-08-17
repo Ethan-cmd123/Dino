@@ -3636,41 +3636,152 @@ ${writingAnswer}
               </h1>
             </div>
 
-            <div className="dino-header-actions">
-              <div className="dino-user-email">
-                {user.email}
-              </div>
+            <style>
+            {`
+              .dino-header-actions {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+              }
 
-              <div className="dino-points-pill">
-                <span className="dino-points-coin">
-                  🦖
-                </span>
+              .dino-upgrade-button {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 7px;
+                padding: 10px 16px;
+                border: 1px solid rgba(255, 215, 90, 0.65);
+                border-radius: 10px;
+                background:
+                  linear-gradient(
+                    135deg,
+                    #fff4b0 0%,
+                    #f7d65a 25%,
+                    #d9a928 50%,
+                    #f6d96a 75%,
+                    #fff1a3 100%
+                  );
+                color: #5a3b00;
+                font-weight: 800;
+                font-size: 13px;
+                letter-spacing: -0.2px;
+                cursor: pointer;
+                box-shadow:
+                  0 0 0 1px rgba(255, 215, 90, 0.15),
+                  0 4px 14px rgba(218, 168, 37, 0.28),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.75);
+                overflow: hidden;
+                transition:
+                  transform 0.18s ease,
+                  box-shadow 0.18s ease,
+                  filter 0.18s ease;
+              }
 
-                <strong>
-                  {dinoPoints}
-                </strong>
+              .dino-upgrade-button::before {
+                content: "";
+                position: absolute;
+                top: -40%;
+                left: -90%;
+                width: 55%;
+                height: 180%;
+                background: linear-gradient(
+                  90deg,
+                  transparent,
+                  rgba(255, 255, 255, 0.75),
+                  transparent
+                );
+                transform: rotate(20deg);
+                animation: dino-gold-shine 2.8s ease-in-out infinite;
+                pointer-events: none;
+              }
 
-                <span>Dino points</span>
-              </div>
+              .dino-upgrade-button::after {
+                content: "✦";
+                position: absolute;
+                top: 2px;
+                right: 7px;
+                font-size: 9px;
+                color: rgba(255, 255, 255, 0.9);
+                animation: dino-gold-sparkle 1.5s ease-in-out infinite;
+                pointer-events: none;
+              }
 
-              <button
-                type="button"
-                className="dino-logout-button"
-                onClick={handleLogout}
-              >
-                Log out
-              </button>
+              .dino-upgrade-button:hover {
+                transform: translateY(-1px);
+                filter: brightness(1.06);
+                box-shadow:
+                  0 0 0 1px rgba(255, 215, 90, 0.25),
+                  0 7px 20px rgba(218, 168, 37, 0.4),
+                  0 0 18px rgba(255, 215, 90, 0.18),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+              }
 
-              <button
-                type="button"
-                className="dino-upgrade-button"
-                onClick={() => {
-                  window.location.href = "/upgrade.jsx";
-                }}
-              >
-                ✦ Upgrade to Gold
-              </button>
+              .dino-upgrade-button:active {
+                transform: translateY(0);
+              }
+
+              @keyframes dino-gold-shine {
+                0% {
+                  left: -90%;
+                }
+
+                45%,
+                100% {
+                  left: 140%;
+                }
+              }
+
+              @keyframes dino-gold-sparkle {
+                0%,
+                100% {
+                  opacity: 0.35;
+                  transform: scale(0.85) rotate(0deg);
+                }
+
+                50% {
+                  opacity: 1;
+                  transform: scale(1.15) rotate(20deg);
+                }
+              }
+            `}
+          </style>
+
+          <div className="dino-header-actions">
+            <div className="dino-user-email">
+              {user.email}
             </div>
+
+            <div className="dino-points-pill">
+              <span className="dino-points-coin">
+                🦖
+              </span>
+
+              <strong>
+                {dinoPoints}
+              </strong>
+
+              <span>Dino points</span>
+            </div>
+
+            <button
+              type="button"
+              className="dino-logout-button"
+              onClick={handleLogout}
+            >
+              Log out
+            </button>
+
+            <button
+              type="button"
+              className="dino-upgrade-button"
+              onClick={() => {
+                window.location.href = "/upgrade.jsx";
+              }}
+            >
+              ✦ Upgrade to Gold
+            </button>
+          </div>
 
 
             <div className="dino-progress">
