@@ -3660,7 +3660,18 @@ ${writingAnswer}
               >
                 Log out
               </button>
+
+              <button
+                type="button"
+                className="dino-upgrade-button"
+                onClick={() => {
+                  window.location.href = "/upgrade.jsx";
+                }}
+              >
+                ✦ Upgrade to Gold
+              </button>
             </div>
+
 
             <div className="dino-progress">
               <div className="dino-progress-meta">

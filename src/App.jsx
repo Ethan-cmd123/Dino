@@ -9,6 +9,7 @@ import Testimonials from './pages/Testimonials'
 import FAQs from './pages/FAQs'
 import AboutUs from './pages/AboutUs'
 import Blog from './pages/Blog'
+import Upgrade from './pages/upgrade'
 
 const routes = {
   '/': Home,
@@ -20,6 +21,8 @@ const routes = {
   '/faqs': FAQs,
   '/about-us': AboutUs,
   '/blog': Blog,
+  '/upgrade': Upgrade,
+  '/upgrade.jsx': Upgrade,
 }
 
 function normalizePath(pathname) {
