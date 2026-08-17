@@ -3632,7 +3632,7 @@ ${writingAnswer}
               </span>
 
               <h1 className="dino-dashboard-heading">
-                Learn <span>smarter.</span>
+                Dashboard. 
               </h1>
             </div>
 
