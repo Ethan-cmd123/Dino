@@ -1218,6 +1218,7 @@ function Dashboard({ navigate }) {
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [chatTyping, setChatTyping] = useState(false)
+  const [expandedReadingSection, setExpandedReadingSection] = useState(null)
 
   /* ------------------------------------------------------------------------ */
   /* AUTH                                                                     */
@@ -1308,6 +1309,22 @@ function Dashboard({ navigate }) {
       delete document.body.dataset.page
     }
   }, [])
+
+  useEffect(() => {
+    if (!expandedReadingSection) return undefined
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setExpandedReadingSection(null)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [expandedReadingSection])
 
   /* ------------------------------------------------------------------------ */
   /* COURSE                                                                    */
@@ -2384,6 +2401,76 @@ ${writingAnswer}
           box-shadow: 0 12px 35px rgba(0,0,0,.025);
         }
 
+        .dino-expand-button {
+          width: 28px;
+          height: 28px;
+          flex: 0 0 28px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+          border: 1px solid rgba(0,0,0,.07);
+          border-radius: 8px;
+          background: rgba(255,255,255,.8);
+          color: #5f5f5f;
+          font-size: 13px;
+          line-height: 1;
+          cursor: pointer;
+          transition: background .15s ease, color .15s ease, transform .15s ease;
+        }
+
+        .dino-expand-button:hover {
+          background: #fff;
+          color: #111;
+          transform: translateY(-1px);
+        }
+
+        .dino-expand-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 80;
+          background: rgba(0,0,0,.28);
+          backdrop-filter: blur(5px);
+        }
+
+        .dino-card-expanded {
+          position: fixed !important;
+          inset: 28px;
+          z-index: 81;
+          width: auto !important;
+          height: auto !important;
+          min-width: 0;
+          min-height: 0;
+          border-radius: 22px;
+          box-shadow: 0 30px 90px rgba(0,0,0,.16);
+        }
+
+        .dino-card-expanded .dino-generator-body,
+        .dino-card-expanded .dino-chat-area {
+          min-height: 0;
+        }
+
+        .dino-question-expanded {
+          position: fixed !important;
+          inset: 42px;
+          z-index: 82;
+          max-width: none;
+          max-height: none;
+          overflow-y: auto;
+          padding: 24px;
+          border-radius: 20px;
+          background: rgba(255,255,255,.96);
+          box-shadow: 0 30px 90px rgba(0,0,0,.16);
+        }
+
+        .dino-question-expanded .dino-reading-context-copy {
+          max-width: 100%;
+        }
+
+        .dino-question-expanded .dino-answer-box {
+          min-height: 220px;
+        }
+
         .dino-reading-generator {
           min-height: 0;
           display: flex;
@@ -2399,6 +2486,12 @@ ${writingAnswer}
           align-items: center;
           justify-content: space-between;
           flex: 0 0 51px;
+        }
+
+        .dino-card-topbar-actions {
+          display: flex;
+          align-items: center;
+          gap: 7px;
         }
 
         .dino-card-label,
@@ -3222,6 +3315,17 @@ ${writingAnswer}
           .dino-coming-page {
             height: 450px;
           }
+
+          .dino-card-expanded {
+            inset: 14px;
+            border-radius: 17px;
+          }
+
+          .dino-question-expanded {
+            inset: 14px;
+            padding: 17px;
+            border-radius: 17px;
+          }
         }
       `}</style>
 
@@ -3384,13 +3488,52 @@ ${writingAnswer}
                 </div>
 
                 <div className="dino-reading-workspace">
+                  {expandedReadingSection && (
+                    <div
+                      className="dino-expand-backdrop"
+                      onClick={() => setExpandedReadingSection(null)}
+                    />
+                  )}
 
-                  <div className="dino-reading-card dino-reading-generator">
+                  <div
+                    className={`dino-reading-card dino-reading-generator ${
+                      expandedReadingSection === 'questionbank'
+                        ? 'dino-card-expanded'
+                        : ''
+                    }`}
+                  >
                     <div className="dino-card-topbar">
                       <span className="dino-card-label">Reading questionbank</span>
-                      <span className="dino-card-status">
-                        {generatedQuestions ? 'Questions ready' : 'Ready'}
-                      </span>
+
+                      <div className="dino-card-topbar-actions">
+                        <span className="dino-card-status">
+                          {generatedQuestions ? 'Questions ready' : 'Ready'}
+                        </span>
+
+                        <button
+                          type="button"
+                          className="dino-expand-button"
+                          aria-label={
+                            expandedReadingSection === 'questionbank'
+                              ? 'Close expanded question bank'
+                              : 'Expand question bank'
+                          }
+                          title={
+                            expandedReadingSection === 'questionbank'
+                              ? 'Close expanded view'
+                              : 'Expand question bank'
+                          }
+                          onClick={() =>
+                            setExpandedReadingSection(
+                              expandedReadingSection === 'questionbank'
+                                ? null
+                                : 'questionbank',
+                            )
+                          }
+                        >
+                          {expandedReadingSection === 'questionbank' ? '↙' : '↗'}
+                        </button>
+                      </div>
                     </div>
 
                     {!generatedQuestions ? (
@@ -3509,15 +3652,50 @@ ${writingAnswer}
                             const grade = readingGrades[question.id]
 
                             return (
-                              <article className="dino-generated-question" key={question.id}>
+                              <article
+                                className={`dino-generated-question ${
+                                  expandedReadingSection === `question-${question.id}`
+                                    ? 'dino-question-expanded'
+                                    : ''
+                                }`}
+                                key={question.id}
+                              >
                                 <div className="dino-question-header">
                                   <span className="dino-question-number">
                                     Question {question.id}
                                   </span>
 
-                                  <span className="dino-question-marks">
-                                    {question.marks} {question.marks === 1 ? 'mark' : 'marks'}
-                                  </span>
+                                  <div className="dino-card-topbar-actions">
+                                    <span className="dino-question-marks">
+                                      {question.marks} {question.marks === 1 ? 'mark' : 'marks'}
+                                    </span>
+
+                                    <button
+                                      type="button"
+                                      className="dino-expand-button"
+                                      aria-label={
+                                        expandedReadingSection === `question-${question.id}`
+                                          ? `Close expanded question ${question.id}`
+                                          : `Expand question ${question.id}`
+                                      }
+                                      title={
+                                        expandedReadingSection === `question-${question.id}`
+                                          ? 'Close expanded view'
+                                          : 'Expand question'
+                                      }
+                                      onClick={() =>
+                                        setExpandedReadingSection(
+                                          expandedReadingSection === `question-${question.id}`
+                                            ? null
+                                            : `question-${question.id}`,
+                                        )
+                                      }
+                                    >
+                                      {expandedReadingSection === `question-${question.id}`
+                                        ? '↙'
+                                        : '↗'}
+                                    </button>
+                                  </div>
                                 </div>
 
                                 {question.context && (
@@ -3628,9 +3806,33 @@ ${writingAnswer}
                         </div>
                       </div>
 
-                      <div className="dino-tutor-online">
-                        <span className="dino-tutor-online-dot" />
-                        Connected
+                      <div className="dino-card-topbar-actions">
+                        <div className="dino-tutor-online">
+                          <span className="dino-tutor-online-dot" />
+                          Connected
+                        </div>
+
+                        <button
+                          type="button"
+                          className="dino-expand-button"
+                          aria-label={
+                            expandedReadingSection === 'tutor'
+                              ? 'Close expanded tutor'
+                              : 'Expand tutor chat'
+                          }
+                          title={
+                            expandedReadingSection === 'tutor'
+                              ? 'Close expanded view'
+                              : 'Expand tutor chat'
+                          }
+                          onClick={() =>
+                            setExpandedReadingSection(
+                              expandedReadingSection === 'tutor' ? null : 'tutor',
+                            )
+                          }
+                        >
+                          {expandedReadingSection === 'tutor' ? '↙' : '↗'}
+                        </button>
                       </div>
                     </div>
 
