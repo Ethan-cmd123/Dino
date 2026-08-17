@@ -333,26 +333,178 @@ function GetStarted({ navigate }) {
           }
 
           .dino-signup-label {
-            color: rgba(255,255,255,.60);
+            color: #777;
             font-family: Inter, sans-serif;
-            font-size: 12px;
+            font-size: 9px;
             font-weight: 600;
             line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: .025em;
           }
 
           .dino-signup-fields {
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            margin-top: 30px;
+            gap: 15px;
+            margin-top: 28px;
           }
 
           .dino-signup-field {
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 7px;
+          }
+
+          .dino-signup-final-page {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+          }
+
+          .dino-signup-final-card {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 36px;
+            border: 1px solid rgba(0,0,0,.08);
+            border-radius: 22px;
+            background: rgba(255,255,255,.78);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 22px 60px rgba(0,0,0,.055);
+          }
+
+          .dino-signup-final-kicker {
+            display: block;
+            margin-bottom: 9px;
+            color: #8a8a8a;
+            font-family: Inter, sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+          }
+
+          .dino-signup-final-title {
+            margin: 0;
+            color: #0a0a0a;
+            font-family: Inter, sans-serif;
+            font-size: clamp(42px, 7vw, 58px);
+            font-weight: 600;
+            line-height: .92;
+            letter-spacing: -.085em;
+          }
+
+          .dino-signup-final-title span {
+            font-style: italic;
+          }
+
+          .dino-signup-final-description {
+            max-width: 400px;
+            margin: 13px 0 28px;
+            color: #777;
+            font-family: Inter, sans-serif;
+            font-size: 11px;
+            font-weight: 400;
+            line-height: 1.55;
+          }
+
+          .dino-signup-final-error {
+            padding: 12px 14px;
+            border: 1px solid rgba(255,100,100,.15);
+            border-radius: 12px;
+            background: rgba(255,100,100,.06);
+            color: #8c4747;
+            font-family: Inter, sans-serif;
+            font-size: 10px;
+            line-height: 1.5;
+          }
+
+          .dino-signup-final-notice {
+            padding: 12px 14px;
+            border: 1px solid rgba(80,160,100,.15);
+            border-radius: 12px;
+            background: rgba(80,160,100,.06);
+            color: #51735a;
+            font-family: Inter, sans-serif;
+            font-size: 10px;
+            line-height: 1.5;
+          }
+
+          .dino-signup-final-submit {
+            width: 100%;
+            height: 54px;
+            margin-top: 2px;
+            border: 0;
+            border-radius: 14px;
+            background: #0a0a0a;
+            color: #ffffff;
+            font-family: Inter, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: -.01em;
+            cursor: pointer;
+            transition:
+              transform .16s ease,
+              opacity .16s ease;
+          }
+
+          .dino-signup-final-submit:hover:not(:disabled) {
+            transform: translateY(-1px);
+          }
+
+          .dino-signup-final-submit:active:not(:disabled) {
+            transform: translateY(0);
+          }
+
+          .dino-signup-final-submit:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+          }
+
+          .dino-signup-final-back {
+            width: 100%;
+            margin-top: 22px;
+            padding-top: 17px;
+            border: 0;
+            border-top: 1px solid rgba(0,0,0,.07);
+            background: transparent;
+            color: #888;
+            font-family: Inter, sans-serif;
+            font-size: 10px;
+            font-weight: 400;
+            cursor: pointer;
+          }
+
+          .dino-signup-final-back span {
+            color: #0a0a0a;
+            font-weight: 600;
+          }
+
+          .dino-signup-final-back:hover {
+            color: #666;
+          }
+
+          .dino-signup-final-home {
+            width: 100%;
+            margin-top: 13px;
+            border: 0;
+            background: transparent;
+            color: #aaa;
+            font-family: Inter, sans-serif;
+            font-size: 9px;
+            cursor: pointer;
+          }
+
+          .dino-signup-final-home:hover {
+            color: #777;
+          }
+
+          @media (max-width: 600px) {
+            .dino-signup-final-card {
+              padding: 25px;
+            }
           }
         `}
       </style>
@@ -565,209 +717,209 @@ function GetStarted({ navigate }) {
 
           {step === 4 && (
             <div
-              className="onboarding-step"
-              style={{
-                width:
-                  '100%',
-                maxWidth:
-                  '520px',
-                margin:
-                  '0 auto',
-              }}
+              className="dino-signup-final-page"
             >
-              <span className="page-eyebrow">
-                Almost there
-              </span>
+              <div className="dino-signup-final-card">
 
-              <h1 className="onboarding-title">
-                Create your
-                <span>
-                  {' '}
-                  Dino account.
+                <span className="dino-signup-final-kicker">
+                  Almost there
                 </span>
-              </h1>
 
-              <p className="onboarding-description">
-                Your Language B,
-                exam date and goals
-                will be saved to
-                your account.
-              </p>
+                <h1 className="dino-signup-final-title">
+                  Create your
+                  <span>
+                    {' '}
+                    Dino account.
+                  </span>
+                </h1>
 
-              <div className="dino-signup-fields">
+                <p className="dino-signup-final-description">
+                  Your Language B,
+                  exam date and goals
+                  will be saved to
+                  your account.
+                </p>
 
-                <div className="dino-signup-field">
-                  <label
-                    htmlFor="dino-email"
-                    className="dino-signup-label"
-                  >
-                    Email
-                  </label>
+                <div className="dino-signup-fields">
 
-                  <input
-                    id="dino-email"
-                    type="email"
-                    value={email}
-                    onChange={(
-                      event,
-                    ) => {
-                      setEmail(
-                        event
-                          .target
-                          .value,
-                      )
-                      clearMessages()
-                    }}
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    className="dino-signup-input"
-                  />
-                </div>
+                  <div className="dino-signup-field">
+                    <label
+                      htmlFor="dino-email"
+                      className="dino-signup-label"
+                    >
+                      Email
+                    </label>
 
-                <div className="dino-signup-field">
-                  <label
-                    htmlFor="dino-password"
-                    className="dino-signup-label"
-                  >
-                    Password
-                  </label>
+                    <input
+                      id="dino-email"
+                      type="email"
+                      value={email}
+                      onChange={(
+                        event,
+                      ) => {
+                        setEmail(
+                          event.target.value,
+                        )
+                        clearMessages()
+                      }}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      autoFocus
+                      className="dino-signup-input"
+                    />
+                  </div>
 
-                  <input
-                    id="dino-password"
-                    type="password"
-                    value={password}
-                    onChange={(
-                      event,
-                    ) => {
-                      setPassword(
-                        event
-                          .target
-                          .value,
-                      )
-                      clearMessages()
-                    }}
-                    placeholder="At least 6 characters"
-                    autoComplete="new-password"
-                    className="dino-signup-input"
-                  />
-                </div>
+                  <div className="dino-signup-field">
+                    <label
+                      htmlFor="dino-password"
+                      className="dino-signup-label"
+                    >
+                      Password
+                    </label>
 
-                <div className="dino-signup-field">
-                  <label
-                    htmlFor="dino-confirm-password"
-                    className="dino-signup-label"
-                  >
-                    Confirm password
-                  </label>
+                    <input
+                      id="dino-password"
+                      type="password"
+                      value={password}
+                      onChange={(
+                        event,
+                      ) => {
+                        setPassword(
+                          event.target.value,
+                        )
+                        clearMessages()
+                      }}
+                      placeholder="At least 6 characters"
+                      autoComplete="new-password"
+                      className="dino-signup-input"
+                    />
+                  </div>
 
-                  <input
-                    id="dino-confirm-password"
-                    type="password"
-                    value={
-                      confirmPassword
-                    }
-                    onChange={(
-                      event,
-                    ) => {
-                      setConfirmPassword(
-                        event
-                          .target
-                          .value,
-                      )
-                      clearMessages()
-                    }}
-                    placeholder="Repeat your password"
-                    autoComplete="new-password"
-                    className="dino-signup-input"
-                    onKeyDown={(
-                      event,
-                    ) => {
-                      if (
-                        event.key ===
-                        'Enter'
-                      ) {
-                        finish()
+                  <div className="dino-signup-field">
+                    <label
+                      htmlFor="dino-confirm-password"
+                      className="dino-signup-label"
+                    >
+                      Confirm password
+                    </label>
+
+                    <input
+                      id="dino-confirm-password"
+                      type="password"
+                      value={
+                        confirmPassword
                       }
-                    }}
-                  />
+                      onChange={(
+                        event,
+                      ) => {
+                        setConfirmPassword(
+                          event.target.value,
+                        )
+                        clearMessages()
+                      }}
+                      placeholder="Repeat your password"
+                      autoComplete="new-password"
+                      className="dino-signup-input"
+                      onKeyDown={(
+                        event,
+                      ) => {
+                        if (
+                          event.key ===
+                          'Enter'
+                        ) {
+                          finish()
+                        }
+                      }}
+                    />
+                  </div>
+
                 </div>
+
+                {error && (
+                  <div
+                    className="dino-signup-final-error"
+                    style={{
+                      marginTop:
+                        '18px',
+                    }}
+                  >
+                    {error}
+                  </div>
+                )}
+
+                {notice && (
+                  <div
+                    className="dino-signup-final-notice"
+                    style={{
+                      marginTop:
+                        '18px',
+                    }}
+                  >
+                    {notice}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="dino-signup-final-submit"
+                  onClick={finish}
+                  disabled={loading}
+                >
+                  {loading
+                    ? 'Creating account…'
+                    : 'Create account'}
+                </button>
+
+                <button
+                  type="button"
+                  className="dino-signup-final-back"
+                  onClick={() =>
+                    navigate(
+                      '/login',
+                    )
+                  }
+                >
+                  Already have an
+                  account?
+                  <span>
+                    {' '}
+                    Log in
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  className="dino-signup-final-home"
+                  onClick={() =>
+                    navigate('/')
+                  }
+                >
+                  Back to home
+                </button>
 
               </div>
-
-              {error && (
-                <div
-                  style={{
-                    marginTop:
-                      '18px',
-                    padding:
-                      '12px 14px',
-                    border:
-                      '1px solid rgba(255,100,100,0.18)',
-                    borderRadius:
-                      '12px',
-                    background:
-                      'rgba(255,100,100,0.07)',
-                    color:
-                      'rgba(255,190,190,0.95)',
-                    fontFamily:
-                      'Inter, sans-serif',
-                    fontSize:
-                      '12px',
-                    lineHeight:
-                      1.5,
-                  }}
-                >
-                  {error}
-                </div>
-              )}
-
-              {notice && (
-                <div
-                  style={{
-                    marginTop:
-                      '18px',
-                    padding:
-                      '12px 14px',
-                    border:
-                      '1px solid rgba(140,255,185,0.16)',
-                    borderRadius:
-                      '12px',
-                    background:
-                      'rgba(140,255,185,0.06)',
-                    color:
-                      'rgba(190,255,215,0.95)',
-                    fontFamily:
-                      'Inter, sans-serif',
-                    fontSize:
-                      '12px',
-                    lineHeight:
-                      1.5,
-                  }}
-                >
-                  {notice}
-                </div>
-              )}
             </div>
           )}
+
         </div>
 
-        <div className="onboarding-footer">
+        {step < 4 && (
+          <div className="onboarding-footer">
 
-          <button
-            type="button"
-            className="back-button"
-            onClick={
-              previousStep
-            }
-            disabled={
-              step === 1 ||
-              loading
-            }
-          >
-            Back
-          </button>
+            <button
+              type="button"
+              className="back-button"
+              onClick={
+                previousStep
+              }
+              disabled={
+                step === 1 ||
+                loading
+              }
+            >
+              Back
+            </button>
 
-          {step < 4 ? (
             <button
               type="button"
               className="next-button"
@@ -780,22 +932,10 @@ function GetStarted({ navigate }) {
             >
               Next
             </button>
-          ) : (
-            <button
-              type="button"
-              className="next-button"
-              onClick={finish}
-              disabled={
-                loading
-              }
-            >
-              {loading
-                ? 'Creating account…'
-                : 'Create account'}
-            </button>
-          )}
 
-        </div>
+          </div>
+        )}
+
       </div>
     </AnimatedBackground>
   )
