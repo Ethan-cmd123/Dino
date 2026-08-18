@@ -1,9 +1,111 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AnimatedBackground from '../components/AnimatedBackground'
+import {
+  createCheckoutSession,
+  getCheckoutSession,
+} from '../api/payment'
 
 function Upgrade({ navigate }) {
-  const [showTransaction, setShowTransaction] =
+  const [isProcessingPayment, setIsProcessingPayment] =
     useState(false)
+
+  const [paymentError, setPaymentError] =
+    useState('')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const paymentStatus = params.get('payment')
+    const sessionId = params.get('session_id')
+
+    if (paymentStatus !== 'success' || !sessionId) {
+      return
+    }
+
+    let cancelled = false
+
+    const verifyPayment = async () => {
+      try {
+        const session = await getCheckoutSession(sessionId)
+
+        if (cancelled) {
+          return
+        }
+
+        console.log('[Dino Stripe] Checkout completed', {
+          sessionId: session?.id,
+          status: session?.status,
+          paymentStatus: session?.payment_status,
+          amountTotal: session?.amount_total,
+          currency: session?.currency,
+          mode: session?.mode,
+          customer: session?.customer,
+          subscription: session?.subscription,
+          paymentIntent: session?.payment_intent,
+          livemode: session?.livemode,
+          metadata: session?.metadata,
+          rawSession: session,
+        })
+
+        navigate('/dashboard')
+      } catch (error) {
+        console.error(
+          '[Dino Stripe] Failed to verify checkout session',
+          error,
+        )
+
+        if (!cancelled) {
+          setPaymentError(
+            error instanceof Error
+              ? error.message
+              : 'Unable to verify the payment.',
+          )
+        }
+      }
+    }
+
+    verifyPayment()
+
+    return () => {
+      cancelled = true
+    }
+  }, [navigate])
+
+  const handleUpgrade = async () => {
+    if (isProcessingPayment) {
+      return
+    }
+
+    setPaymentError('')
+    setIsProcessingPayment(true)
+
+    try {
+      const { url, sessionId } =
+        await createCheckoutSession()
+
+      console.log(
+        '[Dino Stripe] Checkout Session created',
+        {
+          sessionId,
+          url,
+        },
+      )
+
+      window.location.href = url
+    } catch (error) {
+      console.error(
+        '[Dino Stripe] Checkout failed',
+        error,
+      )
+
+      setPaymentError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to open Stripe Checkout.',
+      )
+
+      setIsProcessingPayment(false)
+    }
+  }
 
   return (
     <AnimatedBackground className="onboarding-page">
@@ -152,24 +254,6 @@ function Upgrade({ navigate }) {
               0 10px 28px rgba(218, 168, 37, 0.18),
               inset 0 1px 0 rgba(255, 255, 255, 0.82);
             overflow: hidden;
-          }
-
-          .dino-gold-plan::before {
-            content: "";
-            position: absolute;
-            top: -40%;
-            left: -80%;
-            width: 38%;
-            height: 180%;
-            background: linear-gradient(
-              90deg,
-              transparent,
-              rgba(255, 255, 255, 0.58),
-              transparent
-            );
-            transform: rotate(20deg);
-            animation: dino-plan-shine 3.8s ease-in-out infinite;
-            pointer-events: none;
           }
 
           .dino-gold-plan-top {
@@ -413,9 +497,27 @@ function Upgrade({ navigate }) {
             transform: translateY(0);
           }
 
+          .dino-main-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.72;
+          }
+
           .dino-payment-note {
             margin-top: 10px;
             color: #aaa;
+            font-family: Inter, sans-serif;
+            font-size: 8px;
+            line-height: 1.45;
+            text-align: center;
+          }
+
+          .dino-payment-error {
+            margin-top: 9px;
+            padding: 10px 12px;
+            border: 1px solid rgba(180, 50, 50, 0.14);
+            border-radius: 10px;
+            background: rgba(180, 50, 50, 0.05);
+            color: #9a4d4d;
             font-family: Inter, sans-serif;
             font-size: 8px;
             line-height: 1.45;
@@ -439,138 +541,6 @@ function Upgrade({ navigate }) {
             color: #777;
           }
 
-          .dino-transaction-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(9px);
-            -webkit-backdrop-filter: blur(9px);
-          }
-
-          .dino-transaction-modal {
-            width: 100%;
-            max-width: 410px;
-            box-sizing: border-box;
-            padding: 28px;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.96);
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
-          }
-
-          .dino-transaction-kicker {
-            display: block;
-            margin-bottom: 9px;
-            color: #a1761f;
-            font-family: Inter, sans-serif;
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-          }
-
-          .dino-transaction-title {
-            margin: 0;
-            color: #0a0a0a;
-            font-family: Inter, sans-serif;
-            font-size: 30px;
-            font-weight: 600;
-            line-height: 0.96;
-            letter-spacing: -0.065em;
-          }
-
-          .dino-transaction-description {
-            margin: 12px 0 18px;
-            color: #777;
-            font-family: Inter, sans-serif;
-            font-size: 10px;
-            line-height: 1.55;
-          }
-
-          .dino-payment-placeholder {
-            display: flex;
-            flex-direction: column;
-            gap: 9px;
-            box-sizing: border-box;
-            padding: 16px;
-            margin-bottom: 14px;
-            border: 1px dashed rgba(0, 0, 0, 0.13);
-            border-radius: 14px;
-            background: #fafafa;
-          }
-
-          .dino-placeholder-label {
-            color: #999;
-            font-family: Inter, sans-serif;
-            font-size: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.035em;
-          }
-
-          .dino-placeholder-field {
-            height: 42px;
-            box-sizing: border-box;
-            padding: 0 12px;
-            display: flex;
-            align-items: center;
-            border: 1px solid rgba(0, 0, 0, 0.07);
-            border-radius: 10px;
-            background: #fff;
-            color: #b0b0b0;
-            font-family: Inter, sans-serif;
-            font-size: 9px;
-          }
-
-          .dino-placeholder-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 9px;
-          }
-
-          .dino-modal-actions {
-            display: flex;
-            gap: 9px;
-          }
-
-          .dino-modal-close,
-          .dino-modal-placeholder {
-            flex: 1;
-            height: 48px;
-            border-radius: 12px;
-            font-family: Inter, sans-serif;
-            font-size: 10px;
-            font-weight: 700;
-            cursor: pointer;
-          }
-
-          .dino-modal-close {
-            border: 1px solid rgba(0, 0, 0, 0.09);
-            background: #fff;
-            color: #777;
-          }
-
-          .dino-modal-placeholder {
-            border: 1px solid rgba(255, 215, 90, 0.6);
-            background:
-              linear-gradient(
-                135deg,
-                #fff4b0 0%,
-                #f6d259 45%,
-                #d8a728 100%
-              );
-            color: #5a3b00;
-            box-shadow:
-              inset 0 1px 0 rgba(255, 255, 255, 0.72),
-              0 5px 15px rgba(218, 168, 37, 0.2);
-          }
-
           @keyframes dino-gold-shine {
             0% {
               left: -90%;
@@ -592,17 +562,6 @@ function Upgrade({ navigate }) {
             50% {
               opacity: 1;
               transform: scale(1.15) rotate(20deg);
-            }
-          }
-
-          @keyframes dino-plan-shine {
-            0% {
-              left: -80%;
-            }
-
-            38%,
-            100% {
-              left: 150%;
             }
           }
 
@@ -632,10 +591,6 @@ function Upgrade({ navigate }) {
 
             .dino-comparison {
               grid-template-columns: 1fr;
-            }
-
-            .dino-modal-actions {
-              flex-direction: column;
             }
           }
         `}
@@ -770,17 +725,23 @@ function Upgrade({ navigate }) {
                 <button
                   type="button"
                   className="dino-main-button"
-                  onClick={() =>
-                    setShowTransaction(true)
-                  }
+                  onClick={handleUpgrade}
+                  disabled={isProcessingPayment}
                 >
-                  Upgrade to Gold
+                  {isProcessingPayment
+                    ? 'Opening secure checkout…'
+                    : 'Upgrade to Gold'}
                 </button>
 
                 <div className="dino-payment-note">
-                  Payment and subscription system placeholder.
-                  No real transaction will be processed.
+                  Secure Stripe Checkout test mode. Use Stripe test cards while sandboxing.
                 </div>
+
+                {paymentError && (
+                  <div className="dino-payment-error">
+                    {paymentError}
+                  </div>
+                )}
 
                 <button
                   type="button"
@@ -798,78 +759,6 @@ function Upgrade({ navigate }) {
         </div>
       </div>
 
-      {showTransaction && (
-        <div
-          className="dino-transaction-overlay"
-          onClick={() =>
-            setShowTransaction(false)
-          }
-        >
-          <div
-            className="dino-transaction-modal"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-          >
-            <span className="dino-transaction-kicker">
-              Gold checkout
-            </span>
-
-            <h2 className="dino-transaction-title">
-              Checkout placeholder.
-            </h2>
-
-            <p className="dino-transaction-description">
-              This is a temporary payment screen.
-              Replace the fields below with your real
-              payment provider when the transaction system
-              is connected.
-            </p>
-
-            <div className="dino-payment-placeholder">
-              <div className="dino-placeholder-label">
-                Payment details
-              </div>
-
-              <div className="dino-placeholder-field">
-                Card number placeholder
-              </div>
-
-              <div className="dino-placeholder-row">
-                <div className="dino-placeholder-field">
-                  MM / YY
-                </div>
-
-                <div className="dino-placeholder-field">
-                  CVC
-                </div>
-              </div>
-            </div>
-
-            <div className="dino-modal-actions">
-              <button
-                type="button"
-                className="dino-modal-close"
-                onClick={() =>
-                  setShowTransaction(false)
-                }
-              >
-                Close
-              </button>
-
-              <button
-                type="button"
-                className="dino-modal-placeholder"
-                onClick={() =>
-                  setShowTransaction(false)
-                }
-              >
-                Transaction placeholder
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </AnimatedBackground>
   )
 }
