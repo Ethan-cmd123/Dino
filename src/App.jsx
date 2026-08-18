@@ -163,6 +163,195 @@ function App() {
 
   return (
     <div className="app">
+      <style>{`
+        .cute-dino-field {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 120px;
+          pointer-events: none;
+          z-index: 30;
+          overflow: hidden;
+        }
+
+        .cute-dino {
+          position: absolute;
+          bottom: -2px;
+          width: var(--dino-size);
+          height: auto;
+          object-fit: contain;
+          user-select: none;
+          -webkit-user-drag: none;
+          animation:
+            dino-hop
+            var(--hop-duration)
+            var(--hop-delay)
+            ease-in-out
+            infinite;
+          transform-origin: bottom center;
+          will-change: transform;
+        }
+
+        .cute-dino-1 {
+          left: 4%;
+          --dino-size: 48px;
+          --hop-height: 18px;
+          --hop-duration: 1.8s;
+          --hop-delay: -0.2s;
+        }
+
+        .cute-dino-2 {
+          left: 17%;
+          --dino-size: 34px;
+          --hop-height: 12px;
+          --hop-duration: 2.15s;
+          --hop-delay: -1.1s;
+        }
+
+        .cute-dino-3 {
+          left: 31%;
+          --dino-size: 58px;
+          --hop-height: 22px;
+          --hop-duration: 1.95s;
+          --hop-delay: -0.65s;
+        }
+
+        .cute-dino-4 {
+          left: 47%;
+          --dino-size: 40px;
+          --hop-height: 15px;
+          --hop-duration: 2.35s;
+          --hop-delay: -1.7s;
+        }
+
+        .cute-dino-5 {
+          left: 61%;
+          --dino-size: 68px;
+          --hop-height: 25px;
+          --hop-duration: 2.05s;
+          --hop-delay: -0.9s;
+        }
+
+        .cute-dino-6 {
+          left: 78%;
+          --dino-size: 37px;
+          --hop-height: 14px;
+          --hop-duration: 1.7s;
+          --hop-delay: -1.35s;
+        }
+
+        .cute-dino-7 {
+          left: 91%;
+          --dino-size: 52px;
+          --hop-height: 19px;
+          --hop-duration: 2.25s;
+          --hop-delay: -0.4s;
+        }
+
+        @keyframes dino-hop {
+          0%,
+          100% {
+            transform: translateY(0) rotate(0deg);
+          }
+
+          18% {
+            transform: translateY(calc(var(--hop-height) * -0.25))
+              rotate(-2deg);
+          }
+
+          35% {
+            transform: translateY(calc(var(--hop-height) * -1))
+              rotate(2deg);
+          }
+
+          52% {
+            transform: translateY(calc(var(--hop-height) * -0.45))
+              rotate(-1.5deg);
+          }
+
+          68% {
+            transform: translateY(0)
+              rotate(1deg);
+          }
+
+          84% {
+            transform: translateY(calc(var(--hop-height) * -0.12))
+              rotate(0deg);
+          }
+        }
+
+        @media (max-width: 700px) {
+          .cute-dino-field {
+            height: 90px;
+          }
+
+          .cute-dino-2,
+          .cute-dino-4,
+          .cute-dino-6 {
+            display: none;
+          }
+
+          .cute-dino-1 {
+            left: 2%;
+            --dino-size: 38px;
+          }
+
+          .cute-dino-3 {
+            left: 27%;
+            --dino-size: 46px;
+          }
+
+          .cute-dino-5 {
+            left: 56%;
+            --dino-size: 52px;
+          }
+
+          .cute-dino-7 {
+            left: 82%;
+            --dino-size: 42px;
+          }
+        }
+      `}</style>
+
+      <div className="cute-dino-field" aria-hidden="true">
+        <img
+          src="/assets/dino.png"
+          alt=""
+          className="cute-dino cute-dino-1"
+        />
+        <img
+          src="/assets/dino.png"
+          alt=""
+          className="cute-dino cute-dino-2"
+        />
+        <img
+          src="/assets/dino.png"
+          alt=""
+          className="cute-dino cute-dino-3"
+        />
+        <img
+          src="/assets/dino.png"
+          alt=""
+          className="cute-dino cute-dino-4"
+        />
+        <img
+          src="/assets/dino.png"
+          alt=""
+          className="cute-dino cute-dino-5"
+        />
+        <img
+          src="/assets/dino.png"
+          alt=""
+          className="cute-dino cute-dino-6"
+        />
+        <img
+          src="/assets/dino.png"
+          alt=""
+          className="cute-dino cute-dino-7"
+        />
+      </div>
+
       <div
         className={`page-transition ${
           isTransitioning
