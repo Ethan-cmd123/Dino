@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 import Home from './pages/Home'
@@ -73,6 +73,8 @@ function App() {
     setIsTransitioning,
   ] = useState(false)
 
+  const dinoRefs = useRef([])
+
   useEffect(() => {
     const handlePopState = () => {
       setPath(getCurrentPath())
@@ -88,6 +90,301 @@ function App() {
       window.removeEventListener(
         'popstate',
         handlePopState,
+      )
+    }
+  }, [])
+
+  useEffect(() => {
+    const dinoCount = 7
+    const dinos = []
+
+    const random = (min, max) =>
+      Math.random() * (max - min) + min
+
+    const createDino = (index) => {
+      const element =
+        dinoRefs.current[index]
+
+      if (!element) {
+        return null
+      }
+
+      const size = random(32, 68)
+
+      const dino = {
+        element,
+        x: random(
+          -window.innerWidth,
+          window.innerWidth,
+        ),
+        size,
+        direction:
+          Math.random() > 0.5
+            ? 1
+            : -1,
+        speed: random(18, 42),
+        state: 'walking',
+        stateUntil: performance.now() + random(1000, 4000),
+        nextDecision:
+          performance.now() + random(1500, 5000),
+        hopStart: -1,
+        hopDuration: random(350, 520),
+        hopHeight: random(8, 20),
+        nextHop:
+          performance.now() + random(1000, 4500),
+        bobSeed: random(0, Math.PI * 2),
+      }
+
+      element.style.width =
+        `${size}px`
+
+      return dino
+    }
+
+    for (
+      let index = 0;
+      index < dinoCount;
+      index++
+    ) {
+      const dino =
+        createDino(index)
+
+      if (dino) {
+        dinos.push(dino)
+      }
+    }
+
+    let animationFrame = 0
+    let lastTime = performance.now()
+
+    const animate = (now) => {
+      const delta =
+        Math.min(
+          now - lastTime,
+          40,
+        ) / 1000
+
+      lastTime = now
+
+      const width =
+        window.innerWidth
+
+      dinos.forEach((dino) => {
+        if (!dino.element) {
+          return
+        }
+
+        /*
+         * Randomly decide whether the dino
+         * should keep walking, pause,
+         * or turn around.
+         */
+        if (
+          now >= dino.nextDecision
+        ) {
+          const roll =
+            Math.random()
+
+          if (roll < 0.18) {
+            dino.state = 'resting'
+            dino.stateUntil =
+              now + random(600, 2200)
+          } else if (roll < 0.34) {
+            dino.direction *= -1
+            dino.state = 'walking'
+            dino.stateUntil =
+              now + random(1800, 6000)
+          } else {
+            dino.state = 'walking'
+            dino.stateUntil =
+              now + random(2000, 7000)
+          }
+
+          dino.nextDecision =
+            now + random(1300, 4500)
+        }
+
+        if (
+          now >= dino.stateUntil
+        ) {
+          dino.state = 'walking'
+        }
+
+        /*
+         * Random little hops.
+         */
+        if (
+          dino.hopStart < 0 &&
+          now >= dino.nextHop &&
+          dino.state !== 'resting'
+        ) {
+          dino.hopStart = now
+          dino.hopDuration =
+            random(300, 520)
+          dino.hopHeight =
+            random(8, 22)
+
+          dino.nextHop =
+            now + random(1700, 5000)
+        }
+
+        /*
+         * Move like a tiny creature instead
+         * of sliding like a CSS decoration.
+         */
+        if (
+          dino.state === 'walking'
+        ) {
+          dino.x +=
+            dino.speed *
+            dino.direction *
+            delta
+        }
+
+        /*
+         * Hop arc.
+         */
+        let hopY = 0
+
+        if (
+          dino.hopStart >= 0
+        ) {
+          const progress =
+            (now - dino.hopStart) /
+            dino.hopDuration
+
+          if (
+            progress >= 1
+          ) {
+            dino.hopStart = -1
+          } else {
+            hopY =
+              Math.sin(
+                progress *
+                  Math.PI,
+              ) *
+              dino.hopHeight
+          }
+        }
+
+        /*
+         * Tiny walking bounce.
+         */
+        let bobY = 0
+
+        if (
+          dino.state === 'walking'
+        ) {
+          bobY =
+            Math.sin(
+              now * 0.018 +
+                dino.bobSeed,
+            ) *
+            1.4
+        }
+
+        /*
+         * Tiny tilt makes the movement
+         * feel less robotic.
+         */
+        let tilt = 0
+
+        if (
+          dino.state === 'walking'
+        ) {
+          tilt =
+            Math.sin(
+              now * 0.012 +
+                dino.bobSeed,
+            ) *
+            1.2
+        }
+
+        /*
+         * Face the direction of travel.
+         *
+         * The source image faces left,
+         * so flip horizontally when
+         * travelling right.
+         */
+        const scaleX =
+          dino.direction === -1
+            ? 1
+            : -1
+
+        dino.element.style.transform =
+          `translate3d(${dino.x}px, ${-hopY - bobY}px, 0) rotate(${tilt}deg) scaleX(${scaleX})`
+
+        /*
+         * Once they have completely left
+         * the screen, randomly respawn them
+         * from the opposite side.
+         */
+        const offscreenMargin =
+          dino.size + 100
+
+        if (
+          dino.direction === 1 &&
+          dino.x >
+            width + offscreenMargin
+        ) {
+          dino.x =
+            -random(
+              80,
+              350,
+            )
+
+          dino.direction = 1
+
+          dino.state = 'walking'
+
+          dino.nextDecision =
+            now +
+            random(
+              1200,
+              4500,
+            )
+        }
+
+        if (
+          dino.direction === -1 &&
+          dino.x <
+            -offscreenMargin
+        ) {
+          dino.x =
+            width +
+            random(
+              80,
+              350,
+            )
+
+          dino.direction = -1
+
+          dino.state = 'walking'
+
+          dino.nextDecision =
+            now +
+            random(
+              1200,
+              4500,
+            )
+        }
+      })
+
+      animationFrame =
+        requestAnimationFrame(
+          animate,
+        )
+    }
+
+    animationFrame =
+      requestAnimationFrame(
+        animate,
+      )
+
+    return () => {
+      cancelAnimationFrame(
+        animationFrame,
       )
     }
   }, [])
@@ -164,192 +461,61 @@ function App() {
   return (
     <div className="app">
       <style>{`
-        .cute-dino-field {
+        .dino-world {
           position: fixed;
           left: 0;
           right: 0;
           bottom: 0;
-          height: 120px;
+          width: 100%;
+          height: 100px;
           pointer-events: none;
-          z-index: 30;
-          overflow: hidden;
+          z-index: 40;
+          overflow: visible;
         }
 
-        .cute-dino {
+        .wandering-dino {
           position: absolute;
-          bottom: -2px;
-          width: var(--dino-size);
+          left: 0;
+          bottom: 0;
+          width: 50px;
           height: auto;
-          object-fit: contain;
+          display: block;
+          pointer-events: none;
           user-select: none;
           -webkit-user-drag: none;
-          animation:
-            dino-hop
-            var(--hop-duration)
-            var(--hop-delay)
-            ease-in-out
-            infinite;
-          transform-origin: bottom center;
+          transform-origin: center bottom;
           will-change: transform;
         }
 
-        .cute-dino-1 {
-          left: 4%;
-          --dino-size: 48px;
-          --hop-height: 18px;
-          --hop-duration: 1.8s;
-          --hop-delay: -0.2s;
-        }
-
-        .cute-dino-2 {
-          left: 17%;
-          --dino-size: 34px;
-          --hop-height: 12px;
-          --hop-duration: 2.15s;
-          --hop-delay: -1.1s;
-        }
-
-        .cute-dino-3 {
-          left: 31%;
-          --dino-size: 58px;
-          --hop-height: 22px;
-          --hop-duration: 1.95s;
-          --hop-delay: -0.65s;
-        }
-
-        .cute-dino-4 {
-          left: 47%;
-          --dino-size: 40px;
-          --hop-height: 15px;
-          --hop-duration: 2.35s;
-          --hop-delay: -1.7s;
-        }
-
-        .cute-dino-5 {
-          left: 61%;
-          --dino-size: 68px;
-          --hop-height: 25px;
-          --hop-duration: 2.05s;
-          --hop-delay: -0.9s;
-        }
-
-        .cute-dino-6 {
-          left: 78%;
-          --dino-size: 37px;
-          --hop-height: 14px;
-          --hop-duration: 1.7s;
-          --hop-delay: -1.35s;
-        }
-
-        .cute-dino-7 {
-          left: 91%;
-          --dino-size: 52px;
-          --hop-height: 19px;
-          --hop-duration: 2.25s;
-          --hop-delay: -0.4s;
-        }
-
-        @keyframes dino-hop {
-          0%,
-          100% {
-            transform: translateY(0) rotate(0deg);
-          }
-
-          18% {
-            transform: translateY(calc(var(--hop-height) * -0.25))
-              rotate(-2deg);
-          }
-
-          35% {
-            transform: translateY(calc(var(--hop-height) * -1))
-              rotate(2deg);
-          }
-
-          52% {
-            transform: translateY(calc(var(--hop-height) * -0.45))
-              rotate(-1.5deg);
-          }
-
-          68% {
-            transform: translateY(0)
-              rotate(1deg);
-          }
-
-          84% {
-            transform: translateY(calc(var(--hop-height) * -0.12))
-              rotate(0deg);
-          }
-        }
-
         @media (max-width: 700px) {
-          .cute-dino-field {
-            height: 90px;
+          .dino-world {
+            height: 80px;
           }
 
-          .cute-dino-2,
-          .cute-dino-4,
-          .cute-dino-6 {
-            display: none;
-          }
-
-          .cute-dino-1 {
-            left: 2%;
-            --dino-size: 38px;
-          }
-
-          .cute-dino-3 {
-            left: 27%;
-            --dino-size: 46px;
-          }
-
-          .cute-dino-5 {
-            left: 56%;
-            --dino-size: 52px;
-          }
-
-          .cute-dino-7 {
-            left: 82%;
-            --dino-size: 42px;
+          .wandering-dino {
+            width: 40px;
           }
         }
       `}</style>
 
-      <div className="cute-dino-field" aria-hidden="true">
-        <img
-          src="/assets/dino.png"
-          alt=""
-          className="cute-dino cute-dino-1"
-        />
-        <img
-          src="/assets/dino.png"
-          alt=""
-          className="cute-dino cute-dino-2"
-        />
-        <img
-          src="/assets/dino.png"
-          alt=""
-          className="cute-dino cute-dino-3"
-        />
-        <img
-          src="/assets/dino.png"
-          alt=""
-          className="cute-dino cute-dino-4"
-        />
-        <img
-          src="/assets/dino.png"
-          alt=""
-          className="cute-dino cute-dino-5"
-        />
-        <img
-          src="/assets/dino.png"
-          alt=""
-          className="cute-dino cute-dino-6"
-        />
-        <img
-          src="/assets/dino.png"
-          alt=""
-          className="cute-dino cute-dino-7"
-        />
+      <div
+        className="dino-world"
+        aria-hidden="true"
+      >
+        {Array.from({
+          length: 7,
+        }).map((_, index) => (
+          <img
+            key={index}
+            ref={(element) => {
+              dinoRefs.current[index] =
+                element
+            }}
+            src="/assets/dino.png"
+            alt=""
+            className="wandering-dino"
+          />
+        ))}
       </div>
 
       <div
