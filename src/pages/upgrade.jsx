@@ -11,80 +11,95 @@ function Upgrade({ navigate }) {
         {`
           .dino-upgrade-page {
             width: 100%;
-            max-width: 540px;
+            max-width: 720px;
             margin: 0 auto;
           }
 
           .dino-upgrade-card {
+            position: relative;
             width: 100%;
             box-sizing: border-box;
-            padding: 36px;
-            border: 1px solid rgba(0,0,0,.08);
-            border-radius: 22px;
-            background: rgba(255,255,255,.78);
+            padding: 42px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.82);
             backdrop-filter: blur(18px);
-            box-shadow: 0 22px 60px rgba(0,0,0,.055);
-            position: relative;
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.07);
             overflow: hidden;
           }
 
           .dino-upgrade-card::before {
-            content: '';
+            content: "";
             position: absolute;
-            top: -120px;
-            right: -100px;
-            width: 260px;
-            height: 260px;
+            top: -110px;
+            right: -110px;
+            width: 280px;
+            height: 280px;
             border-radius: 50%;
             background:
               radial-gradient(
                 circle,
-                rgba(225,180,55,.25) 0%,
-                rgba(225,180,55,.08) 42%,
+                rgba(255, 214, 89, 0.28) 0%,
+                rgba(255, 214, 89, 0.11) 38%,
                 transparent 72%
               );
             pointer-events: none;
           }
 
           .dino-upgrade-card::after {
-            content: '';
+            content: "";
             position: absolute;
+            left: -120px;
             bottom: -130px;
-            left: -110px;
-            width: 240px;
-            height: 240px;
+            width: 280px;
+            height: 280px;
             border-radius: 50%;
             background:
               radial-gradient(
                 circle,
-                rgba(225,180,55,.13) 0%,
-                transparent 70%
+                rgba(230, 182, 50, 0.12) 0%,
+                transparent 72%
               );
             pointer-events: none;
           }
 
+          .dino-upgrade-content {
+            position: relative;
+            z-index: 2;
+          }
+
           .dino-upgrade-kicker {
-            display: block;
-            margin-bottom: 9px;
-            color: #a07b25;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 12px;
+            padding: 6px 10px;
+            border: 1px solid rgba(218, 169, 39, 0.24);
+            border-radius: 999px;
+            background: rgba(255, 244, 176, 0.42);
+            color: #8f681d;
             font-family: Inter, sans-serif;
-            font-size: 10px;
-            font-weight: 700;
+            font-size: 9px;
+            font-weight: 800;
             line-height: 1;
             text-transform: uppercase;
-            letter-spacing: .06em;
+            letter-spacing: 0.07em;
+          }
+
+          .dino-upgrade-kicker::before {
+            content: "✦";
+            font-size: 10px;
           }
 
           .dino-upgrade-title {
             margin: 0;
             color: #0a0a0a;
             font-family: Inter, sans-serif;
-            font-size: clamp(42px, 7vw, 60px);
+            font-size: clamp(44px, 7vw, 66px);
             font-weight: 600;
-            line-height: .92;
-            letter-spacing: -.085em;
-            position: relative;
-            z-index: 1;
+            line-height: 0.91;
+            letter-spacing: -0.085em;
           }
 
           .dino-upgrade-title span {
@@ -92,253 +107,372 @@ function Upgrade({ navigate }) {
             background:
               linear-gradient(
                 135deg,
-                #8d691c 0%,
-                #c79627 35%,
-                #f0cd67 58%,
-                #9e761e 100%
+                #fff3a6 0%,
+                #f5d35b 24%,
+                #c89220 48%,
+                #f2cf57 72%,
+                #fff0a1 100%
               );
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            filter: drop-shadow(
+              0 2px 10px rgba(213, 165, 39, 0.13)
+            );
           }
 
           .dino-upgrade-description {
-            max-width: 430px;
-            margin: 13px 0 25px;
+            max-width: 560px;
+            margin: 16px 0 28px;
             color: #777;
             font-family: Inter, sans-serif;
             font-size: 11px;
             font-weight: 400;
-            line-height: 1.55;
-            position: relative;
-            z-index: 1;
+            line-height: 1.6;
           }
 
-          .dino-gold-box {
+          .dino-gold-plan {
+            position: relative;
             width: 100%;
             box-sizing: border-box;
-            padding: 20px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(193,149,43,.22);
-            border-radius: 17px;
+            padding: 22px;
+            border: 1px solid rgba(255, 215, 90, 0.62);
+            border-radius: 18px;
             background:
               linear-gradient(
                 135deg,
-                rgba(255,248,223,.84),
-                rgba(248,236,197,.72)
+                rgba(255, 248, 207, 0.88) 0%,
+                rgba(251, 229, 139, 0.78) 30%,
+                rgba(232, 193, 71, 0.76) 52%,
+                rgba(251, 230, 144, 0.8) 75%,
+                rgba(255, 248, 207, 0.88) 100%
               );
+            box-shadow:
+              0 0 0 1px rgba(255, 215, 90, 0.12),
+              0 10px 28px rgba(218, 168, 37, 0.18),
+              inset 0 1px 0 rgba(255, 255, 255, 0.82);
+            overflow: hidden;
+          }
+
+          .dino-gold-plan::before {
+            content: "";
+            position: absolute;
+            top: -40%;
+            left: -80%;
+            width: 38%;
+            height: 180%;
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(255, 255, 255, 0.58),
+              transparent
+            );
+            transform: rotate(20deg);
+            animation: dino-plan-shine 3.8s ease-in-out infinite;
+            pointer-events: none;
+          }
+
+          .dino-gold-plan-top {
             position: relative;
-            z-index: 1;
-          }
-
-          .dino-gold-box-top {
+            z-index: 2;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 17px;
+            gap: 18px;
+            margin-bottom: 20px;
           }
 
-          .dino-gold-badge {
+          .dino-gold-plan-title {
+            margin: 0;
+            color: #4f3300;
+            font-family: Inter, sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.045em;
+          }
+
+          .dino-gold-plan-subtitle {
+            margin-top: 7px;
+            color: rgba(79, 51, 0, 0.67);
+            font-family: Inter, sans-serif;
+            font-size: 9px;
+            font-weight: 500;
+            line-height: 1.45;
+          }
+
+          .dino-gold-plan-badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 74px;
-            height: 25px;
-            padding: 0 10px;
+            min-width: 72px;
+            height: 28px;
+            padding: 0 11px;
             box-sizing: border-box;
+            border: 1px solid rgba(124, 83, 4, 0.17);
             border-radius: 999px;
-            border: 1px solid rgba(177,132,24,.22);
-            background: rgba(255,255,255,.55);
-            color: #8e681b;
+            background: rgba(255, 255, 255, 0.38);
+            color: #694600;
             font-family: Inter, sans-serif;
-            font-size: 8px;
-            font-weight: 700;
+            font-size: 9px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: .06em;
+            letter-spacing: 0.05em;
           }
 
-          .dino-gold-price {
-            color: #8b681d;
+          .dino-credit-hero {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            margin-bottom: 8px;
+          }
+
+          .dino-credit-amount {
+            color: #4d3100;
+            font-family: Inter, sans-serif;
+            font-size: clamp(48px, 8vw, 66px);
+            font-weight: 800;
+            line-height: 0.85;
+            letter-spacing: -0.095em;
+          }
+
+          .dino-credit-unit {
+            padding-bottom: 5px;
+            color: rgba(79, 51, 0, 0.7);
             font-family: Inter, sans-serif;
             font-size: 10px;
             font-weight: 700;
+            line-height: 1.2;
             text-transform: uppercase;
-            letter-spacing: .03em;
+            letter-spacing: 0.025em;
           }
 
-          .dino-credit-comparison {
+          .dino-credit-frequency {
+            position: relative;
+            z-index: 2;
+            color: rgba(79, 51, 0, 0.68);
+            font-family: Inter, sans-serif;
+            font-size: 9px;
+            line-height: 1.45;
+          }
+
+          .dino-comparison {
+            position: relative;
+            z-index: 2;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
+            margin-top: 20px;
           }
 
-          .dino-credit-item {
-            min-width: 0;
-            padding: 14px;
-            border-radius: 13px;
-            background: rgba(255,255,255,.6);
-            border: 1px solid rgba(0,0,0,.045);
+          .dino-comparison-box {
+            box-sizing: border-box;
+            padding: 13px 14px;
+            border: 1px solid rgba(0, 0, 0, 0.07);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.45);
           }
 
-          .dino-credit-label {
-            margin-bottom: 7px;
-            color: #999;
+          .dino-comparison-label {
+            margin-bottom: 6px;
+            color: rgba(79, 51, 0, 0.52);
             font-family: Inter, sans-serif;
             font-size: 8px;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .035em;
+            letter-spacing: 0.035em;
           }
 
-          .dino-credit-number {
-            color: #0a0a0a;
+          .dino-comparison-number {
+            color: #4f3300;
             font-family: Inter, sans-serif;
-            font-size: 27px;
-            font-weight: 600;
+            font-size: 23px;
+            font-weight: 800;
             line-height: 1;
-            letter-spacing: -.06em;
+            letter-spacing: -0.055em;
           }
 
-          .dino-credit-number.gold {
-            color: #a2741e;
-          }
-
-          .dino-credit-sub {
+          .dino-comparison-note {
             margin-top: 5px;
-            color: #999;
+            color: rgba(79, 51, 0, 0.56);
             font-family: Inter, sans-serif;
             font-size: 8px;
-            line-height: 1.3;
+            line-height: 1.35;
           }
 
           .dino-benefits {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 9px;
-            margin: 17px 0 20px;
-            position: relative;
-            z-index: 1;
+            margin: 18px 0 20px;
           }
 
           .dino-benefit {
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: #555;
+            gap: 9px;
+            min-width: 0;
+            color: #575757;
             font-family: Inter, sans-serif;
-            font-size: 10px;
-            line-height: 1.35;
+            font-size: 9px;
+            font-weight: 500;
+            line-height: 1.4;
           }
 
-          .dino-benefit-dot {
+          .dino-benefit-icon {
             flex: 0 0 auto;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #c69a32;
-            box-shadow: 0 0 0 4px rgba(198,154,50,.09);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            background: rgba(238, 195, 74, 0.14);
+            color: #b08019;
+            font-size: 8px;
+            font-weight: 800;
           }
 
-          .dino-upgrade-button {
+          .dino-main-button {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             width: 100%;
             height: 54px;
-            margin-top: 2px;
-            border: 0;
-            border-radius: 14px;
+            border: 1px solid rgba(255, 215, 90, 0.65);
+            border-radius: 12px;
             background:
               linear-gradient(
                 135deg,
-                #111111 0%,
-                #24211b 42%,
-                #8c681f 100%
+                #fff4b0 0%,
+                #f7d65a 25%,
+                #d9a928 50%,
+                #f6d96a 75%,
+                #fff1a3 100%
               );
-            color: #ffffff;
+            color: #5a3b00;
             font-family: Inter, sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: -.01em;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: -0.2px;
             cursor: pointer;
+            box-shadow:
+              0 0 0 1px rgba(255, 215, 90, 0.15),
+              0 6px 18px rgba(218, 168, 37, 0.28),
+              inset 0 1px 0 rgba(255, 255, 255, 0.75);
+            overflow: hidden;
             transition:
-              transform .16s ease,
-              box-shadow .16s ease,
-              opacity .16s ease;
-            position: relative;
-            z-index: 1;
-            box-shadow:
-              0 12px 25px rgba(157,116,31,.14);
+              transform 0.18s ease,
+              box-shadow 0.18s ease,
+              filter 0.18s ease;
           }
 
-          .dino-upgrade-button:hover {
+          .dino-main-button::before {
+            content: "";
+            position: absolute;
+            top: -40%;
+            left: -90%;
+            width: 55%;
+            height: 180%;
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(255, 255, 255, 0.78),
+              transparent
+            );
+            transform: rotate(20deg);
+            animation: dino-gold-shine 2.8s ease-in-out infinite;
+            pointer-events: none;
+          }
+
+          .dino-main-button::after {
+            content: "✦";
+            position: absolute;
+            top: 7px;
+            right: 11px;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.9);
+            animation: dino-gold-sparkle 1.5s ease-in-out infinite;
+            pointer-events: none;
+          }
+
+          .dino-main-button:hover {
             transform: translateY(-1px);
+            filter: brightness(1.06);
             box-shadow:
-              0 15px 30px rgba(157,116,31,.2);
+              0 0 0 1px rgba(255, 215, 90, 0.25),
+              0 9px 24px rgba(218, 168, 37, 0.4),
+              0 0 18px rgba(255, 215, 90, 0.18),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8);
           }
 
-          .dino-upgrade-button:active {
+          .dino-main-button:active {
             transform: translateY(0);
           }
 
-          .dino-secure-note {
-            margin-top: 11px;
+          .dino-payment-note {
+            margin-top: 10px;
             color: #aaa;
             font-family: Inter, sans-serif;
             font-size: 8px;
-            text-align: center;
             line-height: 1.45;
-            position: relative;
-            z-index: 1;
+            text-align: center;
           }
 
-          .dino-upgrade-back {
+          .dino-back-button {
+            display: block;
             width: 100%;
-            margin-top: 18px;
+            margin-top: 17px;
             border: 0;
             background: transparent;
             color: #aaa;
             font-family: Inter, sans-serif;
             font-size: 9px;
             cursor: pointer;
+            transition: color 0.16s ease;
           }
 
-          .dino-upgrade-back:hover {
+          .dino-back-button:hover {
             color: #777;
           }
 
           .dino-transaction-overlay {
             position: fixed;
             inset: 0;
+            z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
             box-sizing: border-box;
-            background: rgba(0,0,0,.28);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(9px);
+            -webkit-backdrop-filter: blur(9px);
           }
 
           .dino-transaction-modal {
             width: 100%;
-            max-width: 390px;
+            max-width: 410px;
             box-sizing: border-box;
-            padding: 27px;
-            border: 1px solid rgba(0,0,0,.08);
+            padding: 28px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 20px;
-            background: rgba(255,255,255,.95);
-            box-shadow: 0 30px 80px rgba(0,0,0,.2);
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
           }
 
           .dino-transaction-kicker {
             display: block;
             margin-bottom: 9px;
-            color: #a07b25;
+            color: #a1761f;
             font-family: Inter, sans-serif;
             font-size: 9px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: .05em;
+            letter-spacing: 0.05em;
           }
 
           .dino-transaction-title {
@@ -347,56 +481,161 @@ function Upgrade({ navigate }) {
             font-family: Inter, sans-serif;
             font-size: 30px;
             font-weight: 600;
-            line-height: .98;
-            letter-spacing: -.065em;
+            line-height: 0.96;
+            letter-spacing: -0.065em;
           }
 
-          .dino-transaction-text {
+          .dino-transaction-description {
             margin: 12px 0 18px;
             color: #777;
             font-family: Inter, sans-serif;
             font-size: 10px;
-            line-height: 1.5;
+            line-height: 1.55;
           }
 
-          .dino-placeholder-payment {
-            width: 100%;
+          .dino-payment-placeholder {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
             box-sizing: border-box;
             padding: 16px;
             margin-bottom: 14px;
-            border: 1px dashed rgba(0,0,0,.14);
+            border: 1px dashed rgba(0, 0, 0, 0.13);
             border-radius: 14px;
             background: #fafafa;
           }
 
-          .dino-placeholder-line {
-            height: 10px;
-            margin-bottom: 8px;
-            border-radius: 999px;
-            background: #e9e9e9;
+          .dino-placeholder-label {
+            color: #999;
+            font-family: Inter, sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.035em;
           }
 
-          .dino-placeholder-line:last-child {
-            width: 58%;
-            margin-bottom: 0;
+          .dino-placeholder-field {
+            height: 42px;
+            box-sizing: border-box;
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(0, 0, 0, 0.07);
+            border-radius: 10px;
+            background: #fff;
+            color: #b0b0b0;
+            font-family: Inter, sans-serif;
+            font-size: 9px;
           }
 
-          .dino-modal-button {
-            width: 100%;
+          .dino-placeholder-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+          }
+
+          .dino-modal-actions {
+            display: flex;
+            gap: 9px;
+          }
+
+          .dino-modal-close,
+          .dino-modal-placeholder {
+            flex: 1;
             height: 48px;
-            border: 0;
-            border-radius: 13px;
-            background: #0a0a0a;
-            color: #fff;
+            border-radius: 12px;
             font-family: Inter, sans-serif;
             font-size: 10px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
           }
 
-          @media (max-width: 600px) {
+          .dino-modal-close {
+            border: 1px solid rgba(0, 0, 0, 0.09);
+            background: #fff;
+            color: #777;
+          }
+
+          .dino-modal-placeholder {
+            border: 1px solid rgba(255, 215, 90, 0.6);
+            background:
+              linear-gradient(
+                135deg,
+                #fff4b0 0%,
+                #f6d259 45%,
+                #d8a728 100%
+              );
+            color: #5a3b00;
+            box-shadow:
+              inset 0 1px 0 rgba(255, 255, 255, 0.72),
+              0 5px 15px rgba(218, 168, 37, 0.2);
+          }
+
+          @keyframes dino-gold-shine {
+            0% {
+              left: -90%;
+            }
+
+            45%,
+            100% {
+              left: 140%;
+            }
+          }
+
+          @keyframes dino-gold-sparkle {
+            0%,
+            100% {
+              opacity: 0.35;
+              transform: scale(0.85) rotate(0deg);
+            }
+
+            50% {
+              opacity: 1;
+              transform: scale(1.15) rotate(20deg);
+            }
+          }
+
+          @keyframes dino-plan-shine {
+            0% {
+              left: -80%;
+            }
+
+            38%,
+            100% {
+              left: 150%;
+            }
+          }
+
+          @media (max-width: 700px) {
             .dino-upgrade-card {
-              padding: 25px;
+              padding: 27px;
+            }
+
+            .dino-benefits {
+              grid-template-columns: 1fr;
+            }
+          }
+
+          @media (max-width: 500px) {
+            .dino-upgrade-card {
+              padding: 22px;
+              border-radius: 20px;
+            }
+
+            .dino-gold-plan {
+              padding: 18px;
+            }
+
+            .dino-gold-plan-top {
+              align-items: flex-start;
+            }
+
+            .dino-comparison {
+              grid-template-columns: 1fr;
+            }
+
+            .dino-modal-actions {
+              flex-direction: column;
             }
           }
         `}
@@ -416,116 +655,144 @@ function Upgrade({ navigate }) {
         >
           <div className="dino-upgrade-page">
             <div className="dino-upgrade-card">
+              <div className="dino-upgrade-content">
 
-              <span className="dino-upgrade-kicker">
-                Dino Gold
-              </span>
-
-              <h1 className="dino-upgrade-title">
-                Go <span>gold.</span>
-              </h1>
-
-              <p className="dino-upgrade-description">
-                Give your Dino account a serious upgrade.
-                Get 50 Dino Points every day instead of
-                5, giving you 10× more daily generation
-                power for reading questions and writing practice.
-              </p>
-
-              <div className="dino-gold-box">
-                <div className="dino-gold-box-top">
-                  <span className="dino-gold-badge">
-                    Gold
-                  </span>
-
-                  <span className="dino-gold-price">
-                    Payment placeholder
-                  </span>
+                <div className="dino-upgrade-kicker">
+                  Dino Gold
                 </div>
 
-                <div className="dino-credit-comparison">
-                  <div className="dino-credit-item">
-                    <div className="dino-credit-label">
-                      Free
+                <h1 className="dino-upgrade-title">
+                  Go <span>gold.</span>
+                </h1>
+
+                <p className="dino-upgrade-description">
+                  Unlock 50 Dino Points every 24 hours,
+                  giving you 10× more daily credits than
+                  the standard 5-credit allowance.
+                </p>
+
+                <div className="dino-gold-plan">
+                  <div className="dino-gold-plan-top">
+                    <div>
+                      <h2 className="dino-gold-plan-title">
+                        Gold
+                      </h2>
+
+                      <div className="dino-gold-plan-subtitle">
+                        More credits. More generation.
+                        Less waiting for humanity's favourite
+                        education app to run out of tokens.
+                      </div>
                     </div>
 
-                    <div className="dino-credit-number">
-                      5
-                    </div>
-
-                    <div className="dino-credit-sub">
-                      Dino Points daily
+                    <div className="dino-gold-plan-badge">
+                      10× more
                     </div>
                   </div>
 
-                  <div className="dino-credit-item">
-                    <div className="dino-credit-label">
-                      Gold
-                    </div>
-
-                    <div className="dino-credit-number gold">
+                  <div className="dino-credit-hero">
+                    <div className="dino-credit-amount">
                       50
                     </div>
 
-                    <div className="dino-credit-sub">
-                      Dino Points daily
+                    <div className="dino-credit-unit">
+                      Dino Points
+                      <br />
+                      every day
+                    </div>
+                  </div>
+
+                  <div className="dino-credit-frequency">
+                    Automatically replenished every 24 hours.
+                  </div>
+
+                  <div className="dino-comparison">
+                    <div className="dino-comparison-box">
+                      <div className="dino-comparison-label">
+                        Free
+                      </div>
+
+                      <div className="dino-comparison-number">
+                        5
+                      </div>
+
+                      <div className="dino-comparison-note">
+                        Dino Points per day
+                      </div>
+                    </div>
+
+                    <div className="dino-comparison-box">
+                      <div className="dino-comparison-label">
+                        Gold
+                      </div>
+
+                      <div className="dino-comparison-number">
+                        50
+                      </div>
+
+                      <div className="dino-comparison-note">
+                        Dino Points per day
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                <div className="dino-benefits">
+                  <div className="dino-benefit">
+                    <span className="dino-benefit-icon">
+                      ✓
+                    </span>
+                    50 Dino Points every 24 hours
+                  </div>
+
+                  <div className="dino-benefit">
+                    <span className="dino-benefit-icon">
+                      ✦
+                    </span>
+                    10× the daily credits
+                  </div>
+
+                  <div className="dino-benefit">
+                    <span className="dino-benefit-icon">
+                      +
+                    </span>
+                    More reading question generation
+                  </div>
+
+                  <div className="dino-benefit">
+                    <span className="dino-benefit-icon">
+                      +
+                    </span>
+                    More writing prompt generation
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="dino-main-button"
+                  onClick={() =>
+                    setShowTransaction(true)
+                  }
+                >
+                  Upgrade to Gold
+                </button>
+
+                <div className="dino-payment-note">
+                  Payment and subscription system placeholder.
+                  No real transaction will be processed.
+                </div>
+
+                <button
+                  type="button"
+                  className="dino-back-button"
+                  onClick={() =>
+                    navigate('/dashboard')
+                  }
+                >
+                  Back to dashboard
+                </button>
+
               </div>
-
-              <div className="dino-benefits">
-                <div className="dino-benefit">
-                  <span className="dino-benefit-dot" />
-                  50 Dino Points added every 24 hours
-                </div>
-
-                <div className="dino-benefit">
-                  <span className="dino-benefit-dot" />
-                  10× the daily credits of the free plan
-                </div>
-
-                <div className="dino-benefit">
-                  <span className="dino-benefit-dot" />
-                  More reading question generation
-                </div>
-
-                <div className="dino-benefit">
-                  <span className="dino-benefit-dot" />
-                  More writing prompt generation
-                </div>
-
-                <div className="dino-benefit">
-                  <span className="dino-benefit-dot" />
-                  Gold access placeholder for future features
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="dino-upgrade-button"
-                onClick={() =>
-                  setShowTransaction(true)
-                }
-              >
-                Upgrade to Gold
-              </button>
-
-              <div className="dino-secure-note">
-                Transaction system coming soon. This button
-                currently opens a payment placeholder.
-              </div>
-
-              <button
-                type="button"
-                className="dino-upgrade-back"
-                onClick={() =>
-                  navigate('/dashboard')
-                }
-              >
-                Back to dashboard
-              </button>
-
             </div>
           </div>
         </div>
@@ -549,31 +816,57 @@ function Upgrade({ navigate }) {
             </span>
 
             <h2 className="dino-transaction-title">
-              Payment is not live yet.
+              Checkout placeholder.
             </h2>
 
-            <p className="dino-transaction-text">
-              This is a placeholder transaction screen
-              for Dino Gold. Once payments are connected,
-              this area can be replaced with your real
-              checkout flow.
+            <p className="dino-transaction-description">
+              This is a temporary payment screen.
+              Replace the fields below with your real
+              payment provider when the transaction system
+              is connected.
             </p>
 
-            <div className="dino-placeholder-payment">
-              <div className="dino-placeholder-line" />
-              <div className="dino-placeholder-line" />
-              <div className="dino-placeholder-line" />
+            <div className="dino-payment-placeholder">
+              <div className="dino-placeholder-label">
+                Payment details
+              </div>
+
+              <div className="dino-placeholder-field">
+                Card number placeholder
+              </div>
+
+              <div className="dino-placeholder-row">
+                <div className="dino-placeholder-field">
+                  MM / YY
+                </div>
+
+                <div className="dino-placeholder-field">
+                  CVC
+                </div>
+              </div>
             </div>
 
-            <button
-              type="button"
-              className="dino-modal-button"
-              onClick={() =>
-                setShowTransaction(false)
-              }
-            >
-              Close
-            </button>
+            <div className="dino-modal-actions">
+              <button
+                type="button"
+                className="dino-modal-close"
+                onClick={() =>
+                  setShowTransaction(false)
+                }
+              >
+                Close
+              </button>
+
+              <button
+                type="button"
+                className="dino-modal-placeholder"
+                onClick={() =>
+                  setShowTransaction(false)
+                }
+              >
+                Transaction placeholder
+              </button>
+            </div>
           </div>
         </div>
       )}
