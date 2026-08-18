@@ -512,9 +512,7 @@ function GetStarted({ navigate }) {
       <div className="onboarding-wrapper">
 
         <div className="onboarding-header">
-          <div className="onboarding-brand">
-            Dino
-          </div>
+          
 
           <div className="step-counter">
             {step} / 4

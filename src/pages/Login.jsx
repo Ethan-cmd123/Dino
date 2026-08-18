@@ -322,14 +322,6 @@ function Login({ navigate }) {
 
         </div>
 
-        <div className="progress-line">
-          <div
-            className="progress-line-active"
-            style={{
-              width: '100%',
-            }}
-          />
-        </div>
 
         <div
           className="onboarding-content"
