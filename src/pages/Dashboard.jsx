@@ -14,6 +14,8 @@ import {
   spendUserCredits,
   onAuthStateChange,
   signOut,
+  getCurrentUser,
+  getGoldMembership,
 } from '../api/credentials'
 
 /*
