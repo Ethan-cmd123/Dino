@@ -387,8 +387,10 @@ export default async function handler(req, res) {
       })
     }
 
-    const groqResponse =
-      await fetch(
+    const makeChatRequest = async (
+      includeResponseFormat,
+    ) => {
+      const response = await fetch(
         'https://api.groq.com/openai/v1/chat/completions',
         {
           method: 'POST',
@@ -405,14 +407,18 @@ export default async function handler(req, res) {
             messages: [
               {
                 role: 'system',
-                content: system,
+                content:
+                  includeResponseFormat
+                    ? system
+                    : `${system}\n\nReturn only valid JSON. Do not use Markdown fences or add commentary.`,
               },
               {
                 role: 'user',
                 content: user,
               },
             ],
-            ...(responseFormat
+            ...(includeResponseFormat &&
+            responseFormat
               ? {
                   response_format:
                     responseFormat,
@@ -422,8 +428,31 @@ export default async function handler(req, res) {
         },
       )
 
-    const responseText =
-      await groqResponse.text()
+      return {
+        response,
+        text: await response.text(),
+      }
+    }
+
+    let {
+      response: groqResponse,
+      text: responseText,
+    } = await makeChatRequest(
+      Boolean(responseFormat),
+    )
+
+    // Some Groq model deployments do not accept json_schema. The page can
+    // still parse JSON defensively, so retry once with an explicit prompt.
+    if (
+      !groqResponse.ok &&
+      groqResponse.status === 400 &&
+      responseFormat
+    ) {
+      ;({
+        response: groqResponse,
+        text: responseText,
+      } = await makeChatRequest(false))
+    }
 
     let data = {}
 
