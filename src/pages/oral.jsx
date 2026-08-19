@@ -282,13 +282,19 @@ function formatTime(seconds) {
     Number(seconds) || 0,
   )
 
-  const minutes = Math.floor(safe / 60)
+  const minutes = Math.floor(
+    safe / 60,
+  )
+
   const remainder = safe % 60
 
   return `${String(minutes).padStart(
     2,
     '0',
-  )}:${String(remainder).padStart(2, '0')}`
+  )}:${String(remainder).padStart(
+    2,
+    '0',
+  )}`
 }
 
 function shuffle(items) {
@@ -299,7 +305,8 @@ function shuffle(items) {
 
 function getRecordingMimeType() {
   if (
-    typeof MediaRecorder === 'undefined'
+    typeof MediaRecorder ===
+    'undefined'
   ) {
     return ''
   }
@@ -314,7 +321,9 @@ function getRecordingMimeType() {
 
   return (
     supported.find((type) =>
-      MediaRecorder.isTypeSupported?.(type),
+      MediaRecorder.isTypeSupported?.(
+        type,
+      ),
     ) || ''
   )
 }
@@ -344,7 +353,9 @@ function blobToBase64(blob) {
         }
 
         resolve(
-          value.slice(comma + 1),
+          value.slice(
+            comma + 1,
+          ),
         )
       }
 
@@ -395,7 +406,9 @@ async function callDinoAI({
 
   try {
     data = responseText
-      ? JSON.parse(responseText)
+      ? JSON.parse(
+          responseText,
+        )
       : {}
   } catch {
     data = {}
@@ -430,7 +443,8 @@ async function transcribeAudio({
         transcription: true,
         audioBase64: base64,
         mimeType,
-        language: languageCode,
+        language:
+          languageCode,
         prompt,
         model:
           'whisper-large-v3-turbo',
@@ -445,7 +459,9 @@ async function transcribeAudio({
 
   try {
     data = responseText
-      ? JSON.parse(responseText)
+      ? JSON.parse(
+          responseText,
+        )
       : {}
   } catch {
     data = {}
@@ -507,8 +523,10 @@ function Oral() {
   const [imageLoading, setImageLoading] =
     useState(true)
 
-  const [preparationMinutes, setPreparationMinutes] =
-    useState(15)
+  const [
+    preparationMinutes,
+    setPreparationMinutes,
+  ] = useState(15)
 
   const [
     preparationSeconds,
@@ -522,6 +540,9 @@ function Oral() {
     preparationFinished,
     setPreparationFinished,
   ] = useState(false)
+
+  const [preparationSkipped, setPreparationSkipped] =
+    useState(false)
 
   const [notes, setNotes] =
     useState(
@@ -555,8 +576,10 @@ function Oral() {
   const [transcribing, setTranscribing] =
     useState(false)
 
-  const [answerTranscribing, setAnswerTranscribing] =
-    useState(false)
+  const [
+    answerTranscribing,
+    setAnswerTranscribing,
+  ] = useState(false)
 
   const [transcript, setTranscript] =
     useState('')
@@ -592,9 +615,6 @@ function Oral() {
     setGeneralQuestionIndex,
   ] = useState(0)
 
-  const [generalTheme, setGeneralTheme] =
-    useState('Experiences')
-
   const [messages, setMessages] =
     useState([
       {
@@ -616,10 +636,8 @@ function Oral() {
   const [error, setError] =
     useState('')
 
-  const [
-    copied,
-    setCopied,
-  ] = useState(false)
+  const [copied, setCopied] =
+    useState(false)
 
   const mediaRecorderRef =
     useRef(null)
@@ -639,7 +657,7 @@ function Oral() {
   const oralShellRef =
     useRef(null)
 
-  const previousBodyStylesRef =
+  const previousStylesRef =
     useRef(null)
 
   const currentLanguage =
@@ -656,7 +674,9 @@ function Oral() {
 
   const currentQuestion =
     useMemo(() => {
-      if (part === 'followUp') {
+      if (
+        part === 'followUp'
+      ) {
         return (
           questions[
             questionIndex
@@ -664,7 +684,9 @@ function Oral() {
         )
       }
 
-      if (part === 'general') {
+      if (
+        part === 'general'
+      ) {
         return (
           generalQuestions[
             generalQuestionIndex
@@ -685,9 +707,7 @@ function Oral() {
     PARTS[part]
 
   /*
-   * --------------------------------------------------------------------------
-   * GOLD CHECK
-   * --------------------------------------------------------------------------
+   * Gold membership
    */
 
   useEffect(() => {
@@ -731,6 +751,7 @@ function Oral() {
           setGold(
             Boolean(isGold),
           )
+
           setGoldLoading(false)
         }
 
@@ -754,16 +775,17 @@ function Oral() {
 
     checkGold()
 
-    const handleGoldEvent = () => {
-      if (!mounted) return
+    const handleGoldEvent =
+      () => {
+        if (!mounted) return
 
-      setGold(
-        window.__dinoIsGoldMember ===
-          true,
-      )
+        setGold(
+          window.__dinoIsGoldMember ===
+            true,
+        )
 
-      setGoldLoading(false)
-    }
+        setGoldLoading(false)
+      }
 
     window.addEventListener(
       'dino-gold-membership-check',
@@ -781,19 +803,7 @@ function Oral() {
   }, [])
 
   /*
-   * --------------------------------------------------------------------------
-   * FORCE PAGE SCROLLING WHILE ORAL IS MOUNTED
-   * --------------------------------------------------------------------------
-   *
-   * The Dashboard has multiple nested fixed-height containers:
-   *
-   * animated-page
-   * dashboard-workspace
-   * dashboard-panel
-   * dashboard-page
-   *
-   * Simply setting body overflow-y:auto is not enough because those ancestors
-   * can still trap the Oral content inside a viewport-sized box.
+   * Enable real page scrolling for Oral.
    */
 
   useEffect(() => {
@@ -845,6 +855,11 @@ function Oral() {
         '.dashboard-panel',
       )
 
+    const dashboardContent =
+      document.querySelector(
+        '.dashboard-content',
+      )
+
     const elements = [
       html,
       body,
@@ -855,148 +870,145 @@ function Oral() {
       dashboardPage,
       dashboardWorkspace,
       dashboardPanel,
+      dashboardContent,
     ].filter(Boolean)
 
-    previousBodyStylesRef.current =
+    previousStylesRef.current =
       elements.map(
         (element) => ({
           element,
-          style: {
+          styles: {
             height:
               element.style.height,
             minHeight:
-              element.style.minHeight,
+              element.style
+                .minHeight,
             maxHeight:
-              element.style.maxHeight,
+              element.style
+                .maxHeight,
             overflow:
-              element.style.overflow,
+              element.style
+                .overflow,
             overflowY:
-              element.style.overflowY,
+              element.style
+                .overflowY,
             overflowX:
-              element.style.overflowX,
+              element.style
+                .overflowX,
           },
         }),
       )
 
-    html.style.overflowY = 'auto'
-    html.style.overflowX = 'hidden'
+    html.style.overflowY =
+      'auto'
 
-    body.style.overflowY = 'auto'
-    body.style.overflowX = 'hidden'
+    html.style.overflowX =
+      'hidden'
+
     body.style.height = 'auto'
     body.style.minHeight = '100vh'
+    body.style.overflowY =
+      'auto'
+    body.style.overflowX =
+      'hidden'
 
-    if (root) {
-      root.style.height = 'auto'
-      root.style.minHeight = '100vh'
-      root.style.maxHeight = 'none'
-      root.style.overflow = 'visible'
-    }
+    for (const element of [
+      root,
+      app,
+      pageContainer,
+      animatedPage,
+      dashboardPage,
+      dashboardWorkspace,
+      dashboardPanel,
+      dashboardContent,
+    ]) {
+      if (!element) continue
 
-    if (app) {
-      app.style.height = 'auto'
-      app.style.minHeight = '100vh'
-      app.style.maxHeight = 'none'
-      app.style.overflow = 'visible'
-    }
+      element.style.height =
+        'auto'
 
-    if (pageContainer) {
-      pageContainer.style.height = 'auto'
-      pageContainer.style.minHeight =
-        '100vh'
-      pageContainer.style.maxHeight =
+      element.style.minHeight =
+        '0'
+
+      element.style.maxHeight =
         'none'
-      pageContainer.style.overflow =
+
+      element.style.overflow =
         'visible'
     }
 
     if (animatedPage) {
-      animatedPage.style.height =
-        'auto'
       animatedPage.style.minHeight =
         '100vh'
-      animatedPage.style.maxHeight =
-        'none'
-      animatedPage.style.overflow =
-        'visible'
+
       animatedPage.style.alignItems =
         'flex-start'
     }
 
     if (dashboardPage) {
-      dashboardPage.style.height =
-        'auto'
       dashboardPage.style.minHeight =
         '100vh'
-      dashboardPage.style.maxHeight =
-        'none'
-      dashboardPage.style.overflow =
-        'visible'
     }
 
     if (dashboardWorkspace) {
-      dashboardWorkspace.style.height =
-        'auto'
       dashboardWorkspace.style.minHeight =
         '100vh'
-      dashboardWorkspace.style.maxHeight =
-        'none'
-      dashboardWorkspace.style.overflow =
-        'visible'
     }
 
-    if (dashboardPanel) {
-      dashboardPanel.style.height =
-        'auto'
-      dashboardPanel.style.minHeight =
-        '0'
-      dashboardPanel.style.maxHeight =
-        'none'
-      dashboardPanel.style.overflow =
-        'visible'
+    if (root) {
+      root.style.minHeight =
+        '100vh'
+    }
+
+    if (app) {
+      app.style.minHeight =
+        '100vh'
+    }
+
+    if (pageContainer) {
+      pageContainer.style.minHeight =
+        '100vh'
     }
 
     return () => {
       if (
-        !previousBodyStylesRef.current
+        !previousStylesRef.current
       ) {
         return
       }
 
-      previousBodyStylesRef.current.forEach(
+      previousStylesRef.current.forEach(
         ({
           element,
-          style,
+          styles,
         }) => {
           element.style.height =
-            style.height
+            styles.height
 
           element.style.minHeight =
-            style.minHeight
+            styles.minHeight
 
           element.style.maxHeight =
-            style.maxHeight
+            styles.maxHeight
 
           element.style.overflow =
-            style.overflow
+            styles.overflow
 
           element.style.overflowY =
-            style.overflowY
+            styles.overflowY
 
           element.style.overflowX =
-            style.overflowX
+            styles.overflowX
         },
       )
 
-      previousBodyStylesRef.current =
+      previousStylesRef.current =
         null
     }
   }, [])
 
   /*
-   * --------------------------------------------------------------------------
-   * EXPAND / COLLAPSE
-   * --------------------------------------------------------------------------
+   * Expand workspace.
    */
 
   const toggleExpanded =
@@ -1037,7 +1049,7 @@ function Oral() {
     }
 
   useEffect(() => {
-    const handleFullscreenChange =
+    const handleFullscreen =
       () => {
         setExpanded(
           document.fullscreenElement ===
@@ -1047,21 +1059,19 @@ function Oral() {
 
     document.addEventListener(
       'fullscreenchange',
-      handleFullscreenChange,
+      handleFullscreen,
     )
 
     return () => {
       document.removeEventListener(
         'fullscreenchange',
-        handleFullscreenChange,
+        handleFullscreen,
       )
     }
   }, [])
 
   /*
-   * --------------------------------------------------------------------------
-   * IMAGES
-   * --------------------------------------------------------------------------
+   * Images.
    */
 
   useEffect(() => {
@@ -1115,7 +1125,7 @@ function Oral() {
             break
           }
         } catch {
-          // Continue to fallback.
+          // Continue.
         }
       }
 
@@ -1186,12 +1196,6 @@ function Oral() {
     setImageBroken(false)
   }, [currentImage])
 
-  /*
-   * --------------------------------------------------------------------------
-   * LOCAL STORAGE
-   * --------------------------------------------------------------------------
-   */
-
   useEffect(() => {
     localStorage.setItem(
       `${STORAGE_PREFIX}_language`,
@@ -1207,9 +1211,7 @@ function Oral() {
   }, [level])
 
   /*
-   * --------------------------------------------------------------------------
-   * CLEANUP
-   * --------------------------------------------------------------------------
+   * Cleanup.
    */
 
   useEffect(() => {
@@ -1248,9 +1250,7 @@ function Oral() {
   }, [recordedAudioUrl])
 
   /*
-   * --------------------------------------------------------------------------
-   * TOPIC
-   * --------------------------------------------------------------------------
+   * Keep topic valid.
    */
 
   useEffect(() => {
@@ -1269,9 +1269,7 @@ function Oral() {
   }, [theme, topic])
 
   /*
-   * --------------------------------------------------------------------------
-   * PREPARATION TIMER
-   * --------------------------------------------------------------------------
+   * Preparation timer.
    */
 
   useEffect(() => {
@@ -1297,6 +1295,10 @@ function Oral() {
               setPreparing(false)
               setPreparationFinished(
                 true,
+              )
+
+              setPreparationSkipped(
+                false,
               )
 
               return 0
@@ -1325,9 +1327,7 @@ function Oral() {
   ])
 
   /*
-   * --------------------------------------------------------------------------
-   * RESET
-   * --------------------------------------------------------------------------
+   * Preparation controls.
    */
 
   const resetPreparation =
@@ -1361,7 +1361,59 @@ function Oral() {
       setPreparationFinished(
         false,
       )
+
+      setPreparationSkipped(
+        false,
+      )
     }, [level])
+
+  const startPreparation =
+    () => {
+      setError('')
+      setPreparationSkipped(
+        false,
+      )
+      setPreparationFinished(
+        false,
+      )
+
+      setPreparationSeconds(
+        preparationMinutes * 60,
+      )
+
+      setPreparing(true)
+    }
+
+  const skipPreparation =
+    () => {
+      if (
+        preparationTimerRef.current
+      ) {
+        clearInterval(
+          preparationTimerRef.current,
+        )
+
+        preparationTimerRef.current =
+          null
+      }
+
+      setPreparing(false)
+      setPreparationSeconds(0)
+      setPreparationFinished(
+        true,
+      )
+
+      setPreparationSkipped(
+        true,
+      )
+
+      setPart('presentation')
+      setError('')
+    }
+
+  /*
+   * Recording cleanup.
+   */
 
   const stopMedia =
     useCallback(() => {
@@ -1392,89 +1444,8 @@ function Oral() {
       setRecording(false)
     }, [])
 
-  const resetPractice =
-    useCallback(() => {
-      stopMedia()
-
-      setRecordedBlob(null)
-      setTranscript('')
-      setAnswerTranscript('')
-      setPresentationGrade(null)
-      setConversationGrade(null)
-      setQuestions([])
-      setQuestionIndex(0)
-      setGeneralQuestions([])
-      setGeneralQuestionIndex(0)
-      setMessages([
-        {
-          role: 'assistant',
-          content:
-            'Your examiner is ready. Complete the preparation period, then begin your presentation.',
-        },
-      ])
-      setOverallResult(false)
-      setError('')
-      setCopied(false)
-      setPart('presentation')
-
-      resetPreparation()
-    }, [
-      resetPreparation,
-      stopMedia,
-    ])
-
   /*
-   * --------------------------------------------------------------------------
-   * PREPARATION
-   * --------------------------------------------------------------------------
-   */
-
-  const startPreparation =
-    () => {
-      setError('')
-      setPreparationFinished(
-        false,
-      )
-
-      setPreparationSeconds(
-        preparationMinutes * 60,
-      )
-
-      setPreparing(true)
-    }
-
-  /*
-   * --------------------------------------------------------------------------
-   * IMAGE SWITCH
-   * --------------------------------------------------------------------------
-   */
-
-  const chooseNewImage =
-    () => {
-      if (images.length <= 1) {
-        return
-      }
-
-      let next = imageIndex
-
-      while (
-        next === imageIndex
-      ) {
-        next =
-          Math.floor(
-            Math.random() *
-              images.length,
-          )
-      }
-
-      setImageIndex(next)
-      setImageBroken(false)
-    }
-
-  /*
-   * --------------------------------------------------------------------------
-   * RECORDING
-   * --------------------------------------------------------------------------
+   * Recording.
    */
 
   const startRecording =
@@ -1486,7 +1457,8 @@ function Oral() {
       if (
         typeof navigator ===
           'undefined' ||
-        !navigator.mediaDevices?.getUserMedia
+        !navigator.mediaDevices
+          ?.getUserMedia
       ) {
         setError(
           'Your browser does not support microphone recording.',
@@ -1546,18 +1518,17 @@ function Oral() {
         recorderChunksRef.current =
           []
 
-        recorder.ondataavailable = (
-          event,
-        ) => {
-          if (
-            event.data &&
-            event.data.size
-          ) {
-            recorderChunksRef.current.push(
-              event.data,
-            )
+        recorder.ondataavailable =
+          (event) => {
+            if (
+              event.data &&
+              event.data.size
+            ) {
+              recorderChunksRef.current.push(
+                event.data,
+              )
+            }
           }
-        }
 
         recorder.onstop = () => {
           const finalType =
@@ -1569,7 +1540,8 @@ function Oral() {
             new Blob(
               recorderChunksRef.current,
               {
-                type: finalType,
+                type:
+                  finalType,
               },
             )
 
@@ -1686,9 +1658,7 @@ function Oral() {
     }
 
   /*
-   * --------------------------------------------------------------------------
-   * TRANSCRIPTION
-   * --------------------------------------------------------------------------
+   * Transcription.
    */
 
   const transcribeRecording =
@@ -1758,18 +1728,20 @@ Preserve the student's actual wording.
 
         return ''
       } finally {
-        setTranscribing(false)
+        setTranscribing(
+          false,
+        )
       }
     }
 
   /*
-   * --------------------------------------------------------------------------
-   * PRESENTATION GRADING
-   * --------------------------------------------------------------------------
+   * Presentation grading.
    */
 
   const gradePresentation =
-    async (presentationText) => {
+    async (
+      presentationText,
+    ) => {
       if (
         !presentationText?.trim()
       ) {
@@ -1790,20 +1762,24 @@ Preserve the student's actual wording.
                 minimum: 0,
                 maximum: 12,
               },
+
               message: {
                 type: 'number',
                 minimum: 0,
                 maximum: 6,
               },
+
               feedback: {
                 type: 'string',
               },
+
               strengths: {
                 type: 'array',
                 items: {
                   type: 'string',
                 },
               },
+
               improvements: {
                 type: 'array',
                 items: {
@@ -1811,6 +1787,7 @@ Preserve the student's actual wording.
                 },
               },
             },
+
             required: [
               'language',
               'message',
@@ -1818,6 +1795,7 @@ Preserve the student's actual wording.
               'strengths',
               'improvements',
             ],
+
             additionalProperties: false,
           },
         },
@@ -1835,15 +1813,7 @@ ${currentLanguage.languageName}
 Level:
 ${level}
 
-The student is completing Part 1 of an IB Language B individual oral.
-
-For SL, evaluate the student's presentation of the visual stimulus,
-its theme, implications and relationship to target culture.
-
-For HL, evaluate the student's engagement with the literary extract,
-including events, ideas, messages and implications.
-
-Use these formative criteria:
+Evaluate Part 1 of an IB Language B individual oral.
 
 Criterion A Language:
 0-12
@@ -1851,11 +1821,20 @@ Criterion A Language:
 Criterion B1 Message - Presentation:
 0-6
 
-Judge the transcript conservatively.
-Do not invent pronunciation errors that cannot be known from a transcript.
-Give actionable feedback.
+For SL:
+Evaluate engagement with the visual stimulus,
+the theme, implications and target culture.
 
-      `,
+For HL:
+Evaluate engagement with the literary extract,
+events, ideas and messages.
+
+Judge the transcript conservatively.
+Do not invent pronunciation errors that cannot
+be established from text.
+Give practical formative feedback.
+            `,
+
             user: `
 Theme:
 ${theme}
@@ -1863,13 +1842,13 @@ ${theme}
 Topic:
 ${topic}
 
-Stimulus image:
+Stimulus:
 ${currentImage}
 
 Student transcript:
 ${presentationText}
 
-Student preparation notes:
+Preparation notes:
 ${notes
   .filter(
     (item) =>
@@ -1877,12 +1856,17 @@ ${notes
   )
   .join('\n')}
 
-Grade this practice presentation.
-      `,
+Grade this practice performance.
+            `,
+
             responseFormat:
               schema,
-            temperature: 0.2,
-            maxTokens: 1400,
+
+            temperature:
+              0.2,
+
+            maxTokens:
+              1400,
           })
 
         const parsed =
@@ -1904,16 +1888,16 @@ Grade this practice presentation.
     }
 
   /*
-   * --------------------------------------------------------------------------
-   * FOLLOW-UP QUESTIONS
-   * --------------------------------------------------------------------------
+   * Follow-up questions.
    */
 
   const generateFollowUpQuestions =
     async (
       presentationText,
     ) => {
-      setAiQuestionLoading(true)
+      setAiQuestionLoading(
+        true,
+      )
 
       try {
         const schema = {
@@ -1934,9 +1918,11 @@ Grade this practice presentation.
                   },
                 },
               },
+
               required: [
                 'questions',
               ],
+
               additionalProperties: false,
             },
           },
@@ -1962,33 +1948,36 @@ Topic:
 ${topic}
 
 Questions must:
-- be written entirely in the target language
+- be entirely in the target language
 - develop from the student's presentation
-- explore implications, perspectives and cultural context
+- explore perspectives, implications and cultural context
 - become progressively more probing
 - avoid grammar-test questions
 - avoid yes/no questions
-- feel like an actual oral examination
 
-For SL:
-Keep the discussion closely connected to the visual stimulus,
-the topic, the five IB themes and target-culture perspectives.
+For SL, remain connected to the visual stimulus,
+the theme and target culture.
 
-For HL:
-Keep the discussion connected to the extract,
+For HL, remain connected to the literary extract,
 its events, ideas and messages.
-      `,
+            `,
+
             user: `
 Student presentation:
 
 ${presentationText}
 
 Generate the follow-up questions.
-      `,
+            `,
+
             responseFormat:
               schema,
-            temperature: 0.45,
-            maxTokens: 1200,
+
+            temperature:
+              0.45,
+
+            maxTokens:
+              1200,
           })
 
         const parsed =
@@ -2010,18 +1999,17 @@ Generate the follow-up questions.
         return nextQuestions
       } catch (questionError) {
         console.error(
-          'Follow-up question generation failed:',
+          'Follow-up generation failed:',
           questionError,
         )
 
-        const fallback =
-          [
-            `Pourquoi cette question est-elle importante dans le monde actuel ?`,
-            `Quels sont les avantages et les inconvénients de cette situation ?`,
-            `Comment cette question peut-elle affecter les jeunes ?`,
-            `Pouvez-vous comparer cette situation avec votre propre contexte culturel ?`,
-            `Quels changements pourraient améliorer cette situation ?`,
-          ]
+        const fallback = [
+          `Why is this issue important in today's world?`,
+          `What are the advantages and disadvantages of this situation?`,
+          `How can this issue affect young people?`,
+          `How could this situation be different in another culture?`,
+          `What changes could improve this situation?`,
+        ]
 
         setQuestions(
           fallback,
@@ -2038,17 +2026,17 @@ Generate the follow-up questions.
     }
 
   /*
-   * --------------------------------------------------------------------------
-   * GENERAL DISCUSSION
-   * --------------------------------------------------------------------------
+   * General discussion.
    */
 
   const generateGeneralQuestions =
     async () => {
-      setAiQuestionLoading(true)
+      setAiQuestionLoading(
+        true,
+      )
 
       try {
-        const otherThemes =
+        const availableThemes =
           shuffle(
             THEMES.filter(
               (item) =>
@@ -2057,12 +2045,8 @@ Generate the follow-up questions.
           )
 
         const selectedTheme =
-          otherThemes[0] ||
+          availableThemes[0] ||
           'Experiences'
-
-        setGeneralTheme(
-          selectedTheme,
-        )
 
         const schema = {
           type: 'json_schema',
@@ -2082,9 +2066,11 @@ Generate the follow-up questions.
                   },
                 },
               },
+
               required: [
                 'questions',
               ],
+
               additionalProperties: false,
             },
           },
@@ -2103,10 +2089,10 @@ ${currentLanguage.languageName}
 Level:
 ${level}
 
-Main theme already used:
+Theme already used:
 ${theme}
 
-New discussion theme:
+New theme:
 ${selectedTheme}
 
 Topic areas:
@@ -2116,21 +2102,28 @@ ${(
   ] || []
 ).join(', ')}
 
-Questions must:
-- be entirely in the target language
+Write only target-language questions.
+
+Questions should:
 - be open-ended
-- encourage comparison, explanation and evaluation
-- cover real IB Language B discussion territory
-- not become grammar drills
-- not ask trivial factual questions
+- encourage explanation and evaluation
+- encourage cultural comparison
+- fit IB Language B
+- avoid grammar exercises
+- avoid trivial factual questions
             `,
-            user: `
-Generate the Part 3 questions now.
-            `,
+
+            user:
+              'Generate the Part 3 questions now.',
+
             responseFormat:
               schema,
-            temperature: 0.45,
-            maxTokens: 1200,
+
+            temperature:
+              0.45,
+
+            maxTokens:
+              1200,
           })
 
         const parsed =
@@ -2148,11 +2141,11 @@ Generate the Part 3 questions now.
         )
 
         return [
-          `Quel rôle les jeunes peuvent-ils jouer dans cette question ?`,
-          `Pourquoi cette question est-elle importante pour la société ?`,
-          `Comment cette situation est-elle différente dans votre pays ?`,
-          `Quels sont les avantages et les inconvénients de cette situation ?`,
-          `Comment cette situation pourrait-elle évoluer à l'avenir ?`,
+          `What role can young people play in this issue?`,
+          `Why is this issue important for society?`,
+          `How is this situation different in your country?`,
+          `What are the advantages and disadvantages of this situation?`,
+          `How might this situation change in the future?`,
         ]
       } finally {
         setAiQuestionLoading(
@@ -2162,9 +2155,7 @@ Generate the Part 3 questions now.
     }
 
   /*
-   * --------------------------------------------------------------------------
-   * CONVERSATION GRADING
-   * --------------------------------------------------------------------------
+   * Conversation grading.
    */
 
   const gradeConversation =
@@ -2186,20 +2177,24 @@ Generate the Part 3 questions now.
                 minimum: 0,
                 maximum: 6,
               },
+
               interactiveSkills: {
                 type: 'number',
                 minimum: 0,
                 maximum: 6,
               },
+
               feedback: {
                 type: 'string',
               },
+
               strengths: {
                 type: 'array',
                 items: {
                   type: 'string',
                 },
               },
+
               improvements: {
                 type: 'array',
                 items: {
@@ -2207,6 +2202,7 @@ Generate the Part 3 questions now.
                 },
               },
             },
+
             required: [
               'messageConversation',
               'interactiveSkills',
@@ -2214,6 +2210,7 @@ Generate the Part 3 questions now.
               'strengths',
               'improvements',
             ],
+
             additionalProperties: false,
           },
         },
@@ -2231,23 +2228,24 @@ ${currentLanguage.languageName}
 Level:
 ${level}
 
+Criterion B2 Message - Conversation:
+0-6
+
+Criterion C Interactive Skills - Communication:
+0-6
+
 Evaluate:
-
-Criterion B2 Message - Conversation: 0-6
-
-Criterion C Interactive Skills - Communication: 0-6
-
-Consider:
 - relevance
 - depth
 - development of ideas
 - ability to sustain interaction
 - independent contributions
-- responses to questions
+- response to examiner questions
 - effectiveness of communication
 
-Do not invent pronunciation mistakes from text transcripts.
+Do not invent pronunciation errors from a transcript.
             `,
+
             user: `
 Follow-up discussion:
 
@@ -2259,10 +2257,15 @@ ${generalTranscript}
 
 Give formative feedback.
             `,
+
             responseFormat:
               schema,
-            temperature: 0.2,
-            maxTokens: 1400,
+
+            temperature:
+              0.2,
+
+            maxTokens:
+              1400,
           })
 
         const parsed =
@@ -2284,9 +2287,7 @@ Give formative feedback.
     }
 
   /*
-   * --------------------------------------------------------------------------
-   * PRESENTATION SUBMIT
-   * --------------------------------------------------------------------------
+   * Submit presentation.
    */
 
   const submitPresentation =
@@ -2350,9 +2351,7 @@ Give formative feedback.
     }
 
   /*
-   * --------------------------------------------------------------------------
-   * CONVERSATION SUBMIT
-   * --------------------------------------------------------------------------
+   * Submit conversation.
    */
 
   const submitConversation =
@@ -2399,7 +2398,8 @@ Give formative feedback.
             ...current,
             {
               role: 'user',
-              content: answer,
+              content:
+                answer,
             },
           ],
         )
@@ -2437,7 +2437,7 @@ Give formative feedback.
             setRecordedBlob(null)
             setRecordedAudioUrl('')
             setAnswerTranscript(
-              '' ,
+              '',
             )
 
             return
@@ -2470,7 +2470,8 @@ Give formative feedback.
               },
               {
                 role: 'assistant',
-                content: first,
+                content:
+                  first,
               },
             ],
           )
@@ -2521,7 +2522,7 @@ Give formative feedback.
           return
         }
 
-        const entireConversation =
+        const conversationText =
           messages
             .map(
               (message) =>
@@ -2533,7 +2534,7 @@ Give formative feedback.
 
         await gradeConversation({
           followUpTranscript:
-            entireConversation,
+            conversationText,
           generalTranscript:
             answer,
         })
@@ -2549,9 +2550,7 @@ Give formative feedback.
     }
 
   /*
-   * --------------------------------------------------------------------------
-   * COPY
-   * --------------------------------------------------------------------------
+   * Copy transcript.
    */
 
   const copyTranscript =
@@ -2578,10 +2577,63 @@ Give formative feedback.
     }
 
   /*
-   * --------------------------------------------------------------------------
-   * SCORE
-   * --------------------------------------------------------------------------
+   * Reset everything.
    */
+
+  const resetPractice =
+    useCallback(() => {
+      stopMedia()
+
+      setRecordedBlob(null)
+      setTranscript('')
+      setAnswerTranscript('')
+      setPresentationGrade(null)
+      setConversationGrade(null)
+      setQuestions([])
+      setQuestionIndex(0)
+      setGeneralQuestions([])
+      setGeneralQuestionIndex(0)
+
+      setMessages([
+        {
+          role: 'assistant',
+          content:
+            'Your examiner is ready. Complete the preparation period, then begin your presentation.',
+        },
+      ])
+
+      setOverallResult(false)
+      setError('')
+      setCopied(false)
+      setPart('presentation')
+
+      resetPreparation()
+    }, [
+      resetPreparation,
+      stopMedia,
+    ])
+
+  const chooseNewImage =
+    () => {
+      if (images.length <= 1) {
+        return
+      }
+
+      let next = imageIndex
+
+      while (
+        next === imageIndex
+      ) {
+        next =
+          Math.floor(
+            Math.random() *
+              images.length,
+          )
+      }
+
+      setImageIndex(next)
+      setImageBroken(false)
+    }
 
   const totalScore =
     presentationGrade &&
@@ -2605,9 +2657,7 @@ Give formative feedback.
       : null
 
   /*
-   * --------------------------------------------------------------------------
-   * GOLD LOCK
-   * --------------------------------------------------------------------------
+   * Gold gate.
    */
 
   if (goldLoading) {
@@ -2734,29 +2784,6 @@ Give formative feedback.
             overflow-x: hidden;
             padding: 30px 32px 40px;
             background: #ffffff;
-          }
-
-          .dino-oral-shell:fullscreen
-            .dino-oral-workspace {
-            max-width: 1450px;
-            margin-left: auto;
-            margin-right: auto;
-          }
-
-          .dino-oral-shell:fullscreen
-            .dino-oral-topbar {
-            max-width: 1450px;
-            margin-left: auto;
-            margin-right: auto;
-          }
-
-          .dino-oral-shell:fullscreen
-            .dino-oral-result,
-          .dino-oral-shell:fullscreen
-            .dino-oral-error {
-            max-width: 1450px;
-            margin-left: auto;
-            margin-right: auto;
           }
 
           .dino-oral-topbar {
@@ -3287,12 +3314,6 @@ Give formative feedback.
             gap: 10px;
           }
 
-          .dino-oral-grade-score {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -.04em;
-          }
-
           .dino-oral-grade-list {
             margin: 10px 0 0;
             padding-left: 17px;
@@ -3371,10 +3392,6 @@ Give formative feedback.
               min-height: 260px;
             }
 
-            .dino-oral-phase-tab {
-              min-height: 42px;
-            }
-
             .dino-oral-chat {
               min-height: 500px;
             }
@@ -3401,11 +3418,11 @@ Give formative feedback.
             </h2>
 
             <p className="dino-oral-description">
-              Simulate the Individual Oral with
+              Full oral practice with
               preparation, stimulus presentation,
-              follow-up discussion, general discussion,
-              recording, Groq transcription and AI
-              formative feedback.
+              follow-up discussion, general
+              discussion, recording and Groq
+              transcription.
             </p>
           </div>
 
@@ -3423,6 +3440,7 @@ Give formative feedback.
                   setPresentationGrade(
                     null,
                   )
+
                   setConversationGrade(
                     null,
                   )
@@ -3489,13 +3507,11 @@ Give formative feedback.
           <div className="dino-oral-card">
             <div className="dino-oral-card-header">
               <strong>
-                {level === 'SL'
-                  ? 'Visual stimulus'
-                  : 'Oral stimulus workspace'}
+                Visual stimulus
               </strong>
 
               <span className="dino-oral-pill">
-                Gold · {level}
+                {level} · Gold
               </span>
             </div>
 
@@ -3543,20 +3559,20 @@ Give formative feedback.
                   <select
                     className="dino-oral-select"
                     style={{
-                      width: '100%',
+                      width:
+                        '100%',
                     }}
                     value={theme}
-                    onChange={(event) => {
+                    onChange={(
+                      event,
+                    ) =>
                       setTheme(
                         event.target.value,
                       )
-
-                      setError('')
-                    }}
+                    }
                     disabled={
                       preparing ||
-                      recording ||
-                      preparationFinished
+                      recording
                     }
                   >
                     {THEMES.map(
@@ -3580,18 +3596,20 @@ Give formative feedback.
                   <select
                     className="dino-oral-select"
                     style={{
-                      width: '100%',
+                      width:
+                        '100%',
                     }}
                     value={topic}
-                    onChange={(event) =>
+                    onChange={(
+                      event,
+                    ) =>
                       setTopic(
                         event.target.value,
                       )
                     }
                     disabled={
                       preparing ||
-                      recording ||
-                      preparationFinished
+                      recording
                     }
                   >
                     {(
@@ -3623,7 +3641,8 @@ Give formative feedback.
                     preparing ||
                     recording ||
                     preparationFinished ||
-                    images.length < 2
+                    images.length <
+                      2
                   }
                 >
                   New stimulus
@@ -3657,7 +3676,9 @@ Give formative feedback.
                           recordingSeconds,
                         )
                       : preparationFinished
-                        ? 'READY'
+                        ? preparationSkipped
+                          ? 'SKIPPED'
+                          : 'READY'
                         : formatTime(
                             preparationMinutes *
                               60,
@@ -3671,7 +3692,9 @@ Give formative feedback.
                       : recording
                         ? activePart.subtitle
                         : preparationFinished
-                          ? 'Begin the oral'
+                          ? preparationSkipped
+                            ? 'Preparation skipped'
+                            : 'Begin the oral'
                           : 'Preparation time'}
                   </strong>
 
@@ -3712,7 +3735,9 @@ Give formative feedback.
                                   60)) *
                                 100,
                             )
-                          : 0
+                          : preparationFinished
+                            ? 100
+                            : 0
                     }%`,
                   }}
                 />
@@ -3742,8 +3767,60 @@ Give formative feedback.
                   >
                     Pause preparation
                   </button>
+
+                  <button
+                    type="button"
+                    className="dino-oral-button"
+                    onClick={
+                      skipPreparation
+                    }
+                  >
+                    Skip preparation →
+                  </button>
                 </div>
               )}
+
+              {!preparing &&
+                !preparationFinished && (
+                  <div className="dino-oral-actions">
+                    <button
+                      type="button"
+                      className="dino-oral-button"
+                      onClick={
+                        skipPreparation
+                      }
+                    >
+                      Skip preparation →
+                    </button>
+                  </div>
+                )}
+
+              {preparationFinished &&
+                !recording && (
+                  <div className="dino-oral-actions">
+                    <button
+                      type="button"
+                      className="dino-oral-button"
+                      onClick={() =>
+                        startRecording(
+                          'presentation',
+                        )
+                      }
+                    >
+                      Start presentation →
+                    </button>
+
+                    <button
+                      type="button"
+                      className="dino-oral-button secondary"
+                      onClick={
+                        resetPractice
+                      }
+                    >
+                      Reset
+                    </button>
+                  </div>
+                )}
             </div>
 
             <div className="dino-oral-prep">
@@ -3772,7 +3849,9 @@ Give formative feedback.
                         event,
                       ) => {
                         const next =
-                          [...notes]
+                          [
+                            ...notes,
+                          ]
 
                         next[index] =
                           event.target.value
@@ -3805,7 +3884,9 @@ Give formative feedback.
               </strong>
 
               <span className="dino-oral-pill">
-                {currentLanguage.languageName}
+                {
+                  currentLanguage.languageName
+                }
               </span>
             </div>
 
@@ -3924,7 +4005,9 @@ Give formative feedback.
 
                 <div className="dino-oral-actions">
                   {!recording &&
-                    preparationFinished && (
+                    preparationFinished &&
+                    part !==
+                      'presentation' && (
                       <button
                         type="button"
                         className="dino-oral-button"
@@ -3939,10 +4022,7 @@ Give formative feedback.
                           processing
                         }
                       >
-                        {part ===
-                        'presentation'
-                          ? 'Start presentation'
-                          : 'Record answer'}
+                        Record answer
                       </button>
                     )}
 
