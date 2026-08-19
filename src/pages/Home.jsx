@@ -37,13 +37,9 @@ function Home({ navigate }) {
   useEffect(() => {
     const dinoCount = 7
     const dinos = []
-    const cleanupFunctions = []
 
     const random = (min, max) =>
       Math.random() * (max - min) + min
-
-    const getFloorY = (dino) =>
-      window.innerHeight - dino.size
 
     const createDino = (index) => {
       const element = dinoRefs.current[index]
@@ -56,299 +52,21 @@ function Home({ navigate }) {
 
       const dino = {
         element,
-
-        x: random(
-          0,
-          Math.max(0, window.innerWidth - size),
-        ),
-
-        y: 0,
-
+        x: random(-window.innerWidth, window.innerWidth),
         size,
-
-        direction:
-          Math.random() > 0.5 ? 1 : -1,
-
+        direction: Math.random() > 0.5 ? 1 : -1,
         speed: random(18, 42),
-
         state: 'walking',
-
-        stateUntil:
-          performance.now() + random(1000, 4000),
-
-        nextDecision:
-          performance.now() + random(1500, 5000),
-
+        stateUntil: performance.now() + random(1000, 4000),
+        nextDecision: performance.now() + random(1500, 5000),
         hopStart: -1,
-
         hopDuration: random(350, 520),
-
         hopHeight: random(8, 20),
-
-        nextHop:
-          performance.now() + random(1000, 4500),
-
+        nextHop: performance.now() + random(1000, 4500),
         bobSeed: random(0, Math.PI * 2),
-
-        pointerId: null,
-
-        pointerDown: false,
-
-        dragging: false,
-
-        dragStartX: 0,
-
-        dragStartY: 0,
-
-        grabOffsetX: 0,
-
-        grabOffsetY: 0,
-
-        rotation: 0,
-
-        fallVelocity: 0,
-
-        wobbleTime: random(0, Math.PI * 2),
       }
 
       element.style.width = `${size}px`
-
-      const renderDino = (
-        x,
-        y,
-        rotation = 0,
-      ) => {
-        const scaleX =
-          dino.direction === -1 ? 1 : -1
-
-        element.style.transform =
-          `translate3d(${x}px, ${-y}px, 0) rotate(${rotation}deg) scaleX(${scaleX})`
-      }
-
-      const onPointerDown = (event) => {
-        if (
-          event.pointerType === 'mouse' &&
-          event.button !== 0
-        ) {
-          return
-        }
-
-        event.preventDefault()
-        event.stopPropagation()
-
-        dino.pointerId = event.pointerId
-        dino.pointerDown = true
-        dino.dragging = false
-
-        dino.dragStartX = event.clientX
-        dino.dragStartY = event.clientY
-
-        const rect = element.getBoundingClientRect()
-
-        dino.grabOffsetX =
-          event.clientX -
-          (rect.left + rect.width / 2)
-
-        dino.grabOffsetY =
-          event.clientY -
-          (rect.top + rect.height / 2)
-
-        try {
-          element.setPointerCapture(event.pointerId)
-        } catch {}
-      }
-
-      const onPointerMove = (event) => {
-        if (
-          !dino.pointerDown ||
-          dino.pointerId !== event.pointerId
-        ) {
-          return
-        }
-
-        event.preventDefault()
-        event.stopPropagation()
-
-        const dx =
-          event.clientX - dino.dragStartX
-
-        const dy =
-          event.clientY - dino.dragStartY
-
-        const distance =
-          Math.sqrt(dx * dx + dy * dy)
-
-        const dragThreshold = 8
-
-        if (
-          !dino.dragging &&
-          distance < dragThreshold
-        ) {
-          return
-        }
-
-        if (!dino.dragging) {
-          dino.dragging = true
-          dino.state = 'dragging'
-          dino.hopStart = -1
-          dino.rotation = 0
-          dino.wobbleTime =
-            performance.now() * 0.01
-
-          element.style.cursor = 'grabbing'
-          element.style.zIndex = '100'
-        }
-
-        const halfSize =
-          dino.size / 2
-
-        let newX =
-          event.clientX -
-          dino.grabOffsetX -
-          halfSize
-
-        let newY =
-          event.clientY -
-          dino.grabOffsetY -
-          halfSize
-
-        const maxX =
-          window.innerWidth - dino.size
-
-        const maxY =
-          window.innerHeight - dino.size
-
-        newX = Math.max(
-          0,
-          Math.min(maxX, newX),
-        )
-
-        newY = Math.max(
-          0,
-          Math.min(maxY, newY),
-        )
-
-        dino.x = newX
-
-        dino.y = newY
-
-        dino.wobbleTime += 0.35
-
-        const wobble =
-          Math.sin(dino.wobbleTime) * 9
-
-        renderDino(
-          dino.x,
-          dino.y,
-          wobble,
-        )
-      }
-
-      const onPointerUp = (event) => {
-        if (
-          !dino.pointerDown ||
-          dino.pointerId !== event.pointerId
-        ) {
-          return
-        }
-
-        event.preventDefault()
-        event.stopPropagation()
-
-        dino.pointerDown = false
-
-        try {
-          element.releasePointerCapture(event.pointerId)
-        } catch {}
-
-        if (!dino.dragging) {
-          dino.pointerId = null
-          return
-        }
-
-        dino.dragging = false
-        dino.pointerId = null
-        dino.state = 'falling'
-
-        dino.fallVelocity = 0
-
-        element.style.cursor = 'grab'
-        element.style.zIndex = '20'
-      }
-
-      const onPointerCancel = (event) => {
-        if (
-          !dino.pointerDown ||
-          dino.pointerId !== event.pointerId
-        ) {
-          return
-        }
-
-        dino.pointerDown = false
-
-        try {
-          element.releasePointerCapture(event.pointerId)
-        } catch {}
-
-        if (dino.dragging) {
-          dino.dragging = false
-          dino.state = 'falling'
-          dino.fallVelocity = 0
-        }
-
-        dino.pointerId = null
-
-        element.style.cursor = 'grab'
-        element.style.zIndex = '20'
-      }
-
-      element.addEventListener(
-        'pointerdown',
-        onPointerDown,
-      )
-
-      element.addEventListener(
-        'pointermove',
-        onPointerMove,
-      )
-
-      element.addEventListener(
-        'pointerup',
-        onPointerUp,
-      )
-
-      element.addEventListener(
-        'pointercancel',
-        onPointerCancel,
-      )
-
-      cleanupFunctions.push(() => {
-        element.removeEventListener(
-          'pointerdown',
-          onPointerDown,
-        )
-
-        element.removeEventListener(
-          'pointermove',
-          onPointerMove,
-        )
-
-        element.removeEventListener(
-          'pointerup',
-          onPointerUp,
-        )
-
-        element.removeEventListener(
-          'pointercancel',
-          onPointerCancel,
-        )
-      })
-
-      renderDino(
-        dino.x,
-        0,
-        0,
-      )
 
       return dino
     }
@@ -377,69 +95,19 @@ function Home({ navigate }) {
           return
         }
 
-        if (
-          dino.pointerDown ||
-          dino.dragging
-        ) {
-          return
-        }
-
-        if (dino.state === 'falling') {
-          const gravity = 850
-
-          dino.fallVelocity +=
-            gravity * delta
-
-          dino.y +=
-            dino.fallVelocity * delta
-
-          if (
-            dino.y >=
-            getFloorY(dino)
-          ) {
-            dino.y =
-              getFloorY(dino)
-
-            dino.fallVelocity = 0
-            dino.rotation = 0
-            dino.state = 'walking'
-
-            dino.nextDecision =
-              now + random(1200, 3500)
-
-            dino.nextHop =
-              now + random(1000, 3500)
-          }
-
-          renderDino(
-            dino.x,
-            dino.y,
-            dino.rotation,
-          )
-
-          return
-        }
-
         if (now >= dino.nextDecision) {
           const roll = Math.random()
 
           if (roll < 0.18) {
             dino.state = 'resting'
-
-            dino.stateUntil =
-              now + random(600, 2200)
+            dino.stateUntil = now + random(600, 2200)
           } else if (roll < 0.34) {
             dino.direction *= -1
-
             dino.state = 'walking'
-
-            dino.stateUntil =
-              now + random(1800, 6000)
+            dino.stateUntil = now + random(1800, 6000)
           } else {
             dino.state = 'walking'
-
-            dino.stateUntil =
-              now + random(2000, 7000)
+            dino.stateUntil = now + random(2000, 7000)
           }
 
           dino.nextDecision =
@@ -456,12 +124,8 @@ function Home({ navigate }) {
           dino.state !== 'resting'
         ) {
           dino.hopStart = now
-
-          dino.hopDuration =
-            random(300, 520)
-
-          dino.hopHeight =
-            random(8, 22)
+          dino.hopDuration = random(300, 520)
+          dino.hopHeight = random(8, 22)
 
           dino.nextHop =
             now + random(1700, 5000)
@@ -510,11 +174,13 @@ function Home({ navigate }) {
             ) * 1.2
         }
 
-        renderDino(
-          dino.x,
-          hopY + bobY,
-          tilt,
-        )
+        const scaleX =
+          dino.direction === -1
+            ? 1
+            : -1
+
+        dino.element.style.transform =
+          `translate3d(${dino.x}px, ${-hopY - bobY}px, 0) rotate(${tilt}deg) scaleX(${scaleX})`
 
         const offscreenMargin =
           dino.size + 100
@@ -559,10 +225,6 @@ function Home({ navigate }) {
 
     return () => {
       cancelAnimationFrame(animationFrame)
-
-      cleanupFunctions.forEach(
-        (cleanup) => cleanup(),
-      )
     }
   }, [])
 
@@ -571,9 +233,11 @@ function Home({ navigate }) {
       <style>{`
         .home-dino-world {
           position: absolute;
-          inset: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
           width: 100%;
-          height: 100%;
+          height: 105px;
           pointer-events: none;
           z-index: 20;
           overflow: visible;
@@ -586,20 +250,18 @@ function Home({ navigate }) {
           width: 50px;
           height: auto;
           display: block;
-          pointer-events: auto;
-          cursor: grab;
-          touch-action: none;
+          pointer-events: none;
           user-select: none;
           -webkit-user-drag: none;
           transform-origin: center bottom;
           will-change: transform;
         }
 
-        .home-wandering-dino:active {
-          cursor: grabbing;
-        }
-
         @media (max-width: 700px) {
+          .home-dino-world {
+            height: 80px;
+          }
+
           .home-wandering-dino {
             width: 40px;
           }
@@ -618,7 +280,6 @@ function Home({ navigate }) {
             }}
             src="/assets/dino.png"
             alt=""
-            draggable="false"
             className="home-wandering-dino"
           />
         ))}
