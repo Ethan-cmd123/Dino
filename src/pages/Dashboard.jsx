@@ -1784,9 +1784,6 @@ Each question must include:
                 score: {
                   type: 'integer',
                 },
-                criterionA: { type: 'integer' },
-                criterionB: { type: 'integer' },
-                criterionC: { type: 'integer' },
                 feedback: {
                   type: 'string',
                 },
@@ -1796,9 +1793,6 @@ Each question must include:
               },
               required: [
                 'score',
-                'criterionA',
-                'criterionB',
-                'criterionC',
                 'feedback',
                 'nextStep',
               ],
@@ -2086,6 +2080,9 @@ Create one writing task with:
                 score: {
                   type: 'integer',
                 },
+                criterionA: { type: 'integer' },
+                criterionB: { type: 'integer' },
+                criterionC: { type: 'integer' },
                 feedback: {
                   type: 'string',
                 },
@@ -2111,6 +2108,9 @@ Create one writing task with:
               },
               required: [
                 'score',
+                'criterionA',
+                'criterionB',
+                'criterionC',
                 'feedback',
                 'strengths',
                 'improvements',
@@ -2181,12 +2181,16 @@ ${writingAnswer}
           )
         }
 
+        const criterionA = Math.min(12, Math.max(0, Number(parsed.criterionA) || 0))
+        const criterionB = Math.min(12, Math.max(0, Number(parsed.criterionB) || 0))
+        const criterionC = Math.min(6, Math.max(0, Number(parsed.criterionC) || 0))
+
         setWritingGrade({
           ...parsed,
-          criterionA: Math.min(12, Math.max(0, Number(parsed.criterionA) || 0)),
-          criterionB: Math.min(12, Math.max(0, Number(parsed.criterionB) || 0)),
-          criterionC: Math.min(6, Math.max(0, Number(parsed.criterionC) || 0)),
-          score: Math.min(30, Math.max(0, Number(parsed.score) || 0)),
+          criterionA,
+          criterionB,
+          criterionC,
+          score: criterionA + criterionB + criterionC,
         })
       } catch (error) {
         setQuestionError(
@@ -2353,6 +2357,16 @@ Target-language topic: ${selected.local}
           flex: 0 0 auto;
         }
 
+        .dino-dashboard-sticky {
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          margin: -28px -34px 0;
+          padding: 28px 34px 12px;
+          background: rgba(255,255,255,.9);
+          backdrop-filter: blur(18px);
+        }
+
         .dino-kicker {
           display: block;
           margin-bottom: 8px;
@@ -2399,7 +2413,7 @@ Target-language topic: ${selected.local}
           align-items: center;
           gap: 7px;
           padding: 7px 10px;
-          border: 1px solid rgba(0,0,0,.08);
+          border: 1px solid color-mix(in srgb, var(--accent) 40%, rgba(0,0,0,.08));
           border-radius: 999px;
           background: rgba(255,255,255,.7);
           color: #111;
@@ -2458,7 +2472,7 @@ Target-language topic: ${selected.local}
         .dino-progress-fill {
           height: 100%;
           border-radius: inherit;
-          background: #0a0a0a;
+          background: var(--accent);
           transition: width .3s ease;
         }
 
@@ -2503,8 +2517,8 @@ Target-language topic: ${selected.local}
         }
 
         .dino-tab.active {
-          background: #0a0a0a;
-          color: #fff;
+          background: var(--accent);
+          color: #062515;
         }
 
         .dino-main {
@@ -2627,8 +2641,8 @@ Target-language topic: ${selected.local}
         }
 
         .dino-topic.completed .dino-check {
-          border-color: #111;
-          background: #111;
+          border-color: var(--accent);
+          background: var(--accent);
         }
 
         .dino-topic-copy {
@@ -2815,14 +2829,21 @@ Target-language topic: ${selected.local}
           font-size: 10px;
         }
 
+        .dino-select:focus,
+        .dino-answer-box:focus,
+        .dino-writing-textarea:focus {
+          border-color: var(--accent);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+        }
+
         .dino-generate {
           width: 100%;
           min-height: 42px;
           margin-top: 13px;
           border: 0;
           border-radius: 11px;
-          background: #111;
-          color: #fff;
+          background: var(--accent);
+          color: #062515;
           font-size: 9px;
           font-weight: 600;
           cursor: pointer;
@@ -2949,8 +2970,8 @@ Target-language topic: ${selected.local}
           padding: 0 12px;
           border: 0;
           border-radius: 9px;
-          background: #111;
-          color: #fff;
+          background: var(--accent);
+          color: #062515;
           font-size: 8px;
           font-weight: 600;
           cursor: pointer;
@@ -2969,7 +2990,7 @@ Target-language topic: ${selected.local}
         }
 
         .dino-feedback-score {
-          color: #111;
+          color: #007b3f;
           font-size: 11px;
           font-weight: 700;
         }
@@ -3454,43 +3475,91 @@ Target-language topic: ${selected.local}
         }
 
         .dino-vocabulary-card {
+          width: 100%;
           min-height: 280px;
           margin-top: 20px;
-          padding: 28px;
-          border: 1px solid rgba(0,0,0,.07);
+          padding: 0;
+          border: 0;
           border-radius: 18px;
-          background: rgba(255,255,255,.55);
+          background: transparent;
+          color: inherit;
+          text-align: left;
+          perspective: 1200px;
+          cursor: pointer;
+        }
+
+        .dino-flashcard-inner {
+          position: relative;
+          display: block;
+          width: 100%;
+          min-height: 280px;
+          transform-style: preserve-3d;
+          transition: transform .55s cubic-bezier(.2,.75,.2,1);
+        }
+
+        .dino-vocabulary-card.is-flipped .dino-flashcard-inner {
+          transform: rotateY(180deg);
+        }
+
+        .dino-flashcard-face {
+          position: absolute;
+          inset: 0;
           display: flex;
           flex-direction: column;
           justify-content: center;
+          padding: 28px;
+          border: 1px solid rgba(0,0,0,.07);
+          border-radius: 18px;
+          background: rgba(255,255,255,.72);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
-        .dino-vocabulary-card > strong {
-          margin-top: 10px;
-          color: #111;
-          font-size: clamp(30px, 5vw, 52px);
-          letter-spacing: -.07em;
+        .dino-flashcard-back {
+          transform: rotateY(180deg);
+          background: color-mix(in srgb, var(--accent) 13%, white);
         }
 
-        .dino-vocabulary-answer {
-          margin-top: 24px;
-          padding-top: 18px;
-          border-top: 1px solid rgba(0,0,0,.08);
-          color: #444;
+        .dino-flashcard-hint {
+          margin-top: 12px;
+          color: #777;
+          font-size: 9px;
+        }
+
+        .dino-flashcard-back strong {
+          color: #062515;
+          font-size: clamp(24px, 4vw, 38px);
+          letter-spacing: -.055em;
+        }
+
+        .dino-flashcard-example {
+          margin-top: 16px;
+          color: #244636;
           font-size: 12px;
           line-height: 1.5;
         }
 
-        .dino-vocabulary-answer b {
+        .dino-flashcard-note {
+          margin-top: 8px;
+          color: #527161;
+          font-size: 10px;
+          line-height: 1.45;
+        }
+
+        .dino-vocabulary-card:focus-visible {
+          outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+          outline-offset: 4px;
+        }
+
+        .dino-vocabulary-card:hover .dino-flashcard-face {
+          border-color: color-mix(in srgb, var(--accent) 48%, rgba(0,0,0,.07));
+        }
+
+        .dino-vocabulary-card .dino-flashcard-front > strong {
+          margin-top: 10px;
           color: #111;
-        }
-
-        .dino-vocabulary-answer p {
-          margin: 8px 0;
-        }
-
-        .dino-vocabulary-answer small {
-          color: #777;
+          font-size: clamp(30px, 5vw, 52px);
+          letter-spacing: -.07em;
         }
 
         .dino-vocabulary-actions {
@@ -3569,6 +3638,11 @@ Target-language topic: ${selected.local}
         @media (max-width: 820px) {
           .dino-dashboard {
             padding: 18px;
+          }
+
+          .dino-dashboard-sticky {
+            margin: -18px -18px 0;
+            padding: 18px 18px 10px;
           }
 
           .dino-dashboard-header {
@@ -3663,6 +3737,7 @@ Target-language topic: ${selected.local}
       <AnimatedBackground className="dino-dashboard">
         <div className="dino-dashboard-shell">
 
+          <div className="dino-dashboard-sticky">
           <header className="dino-dashboard-header">
             <div>
               <span className="dino-kicker">
@@ -3906,6 +3981,7 @@ Target-language topic: ${selected.local}
               ),
             )}
           </nav>
+          </div>
 
           <main className="dino-main">
 
@@ -5100,17 +5176,26 @@ Target-language topic: ${selected.local}
 
                         <p className="dino-generator-description">{vocabularySet.instructions}</p>
 
-                        <div className="dino-vocabulary-card">
-                          <span className="dino-prompt-label">Target language</span>
-                          <strong>{vocabularySet.words[vocabularyIndex].term}</strong>
-                          {vocabularyRevealed && (
-                            <div className="dino-vocabulary-answer">
-                              <b>{vocabularySet.words[vocabularyIndex].translation}</b>
-                              <p>{vocabularySet.words[vocabularyIndex].example}</p>
-                              <small>{vocabularySet.words[vocabularyIndex].note}</small>
-                            </div>
-                          )}
-                        </div>
+                        <button
+                          type="button"
+                          className={`dino-vocabulary-card ${vocabularyRevealed ? 'is-flipped' : ''}`}
+                          onClick={() => setVocabularyRevealed((current) => !current)}
+                          aria-label={vocabularyRevealed ? 'Flip card to term' : 'Flip card to answer'}
+                        >
+                          <span className="dino-flashcard-inner">
+                            <span className="dino-flashcard-face dino-flashcard-front">
+                              <span className="dino-prompt-label">Target language</span>
+                              <strong>{vocabularySet.words[vocabularyIndex].term}</strong>
+                              <span className="dino-flashcard-hint">Tap the card to reveal the answer</span>
+                            </span>
+                            <span className="dino-flashcard-face dino-flashcard-back">
+                              <span className="dino-prompt-label">Meaning</span>
+                              <strong>{vocabularySet.words[vocabularyIndex].translation}</strong>
+                              <span className="dino-flashcard-example">{vocabularySet.words[vocabularyIndex].example}</span>
+                              <span className="dino-flashcard-note">{vocabularySet.words[vocabularyIndex].note}</span>
+                            </span>
+                          </span>
+                        </button>
 
                         <div className="dino-vocabulary-actions">
                           <button
@@ -5118,7 +5203,7 @@ Target-language topic: ${selected.local}
                             className="dino-small-button"
                             onClick={() => setVocabularyRevealed((current) => !current)}
                           >
-                            {vocabularyRevealed ? 'Hide answer' : 'Show answer'}
+                            Flip card
                           </button>
                           <button
                             type="button"
