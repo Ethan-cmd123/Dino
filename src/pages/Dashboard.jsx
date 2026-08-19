@@ -3777,7 +3777,7 @@ ${writingAnswer}
               type="button"
               className="dino-upgrade-button"
               onClick={() => {
-                window.location.href = "/upgrade.jsx";
+                window.location.href = "/upgrade";
               }}
             >
               ✦ Upgrade to Gold
