@@ -6,62 +6,127 @@ import {
 } from '../api/payment'
 
 function Upgrade({ navigate }) {
-  const [isProcessingPayment, setIsProcessingPayment] =
-    useState(false)
+  const [
+    isProcessingPayment,
+    setIsProcessingPayment,
+  ] = useState(false)
 
-  const [paymentError, setPaymentError] =
-    useState('')
+  const [
+    paymentError,
+    setPaymentError,
+  ] = useState('')
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const paymentStatus = params.get('payment')
-    const sessionId = params.get('session_id')
+    const params =
+      new URLSearchParams(
+        window.location.search,
+      )
 
-    if (paymentStatus !== 'success' || !sessionId) {
+    const paymentStatus =
+      params.get('payment')
+
+    const sessionId =
+      params.get('session_id')
+
+    if (
+      paymentStatus !== 'success' ||
+      !sessionId
+    ) {
       return
     }
 
     let cancelled = false
 
-    const verifyPayment = async () => {
-      try {
-        const session = await getCheckoutSession(sessionId)
+    const verifyPayment =
+      async () => {
+        try {
+          const session =
+            await getCheckoutSession(
+              sessionId,
+            )
 
-        if (cancelled) {
-          return
-        }
+          if (cancelled) {
+            return
+          }
 
-        console.log('[Dino Stripe] Checkout completed', {
-          sessionId: session?.id,
-          status: session?.status,
-          paymentStatus: session?.payment_status,
-          amountTotal: session?.amount_total,
-          currency: session?.currency,
-          mode: session?.mode,
-          customer: session?.customer,
-          subscription: session?.subscription,
-          paymentIntent: session?.payment_intent,
-          livemode: session?.livemode,
-          metadata: session?.metadata,
-          rawSession: session,
-        })
+          const paymentCompleted =
+            session?.status ===
+              'complete' &&
+            (session?.mode ===
+            'subscription'
+              ? [
+                  'paid',
+                  'no_payment_required',
+                ].includes(
+                  session?.payment_status,
+                )
+              : session?.payment_status ===
+                'paid')
 
-        navigate('/dashboard')
-      } catch (error) {
-        console.error(
-          '[Dino Stripe] Failed to verify checkout session',
-          error,
-        )
+          if (!paymentCompleted) {
+            throw new Error(
+              'Stripe checkout has not been confirmed as paid.',
+            )
+          }
 
-        if (!cancelled) {
-          setPaymentError(
-            error instanceof Error
-              ? error.message
-              : 'Unable to verify the payment.',
+          if (
+            !session
+              ?.gold_membership
+              ?.gold_membership
+          ) {
+            throw new Error(
+              'Payment was confirmed, but Gold membership could not be activated.',
+            )
+          }
+
+          console.log(
+            '[Dino Stripe] Checkout completed',
+            {
+              sessionId:
+                session?.id,
+              status:
+                session?.status,
+              paymentStatus:
+                session?.payment_status,
+              amountTotal:
+                session?.amount_total,
+              currency:
+                session?.currency,
+              mode:
+                session?.mode,
+              customer:
+                session?.customer,
+              subscription:
+                session?.subscription,
+              paymentIntent:
+                session?.payment_intent,
+              livemode:
+                session?.livemode,
+              metadata:
+                session?.metadata,
+              goldMembership:
+                session?.gold_membership,
+              rawSession:
+                session,
+            },
           )
+
+          navigate('/dashboard')
+        } catch (error) {
+          console.error(
+            '[Dino Stripe] Failed to verify checkout session',
+            error,
+          )
+
+          if (!cancelled) {
+            setPaymentError(
+              error instanceof Error
+                ? error.message
+                : 'Unable to verify the payment.',
+            )
+          }
         }
       }
-    }
 
     verifyPayment()
 
@@ -70,42 +135,53 @@ function Upgrade({ navigate }) {
     }
   }, [navigate])
 
-  const handleUpgrade = async () => {
-    if (isProcessingPayment) {
-      return
-    }
+  const handleUpgrade =
+    async () => {
+      if (
+        isProcessingPayment
+      ) {
+        return
+      }
 
-    setPaymentError('')
-    setIsProcessingPayment(true)
+      setPaymentError('')
+      setIsProcessingPayment(
+        true,
+      )
 
-    try {
-      const { url, sessionId } =
-        await createCheckoutSession()
-
-      console.log(
-        '[Dino Stripe] Checkout Session created',
-        {
-          sessionId,
+      try {
+        const {
           url,
-        },
-      )
+          sessionId,
+        } =
+          await createCheckoutSession()
 
-      window.location.href = url
-    } catch (error) {
-      console.error(
-        '[Dino Stripe] Checkout failed',
-        error,
-      )
+        console.log(
+          '[Dino Stripe] Checkout Session created',
+          {
+            sessionId,
+            url,
+          },
+        )
 
-      setPaymentError(
-        error instanceof Error
-          ? error.message
-          : 'Unable to open Stripe Checkout.',
-      )
+        window.location.href =
+          url
+      } catch (error) {
+        console.error(
+          '[Dino Stripe] Checkout failed',
+          error,
+        )
 
-      setIsProcessingPayment(false)
+        setPaymentError(
+          error instanceof Error
+            ? error.message
+            : 'Unable to open Stripe Checkout.',
+        )
+
+        setIsProcessingPayment(
+          false,
+        )
+      }
     }
-  }
 
   return (
     <AnimatedBackground className="onboarding-page">
@@ -725,8 +801,12 @@ function Upgrade({ navigate }) {
                 <button
                   type="button"
                   className="dino-main-button"
-                  onClick={handleUpgrade}
-                  disabled={isProcessingPayment}
+                  onClick={
+                    handleUpgrade
+                  }
+                  disabled={
+                    isProcessingPayment
+                  }
                 >
                   {isProcessingPayment
                     ? 'Opening secure checkout…'
@@ -747,7 +827,9 @@ function Upgrade({ navigate }) {
                   type="button"
                   className="dino-back-button"
                   onClick={() =>
-                    navigate('/dashboard')
+                    navigate(
+                      '/dashboard',
+                    )
                   }
                 >
                   Back to dashboard

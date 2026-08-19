@@ -247,6 +247,9 @@ export async function getProfile(
           exam_date,
           goals,
           onboarding_complete,
+          gold_membership,
+          gold_started_at,
+          gold_expires_at,
           created_at,
           updated_at
         `,
@@ -259,6 +262,86 @@ export async function getProfile(
   }
 
   return data
+}
+
+/* -------------------------------------------------------------------------- */
+/* GOLD MEMBERSHIP                                                            */
+/* -------------------------------------------------------------------------- */
+
+export async function getGoldMembership(userId) {
+  if (!userId) {
+    return false
+  }
+
+  const { data, error } =
+    await supabase
+      .from('profiles')
+      .select(
+        'gold_membership, gold_started_at, gold_expires_at',
+      )
+      .eq('id', userId)
+      .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+
+  if (!data) {
+    return false
+  }
+
+  if (
+    data.gold_expires_at &&
+    new Date(data.gold_expires_at).getTime() <=
+      Date.now()
+  ) {
+    return false
+  }
+
+  return Boolean(data.gold_membership)
+}
+
+export async function getGoldMembershipDetails(userId) {
+  if (!userId) {
+    return {
+      gold_membership: false,
+      gold_started_at: null,
+      gold_expires_at: null,
+    }
+  }
+
+  const { data, error } =
+    await supabase
+      .from('profiles')
+      .select(
+        'gold_membership, gold_started_at, gold_expires_at',
+      )
+      .eq('id', userId)
+      .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+
+  if (!data) {
+    return {
+      gold_membership: false,
+      gold_started_at: null,
+      gold_expires_at: null,
+    }
+  }
+
+  const expired =
+    data.gold_expires_at &&
+    new Date(data.gold_expires_at).getTime() <=
+      Date.now()
+
+  return {
+    ...data,
+    gold_membership: Boolean(
+      data.gold_membership && !expired,
+    ),
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -398,18 +481,27 @@ export async function syncUserCredits(
   let credits = Number(
     data.credits || 0,
   )
+
   let lastRefillAt = data.last_refill_at
     ? new Date(
         data.last_refill_at,
       )
     : now
 
+  const goldMembership =
+    await getGoldMembership(userId)
+
+  const refillAmount = goldMembership
+    ? 50
+    : 5
+
   while (
     now.getTime() -
       lastRefillAt.getTime() >=
     24 * 60 * 60 * 1000
   ) {
-    credits += 5
+    credits += refillAmount
+
     lastRefillAt = new Date(
       lastRefillAt.getTime() +
         24 * 60 * 60 * 1000,
