@@ -3,7 +3,7 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import AnimatedBackground from '../components/AnimatedBackground'
+//import AnimatedBackground from '../components/AnimatedBackground'
 import {
   getCurrentUser,
   getProfile,
