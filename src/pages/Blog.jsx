@@ -114,10 +114,10 @@ const BLOG_POSTS = [
   },
 
   {
-    slug: 'how-to-use-ai-for-language-learning',
-    title: 'How to Use AI for Language Learning',
+    slug: 'how-to-use-feedback-tools-for-language-learning',
+    title: 'How to Use Feedback Tools for Language Learning',
     description:
-      'How students can use AI as a tutor without turning their learning into copy-and-paste homework.',
+      'How students can use feedback tools without turning their learning into copy-and-paste homework.',
     category: 'Study Skills',
     author: 'Dino',
     date: 'August 15, 2026',
@@ -128,7 +128,7 @@ const BLOG_POSTS = [
       {
         type: 'paragraph',
         text:
-          'AI can be incredibly useful for language learning, but only when you use it as a tutor rather than as a machine that completes every task for you.',
+          'Feedback tools can be useful for language learning when you use them to guide your own work rather than complete it for you.',
       },
 
       {
@@ -141,7 +141,7 @@ const BLOG_POSTS = [
       {
         type: 'paragraph',
         text:
-          'One of the most effective ways to use AI is to submit your own work and ask for feedback. That lets you identify mistakes while still doing the thinking yourself.',
+          'One of the most effective approaches is to submit your own work and ask for feedback. That lets you identify mistakes while still doing the thinking yourself.',
       },
 
       {

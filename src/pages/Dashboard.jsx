@@ -4,7 +4,6 @@ import React, {
   useState,
 } from 'react'
 import AnimatedBackground from '../components/AnimatedBackground'
-import Oral from './oral'
 import {
   getCurrentUser,
   getProfile,
@@ -1032,22 +1031,46 @@ const WRITING_PROMPT_SCHEMA = {
       properties: {
         title: { type: 'string' },
         prompt: { type: 'string' },
-        criteria: {
-          type: 'array',
-          minItems: 3,
-          maxItems: 4,
-          items: { type: 'string' },
-        },
         suggestedLength: { type: 'string' },
-        marks: { type: 'integer' },
       },
       required: [
         'title',
         'prompt',
-        'criteria',
         'suggestedLength',
-        'marks',
       ],
+      additionalProperties: false,
+    },
+  },
+}
+
+const VOCABULARY_SCHEMA = {
+  type: 'json_schema',
+  json_schema: {
+    name: 'ib_language_b_vocabulary_set',
+    strict: true,
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        instructions: { type: 'string' },
+        words: {
+          type: 'array',
+          minItems: 10,
+          maxItems: 10,
+          items: {
+            type: 'object',
+            properties: {
+              term: { type: 'string' },
+              translation: { type: 'string' },
+              example: { type: 'string' },
+              note: { type: 'string' },
+            },
+            required: ['term', 'translation', 'example', 'note'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['title', 'instructions', 'words'],
       additionalProperties: false,
     },
   },
@@ -1257,6 +1280,17 @@ function Dashboard({ navigate }) {
   const [writingGrading, setWritingGrading] =
     useState(false)
 
+  const [vocabularyTopic, setVocabularyTopic] =
+    useState('')
+  const [vocabularySet, setVocabularySet] =
+    useState(null)
+  const [vocabularyGenerating, setVocabularyGenerating] =
+    useState(false)
+  const [vocabularyIndex, setVocabularyIndex] =
+    useState(0)
+  const [vocabularyRevealed, setVocabularyRevealed] =
+    useState(false)
+
   const [readingType, setReadingType] =
     useState('Mixed')
   const [readingDifficulty, setReadingDifficulty] =
@@ -1276,12 +1310,6 @@ function Dashboard({ navigate }) {
   const [gradingQuestion, setGradingQuestion] =
     useState(null)
 
-  const [chatMessages, setChatMessages] =
-    useState([])
-  const [chatInput, setChatInput] =
-    useState('')
-  const [chatTyping, setChatTyping] =
-    useState(false)
   const [expandedSection, setExpandedSection] =
     useState(null)
 
@@ -1585,14 +1613,14 @@ function Dashboard({ navigate }) {
 
       try {
         const systemPrompt = `
-You are Dino, an expert IB Language B tutor.
+You create expert IB Language B practice materials.
 
 Create original, high-quality reading comprehension practice for an IB Language B student.
 
 IMPORTANT:
 - Do NOT use emojis.
 - Do NOT output emojis.
-- Keep every response suitable for a focused academic tutor.
+- Keep every response suitable for focused academic practice.
 - Never reproduce copyrighted source material.
 - Make every question answerable from the supplied original context.
 - Match the requested difficulty.
@@ -1687,7 +1715,7 @@ Each question must include:
             `${readingTopic} practice`,
           instructions:
             parsed.instructions ||
-            'Answer each question in its own answer box. Use the tutor for hints or clarification without asking for the answer.',
+            'Answer each question in its own answer box, then use Mark to check your response.',
           questions:
             normalizedQuestions,
         }
@@ -1696,13 +1724,6 @@ Each question must include:
           result,
         )
 
-        setChatMessages([
-          {
-            role: 'tutor',
-            text:
-              `I generated a ${readingDifficulty.toLowerCase()} reading set on ${readingTopic}. You can answer directly under each question, ask me for help, or use Mark when you are ready. I will not reveal answer keys before marking.`,
-          },
-        ])
       } catch (error) {
         setQuestionError(
           error instanceof Error
@@ -1750,7 +1771,6 @@ Each question must include:
       setGradingQuestion(
         questionId,
       )
-      setChatTyping(true)
 
       try {
         const responseFormat = {
@@ -1764,6 +1784,9 @@ Each question must include:
                 score: {
                   type: 'integer',
                 },
+                criterionA: { type: 'integer' },
+                criterionB: { type: 'integer' },
+                criterionC: { type: 'integer' },
                 feedback: {
                   type: 'string',
                 },
@@ -1773,6 +1796,9 @@ Each question must include:
               },
               required: [
                 'score',
+                'criterionA',
+                'criterionB',
+                'criterionC',
                 'feedback',
                 'nextStep',
               ],
@@ -1782,7 +1808,7 @@ Each question must include:
         }
 
         const systemPrompt = `
-You are Dino, an expert IB Language B reading tutor.
+You are an expert IB Language B reading examiner.
 
 IMPORTANT:
 - Do NOT use emojis.
@@ -1864,15 +1890,6 @@ ${answer}
           }),
         )
 
-        setChatMessages(
-          (current) => [
-            ...current,
-            {
-              role: 'tutor',
-              text: `Question ${questionId}: ${safeScore}/${question.marks}. ${parsed.feedback}\n\nNext step: ${parsed.nextStep}`,
-            },
-          ],
-        )
       } catch (error) {
         setQuestionError(
           error instanceof Error
@@ -1883,7 +1900,6 @@ ${answer}
         setGradingQuestion(
           null,
         )
-        setChatTyping(false)
       }
     }
 
@@ -1912,127 +1928,6 @@ ${answer}
           0,
         )
       : 0
-
-  /* ------------------------------------------------------------------------ */
-  /* READING TUTOR                                                             */
-  /* ------------------------------------------------------------------------ */
-
-  const sendReadingChat =
-    async () => {
-      const text =
-        chatInput.trim()
-
-      if (
-        !text ||
-        chatTyping
-      ) {
-        return
-      }
-
-      setChatMessages(
-        (current) => [
-          ...current,
-          {
-            role: 'user',
-            text,
-          },
-        ],
-      )
-
-      setChatInput('')
-      setChatTyping(true)
-
-      try {
-        const questionContext =
-          generatedQuestions
-            ? generatedQuestions.questions
-                .map(
-                  (
-                    question,
-                  ) =>
-                    `Question ${question.id}: ${question.question}\nContext: ${question.context}`,
-                )
-                .join(
-                  '\n\n',
-                )
-            : 'No reading question set has been generated yet.'
-
-        const tutorSystem = `
-You are Dino, an expert IB Language B tutor helping the student with reading practice.
-
-IMPORTANT:
-- NO EMOJIS. Never use an emoji in any response.
-- Never output emojis.
-- Help the student understand the question, vocabulary, reading strategy, or their own reasoning.
-- Give hints and guidance rather than directly giving an answer before marking.
-- Never reveal the official answer unless the question has already been marked.
-- If the student asks for a hint, give a progressive hint, not the answer.
-- Use clear headings, short paragraphs, and bullet points when useful.
-- Markdown is allowed and encouraged for readability.
-- Keep the response directly relevant to the student's current reading task.
-
-LANGUAGE:
-${language}
-
-TOPIC:
-${readingTopic || 'Not selected'}
-
-DIFFICULTY:
-${readingDifficulty}
-
-CURRENT QUESTIONS:
-${questionContext}
-`.trim()
-
-        const raw =
-          await callGroq({
-            system:
-              tutorSystem,
-            user: text,
-            temperature: 0.3,
-            maxTokens: 700,
-          })
-
-        setChatMessages(
-          (current) => [
-            ...current,
-            {
-              role: 'tutor',
-              text:
-                raw ||
-                'I could not generate a response.',
-            },
-          ],
-        )
-      } catch (error) {
-        setChatMessages(
-          (current) => [
-            ...current,
-            {
-              role: 'tutor',
-              text:
-                error instanceof
-                Error
-                  ? error.message
-                  : 'Tutor connection failed.',
-            },
-          ],
-        )
-      } finally {
-        setChatTyping(false)
-      }
-    }
-
-  const handleChatKeyDown =
-    (event) => {
-      if (
-        event.key === 'Enter' &&
-        !event.shiftKey
-      ) {
-        event.preventDefault()
-        sendReadingChat()
-      }
-    }
 
   /* ------------------------------------------------------------------------ */
   /* WRITING                                                                  */
@@ -2097,7 +1992,7 @@ ${questionContext}
 
       try {
         const systemPrompt = `
-You are Dino, an expert IB Language B writing tutor.
+You create expert IB Language B writing practice materials.
 
 IMPORTANT:
 - Do NOT use emojis.
@@ -2105,7 +2000,6 @@ IMPORTANT:
 - Create an original IB-style writing task.
 - Match the requested difficulty and text type.
 - Make the task realistic for the student's Language B.
-- Provide clear assessment criteria.
 - Keep the prompt precise but sufficiently challenging.
 - Return only structured data.
 `.trim()
@@ -2132,9 +2026,7 @@ ${selected.local}
 Create one writing task with:
 - a concise title
 - the student-facing prompt
-- 3 or 4 clear criteria for self-checking
 - a sensible suggested length
-- a maximum mark total between 10 and 20
 `.trim()
 
         const raw =
@@ -2156,15 +2048,7 @@ Create one writing task with:
           )
         }
 
-        setWritingTask({
-          ...parsed,
-          marks: Math.max(
-            10,
-            Number(
-              parsed.marks,
-            ) || 15,
-          ),
-        })
+        setWritingTask(parsed)
       } catch (error) {
         setQuestionError(
           error instanceof Error
@@ -2238,16 +2122,17 @@ Create one writing task with:
         }
 
         const systemPrompt = `
-You are Dino, an expert IB Language B writing examiner and tutor.
+You are an expert IB Language B writing examiner.
 
 IMPORTANT:
 - Do NOT use emojis.
 - Do NOT output emojis.
-- Grade the student's actual writing against the task and criteria supplied.
+- Grade the student's actual writing using the IB Language B Paper 1 criteria.
 - Be fair and academically honest.
-- Award 0 through the maximum mark.
+- Assess Criterion A: Language (0-12), Criterion B: Message (0-12), and Criterion C: Conceptual understanding (0-6).
+- The total score must equal A + B + C and be out of 30.
 - Do not penalise the student for things the task did not require.
-- Consider task fulfilment, organisation, language, clarity, register, and the supplied criteria.
+- Consider task fulfilment, organisation, language, clarity, register, and conceptual understanding.
 - Give specific feedback with examples of what to improve, but do not rewrite the entire response for the student.
 - Use Markdown in feedback where it improves readability.
 - Return only structured JSON.
@@ -2266,19 +2151,11 @@ ${writingType}
 TASK:
 ${writingTask.prompt}
 
-CRITERIA:
-${writingTask.criteria
-  .map(
-    (item, index) =>
-      `${index + 1}. ${item}`,
-  )
-  .join('\n')}
-
 SUGGESTED LENGTH:
 ${writingTask.suggestedLength}
 
 MAXIMUM MARKS:
-${writingTask.marks}
+30
 
 STUDENT RESPONSE:
 ${writingAnswer}
@@ -2306,15 +2183,10 @@ ${writingAnswer}
 
         setWritingGrade({
           ...parsed,
-          score: Math.min(
-            Math.max(
-              0,
-              Number(
-                parsed.score,
-              ) || 0,
-            ),
-            writingTask.marks,
-          ),
+          criterionA: Math.min(12, Math.max(0, Number(parsed.criterionA) || 0)),
+          criterionB: Math.min(12, Math.max(0, Number(parsed.criterionB) || 0)),
+          criterionC: Math.min(6, Math.max(0, Number(parsed.criterionC) || 0)),
+          score: Math.min(30, Math.max(0, Number(parsed.score) || 0)),
         })
       } catch (error) {
         setQuestionError(
@@ -2328,6 +2200,73 @@ ${writingAnswer}
         )
       }
     }
+
+  const generateVocabulary = async () => {
+    if (!vocabularyTopic || vocabularyGenerating) return
+
+    const selected = allTopics.find(
+      (item) => item.topic === vocabularyTopic,
+    )
+
+    if (!selected) return
+
+    setVocabularyGenerating(true)
+    setQuestionError('')
+
+    try {
+      const syncedPoints = await syncUserCredits(user.id)
+      setDinoPoints(syncedPoints)
+
+      if (syncedPoints < 1) {
+        setQuestionError(
+          'You need 1 Dino point to generate a vocabulary set. Come back in 24 hours for 5 more.',
+        )
+        return
+      }
+
+      const nextPointTotal = await spendUserCredits(user.id, 1)
+      setDinoPoints(nextPointTotal)
+
+      const raw = await callGroq({
+        system: `
+You create focused IB Language B vocabulary practice.
+
+IMPORTANT:
+- Do NOT use emojis.
+- Return exactly ten useful, level-appropriate terms or short phrases.
+- Give each term in the target language, an English translation, a natural target-language example sentence, and a brief usage note.
+- Avoid obscure or duplicate vocabulary.
+- Return only structured data.
+`.trim(),
+        user: `
+Language: ${language}
+IB theme: ${selected.theme}
+Course topic: ${selected.topic}
+Target-language topic: ${selected.local}
+`.trim(),
+        responseFormat: VOCABULARY_SCHEMA,
+        temperature: 0.35,
+        maxTokens: 1800,
+      })
+
+      const parsed = cleanModelJSON(raw)
+      if (!parsed || !Array.isArray(parsed.words)) {
+        throw new Error('Groq returned an invalid vocabulary set.')
+      }
+
+      setVocabularySet(parsed)
+      setVocabularyIndex(0)
+      setVocabularyRevealed(false)
+    } catch (error) {
+      setQuestionError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong while generating the vocabulary set.',
+      )
+    } finally {
+      setVocabularyGenerating(false)
+    }
+  }
 
   /* ------------------------------------------------------------------------ */
   /* LOGOUT                                                                    */
@@ -2379,7 +2318,8 @@ ${writingAnswer}
     <>
       <style>{`
         body[data-page="dashboard"] {
-          overflow: hidden !important;
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
         }
 
         body[data-page="dashboard"] .navbar {
@@ -2389,17 +2329,16 @@ ${writingAnswer}
         .dino-dashboard {
           position: relative;
           width: 100%;
-          height: 100%;
           min-height: 100dvh;
           padding: 28px 34px 24px;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .dino-dashboard-shell {
           position: relative;
           z-index: 10;
           width: min(1260px, 100%);
-          height: 100%;
+          min-height: 100%;
           margin: 0 auto;
           display: flex;
           flex-direction: column;
@@ -2570,20 +2509,14 @@ ${writingAnswer}
 
         .dino-main {
           min-height: 0;
-          flex: 1;
           margin-top: 16px;
         }
 
         .dino-panel {
-          height: 100%;
+          height: auto;
           min-height: 0;
           padding: 22px;
-          border: 1px solid rgba(0,0,0,.07);
-          border-radius: 22px;
-          background: rgba(255,255,255,.46);
-          backdrop-filter: blur(18px);
-          box-shadow: 0 18px 60px rgba(0,0,0,.025);
-          overflow: hidden;
+          overflow: visible;
         }
 
         .dino-panel-heading {
@@ -2613,11 +2546,10 @@ ${writingAnswer}
 
         .dino-theme-grid {
           min-height: 0;
-          height: calc(100% - 78px);
           display: grid;
           grid-template-columns: repeat(5, minmax(0,1fr));
           gap: 10px;
-          overflow-y: auto;
+          overflow: visible;
         }
 
         .dino-theme {
@@ -2721,27 +2653,21 @@ ${writingAnswer}
         }
 
         .dino-reading-panel {
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
+          overflow: visible;
         }
 
         .dino-reading-workspace {
           min-height: 0;
-          flex: 1;
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 380px;
-          gap: 14px;
         }
 
         .dino-reading-card {
           min-width: 0;
           min-height: 0;
-          border: 1px solid rgba(0,0,0,.08);
-          border-radius: 20px;
-          background: rgba(255,255,255,.78);
-          backdrop-filter: blur(16px);
-          box-shadow: 0 12px 35px rgba(0,0,0,.025);
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          backdrop-filter: none;
+          box-shadow: none;
         }
 
         .dino-expand-button {
@@ -3246,7 +3172,7 @@ ${writingAnswer}
 
         .dino-writing-workspace {
           min-height: 0;
-          height: calc(100% - 78px);
+          height: auto;
           display: grid;
           grid-template-columns: 340px minmax(0,1fr);
           gap: 14px;
@@ -3254,16 +3180,16 @@ ${writingAnswer}
 
         .dino-writing-card {
           min-height: 0;
-          border: 1px solid rgba(0,0,0,.08);
-          border-radius: 20px;
-          background: rgba(255,255,255,.77);
-          backdrop-filter: blur(16px);
-          overflow: hidden;
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          backdrop-filter: none;
+          overflow: visible;
         }
 
         .dino-writing-controls {
           padding: 20px;
-          overflow-y: auto;
+          overflow: visible;
           display: flex;
           flex-direction: column;
         }
@@ -3274,7 +3200,7 @@ ${writingAnswer}
 
         .dino-writing-editor {
           padding: 0;
-          overflow-y: auto;
+          overflow: visible;
         }
 
         .dino-writing-editor-topbar {
@@ -3436,6 +3362,23 @@ ${writingAnswer}
           letter-spacing: -.05em;
         }
 
+        .dino-criterion-scores {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin: 0 0 12px;
+        }
+
+        .dino-criterion-scores span,
+        .dino-vocabulary-count {
+          padding: 5px 7px;
+          border: 1px solid rgba(0,0,0,.06);
+          border-radius: 999px;
+          background: rgba(255,255,255,.7);
+          color: #666;
+          font-size: 8px;
+        }
+
         .dino-writing-grade-section {
           margin-top: 13px;
         }
@@ -3475,6 +3418,86 @@ ${writingAnswer}
           text-transform: uppercase;
           letter-spacing: .05em;
           font-weight: 600;
+        }
+
+        .dino-vocabulary-workspace {
+          display: grid;
+          grid-template-columns: 300px minmax(0, 1fr);
+          gap: 28px;
+        }
+
+        .dino-vocabulary-controls {
+          padding: 20px 0;
+        }
+
+        .dino-vocabulary-controls .dino-select {
+          margin-bottom: 8px;
+        }
+
+        .dino-vocabulary-trainer {
+          min-height: 460px;
+          padding: 20px 0;
+        }
+
+        .dino-vocabulary-topline {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .dino-vocabulary-topline h3 {
+          margin: 6px 0 0;
+          color: #111;
+          font-size: 20px;
+          letter-spacing: -.05em;
+        }
+
+        .dino-vocabulary-card {
+          min-height: 280px;
+          margin-top: 20px;
+          padding: 28px;
+          border: 1px solid rgba(0,0,0,.07);
+          border-radius: 18px;
+          background: rgba(255,255,255,.55);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .dino-vocabulary-card > strong {
+          margin-top: 10px;
+          color: #111;
+          font-size: clamp(30px, 5vw, 52px);
+          letter-spacing: -.07em;
+        }
+
+        .dino-vocabulary-answer {
+          margin-top: 24px;
+          padding-top: 18px;
+          border-top: 1px solid rgba(0,0,0,.08);
+          color: #444;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .dino-vocabulary-answer b {
+          color: #111;
+        }
+
+        .dino-vocabulary-answer p {
+          margin: 8px 0;
+        }
+
+        .dino-vocabulary-answer small {
+          color: #777;
+        }
+
+        .dino-vocabulary-actions {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          gap: 8px;
         }
 
         .dino-coming-page {
@@ -3537,6 +3560,10 @@ ${writingAnswer}
           .dino-writing-workspace {
             grid-template-columns: 300px minmax(0,1fr);
           }
+
+          .dino-vocabulary-workspace {
+            grid-template-columns: 260px minmax(0,1fr);
+          }
         }
 
         @media (max-width: 820px) {
@@ -3592,6 +3619,16 @@ ${writingAnswer}
           .dino-writing-workspace {
             height: auto;
             grid-template-columns: 1fr;
+          }
+
+          .dino-vocabulary-workspace {
+            grid-template-columns: 1fr;
+            gap: 0;
+          }
+
+          .dino-vocabulary-trainer {
+            min-height: 400px;
+            padding-top: 0;
           }
 
           .dino-writing-editor {
@@ -3849,7 +3886,7 @@ ${writingAnswer}
               ['course', 'Course'],
               ['reading', 'Reading'],
               ['writing', 'Writing'],
-              ['internalOral', 'Speaking IO'],
+              ['vocabulary', 'Vocabulary'],
             ].map(
               ([value, label]) => (
                 <button
@@ -4026,7 +4063,7 @@ ${writingAnswer}
                     </h2>
 
                     <p className="dino-panel-description">
-                      Generate marked reading questions, answer them in place, and use Dino as a tutor when you get stuck.
+                      Generate marked reading questions and answer them in place.
                     </p>
                   </div>
                 </div>
@@ -4522,109 +4559,6 @@ ${writingAnswer}
                     )}
                   </div>
 
-                  <div className="dino-reading-card dino-tutor-card">
-                    <div className="dino-tutor-head">
-                      <div className="dino-tutor-identity">
-                        <div className="dino-tutor-avatar">
-                          D
-                        </div>
-
-                        <div className="dino-tutor-name">
-                          <strong>
-                            Dino Tutor
-                          </strong>
-
-                          <span>
-                            Reading assistant
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="dino-card-topbar-actions">
-                        <div className="dino-tutor-online">
-                          <span className="dino-tutor-online-dot" />
-                          Connected
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="dino-chat-area">
-                      {chatMessages.length ===
-                        0 && (
-                        <div className="dino-chat-message tutor">
-                          Generate a reading set and I’ll help you work through the questions.
-                        </div>
-                      )}
-
-                      {chatMessages.map(
-                        (
-                          message,
-                          index,
-                        ) => (
-                          <div
-                            key={index}
-                            className={
-                              message.role ===
-                              'user'
-                                ? 'dino-chat-message user'
-                                : 'dino-chat-message tutor'
-                            }
-                          >
-                            {message.role ===
-                            'tutor'
-                              ? renderMarkdown(
-                                  message.text,
-                                )
-                              : message.text}
-                          </div>
-                        ),
-                      )}
-
-                      {chatTyping && (
-                        <div className="dino-typing">
-                          <span className="dino-typing-dot" />
-                          <span className="dino-typing-dot" />
-                          <span className="dino-typing-dot" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="dino-chat-bottom">
-                      <textarea
-                        className="dino-chat-input"
-                        value={chatInput}
-                        onChange={(
-                          event,
-                        ) =>
-                          setChatInput(
-                            event.target
-                              .value,
-                          )
-                        }
-                        onKeyDown={
-                          handleChatKeyDown
-                        }
-                        placeholder="Ask the tutor for a hint, explanation, or strategy..."
-                        rows={2}
-                      />
-
-                      <button
-                        type="button"
-                        className="dino-chat-send"
-                        onClick={
-                          sendReadingChat
-                        }
-                        disabled={
-                          chatTyping ||
-                          !chatInput.trim()
-                        }
-                      >
-                        {chatTyping
-                          ? 'Thinking...'
-                          : 'Ask Dino'}
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </section>
             )}
@@ -4642,7 +4576,7 @@ ${writingAnswer}
                     </h2>
 
                     <p className="dino-panel-description">
-                      Generate an AI writing task, write your response, then get an examiner-style mark and actionable feedback.
+                      Generate an IB-style writing task, write your response, then get an examiner-style mark and actionable feedback.
                     </p>
                   </div>
                 </div>
@@ -4895,10 +4829,7 @@ ${writingAnswer}
                               </span>
 
                               <span>
-                                {
-                                  writingTask.marks
-                                }{' '}
-                                marks
+                                30 marks
                               </span>
 
                               <span>
@@ -4915,26 +4846,13 @@ ${writingAnswer}
                             </div>
 
                             <div className="dino-prompt-label">
-                              Criteria
+                              IB Paper 1 criteria
                             </div>
 
                             <ol className="dino-criteria">
-                              {writingTask.criteria.map(
-                                (
-                                  criterion,
-                                  index,
-                                ) => (
-                                  <li
-                                    key={
-                                      index
-                                    }
-                                  >
-                                    {
-                                      criterion
-                                    }
-                                  </li>
-                                ),
-                              )}
+                              <li>Criterion A: Language — 12 marks</li>
+                              <li>Criterion B: Message — 12 marks</li>
+                              <li>Criterion C: Conceptual understanding — 6 marks</li>
                             </ol>
                           </div>
 
@@ -4944,10 +4862,7 @@ ${writingAnswer}
                             </strong>
 
                             <span>
-                              {
-                                writingTask.marks
-                              }{' '}
-                              marks available
+                              30 marks available
                             </span>
                           </div>
 
@@ -5009,10 +4924,14 @@ ${writingAnswer}
                                     writingGrade.score
                                   }
                                   /
-                                  {
-                                    writingTask.marks
-                                  }
+                                  30
                                 </strong>
+                              </div>
+
+                              <div className="dino-criterion-scores">
+                                <span>Language {writingGrade.criterionA}/12</span>
+                                <span>Message {writingGrade.criterionB}/12</span>
+                                <span>Conceptual understanding {writingGrade.criterionC}/6</span>
                               </div>
 
                               {renderMarkdown(
@@ -5114,9 +5033,108 @@ ${writingAnswer}
               </section>
             )}
 
-            {activeTab === 'internalOral' && (
+            {activeTab === 'vocabulary' && (
               <section className="dino-panel">
-                <Oral />
+                <div className="dino-panel-heading">
+                  <div>
+                    <span className="dino-kicker">Vocabulary</span>
+                    <h2 className="dino-panel-title">
+                      Learn words that <span>stick.</span>
+                    </h2>
+                    <p className="dino-panel-description">
+                      Build a focused vocabulary set for any topic in your course, then practise one term at a time.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="dino-vocabulary-workspace">
+                  <div className="dino-vocabulary-controls">
+                    <label className="dino-field-label">Course topic</label>
+                    <select
+                      className="dino-select"
+                      value={vocabularyTopic}
+                      onChange={(event) => setVocabularyTopic(event.target.value)}
+                    >
+                      <option value="">Select a course topic</option>
+                      {course.themes.map((theme) => (
+                        <optgroup key={theme.en} label={`${theme.en} / ${theme.local}`}>
+                          {theme.topics.map(([english, local]) => (
+                            <option key={english} value={english}>
+                              {english} / {local}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      className="dino-generate"
+                      disabled={!vocabularyTopic || vocabularyGenerating}
+                      onClick={generateVocabulary}
+                    >
+                      {vocabularyGenerating ? 'Generating...' : 'Generate vocabulary → 1 🦖'}
+                    </button>
+
+                    {questionError && <div className="dino-error">{questionError}</div>}
+                  </div>
+
+                  <div className="dino-vocabulary-trainer">
+                    {!vocabularySet ? (
+                      <div className="dino-prompt-empty">
+                        <div className="dino-prompt-icon">✦</div>
+                        <h3>Your vocabulary set will appear here.</h3>
+                        <p>Select any IB course topic to start training.</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="dino-vocabulary-topline">
+                          <div>
+                            <span className="dino-prompt-label">Vocabulary trainer</span>
+                            <h3>{vocabularySet.title}</h3>
+                          </div>
+                          <span className="dino-vocabulary-count">
+                            {vocabularyIndex + 1} / {vocabularySet.words.length}
+                          </span>
+                        </div>
+
+                        <p className="dino-generator-description">{vocabularySet.instructions}</p>
+
+                        <div className="dino-vocabulary-card">
+                          <span className="dino-prompt-label">Target language</span>
+                          <strong>{vocabularySet.words[vocabularyIndex].term}</strong>
+                          {vocabularyRevealed && (
+                            <div className="dino-vocabulary-answer">
+                              <b>{vocabularySet.words[vocabularyIndex].translation}</b>
+                              <p>{vocabularySet.words[vocabularyIndex].example}</p>
+                              <small>{vocabularySet.words[vocabularyIndex].note}</small>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="dino-vocabulary-actions">
+                          <button
+                            type="button"
+                            className="dino-small-button"
+                            onClick={() => setVocabularyRevealed((current) => !current)}
+                          >
+                            {vocabularyRevealed ? 'Hide answer' : 'Show answer'}
+                          </button>
+                          <button
+                            type="button"
+                            className="dino-mark-button"
+                            onClick={() => {
+                              setVocabularyIndex((current) => (current + 1) % vocabularySet.words.length)
+                              setVocabularyRevealed(false)
+                            }}
+                          >
+                            Next word
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
               </section>
             )}
           </main>

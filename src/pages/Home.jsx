@@ -305,7 +305,7 @@ function Home({ navigate }) {
         </h1>
 
         <p className="hero-subtitle">
-          An AI-powered learning app built around reading, writing,
+          A learning app built around reading, writing,
           vocabulary, and the skills you actually use in IB Language B.
         </p>
 

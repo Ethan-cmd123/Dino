@@ -4,7 +4,7 @@ const questions = [
   {
     question: 'What is Dino?',
     answer:
-      'Dino is an AI-powered learning app designed around IB Language B skills, especially reading, writing, vocabulary, and practical language use.',
+      'Dino is a learning app designed around IB Language B skills, especially reading, writing, vocabulary, and practical language use.',
   },
   {
     question: 'Who is Dino for?',

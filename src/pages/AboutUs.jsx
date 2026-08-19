@@ -14,7 +14,7 @@ function AboutUs() {
         </h1>
 
         <p className="content-text large">
-          Dino is an AI-powered IB Language B learning
+          Dino is an IB Language B learning
           experience focused on the parts of language
           learning that matter most: understanding,
           communicating, and improving.
