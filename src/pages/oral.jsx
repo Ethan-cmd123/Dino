@@ -1,4 +1,4 @@
-// pages/oral.jsx
+// src/pages/oral.jsx
 
 import React, {
   useCallback,
@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
+
 import {
   getCurrentUser,
   getGoldMembership,
@@ -18,49 +19,42 @@ const LANGUAGES = [
     label: 'French B',
     code: 'fr',
     languageName: 'French',
-    targetCulture: 'francophone',
   },
   {
     id: 'Spanish B',
     label: 'Spanish B',
     code: 'es',
     languageName: 'Spanish',
-    targetCulture: 'Spanish-speaking',
   },
   {
     id: 'Chinese B',
     label: 'Chinese B',
     code: 'zh',
     languageName: 'Chinese',
-    targetCulture: 'Chinese-speaking',
   },
   {
     id: 'English B',
     label: 'English B',
     code: 'en',
     languageName: 'English',
-    targetCulture: 'English-speaking',
   },
   {
     id: 'German B',
     label: 'German B',
     code: 'de',
     languageName: 'German',
-    targetCulture: 'German-speaking',
   },
   {
     id: 'Italian B',
     label: 'Italian B',
     code: 'it',
     languageName: 'Italian',
-    targetCulture: 'Italian-speaking',
   },
   {
     id: 'Japanese B',
     label: 'Japanese B',
     code: 'ja',
     languageName: 'Japanese',
-    targetCulture: 'Japanese-speaking',
   },
 ]
 
@@ -80,6 +74,7 @@ const THEME_TOPICS = {
     'Subcultures',
     'Language and identity',
   ],
+
   Experiences: [
     'Leisure activities',
     'Holidays and travel',
@@ -88,6 +83,7 @@ const THEME_TOPICS = {
     'Customs and traditions',
     'Migration',
   ],
+
   'Human ingenuity': [
     'Entertainment',
     'Artistic expressions',
@@ -95,6 +91,7 @@ const THEME_TOPICS = {
     'Technology',
     'Scientific innovation',
   ],
+
   'Social organization': [
     'Social relationships',
     'Community',
@@ -103,6 +100,7 @@ const THEME_TOPICS = {
     'The world of work',
     'Law and order',
   ],
+
   'Sharing the planet': [
     'The environment',
     'Human rights',
@@ -135,6 +133,7 @@ const FALLBACK_IMAGE_NAMES = [
   '18.jpg',
   '19.jpg',
   '20.jpg',
+
   '1.png',
   '2.png',
   '3.png',
@@ -155,6 +154,7 @@ const FALLBACK_IMAGE_NAMES = [
   '18.png',
   '19.png',
   '20.png',
+
   '1.webp',
   '2.webp',
   '3.webp',
@@ -175,6 +175,7 @@ const FALLBACK_IMAGE_NAMES = [
   '18.webp',
   '19.webp',
   '20.webp',
+
   'image1.jpg',
   'image2.jpg',
   'image3.jpg',
@@ -185,6 +186,7 @@ const FALLBACK_IMAGE_NAMES = [
   'image8.jpg',
   'image9.jpg',
   'image10.jpg',
+
   'image1.png',
   'image2.png',
   'image3.png',
@@ -195,6 +197,7 @@ const FALLBACK_IMAGE_NAMES = [
   'image8.png',
   'image9.png',
   'image10.png',
+
   'image1.webp',
   'image2.webp',
   'image3.webp',
@@ -205,6 +208,7 @@ const FALLBACK_IMAGE_NAMES = [
   'image8.webp',
   'image9.webp',
   'image10.webp',
+
   'io1.jpg',
   'io2.jpg',
   'io3.jpg',
@@ -215,6 +219,7 @@ const FALLBACK_IMAGE_NAMES = [
   'io8.jpg',
   'io9.jpg',
   'io10.jpg',
+
   'io1.png',
   'io2.png',
   'io3.png',
@@ -225,6 +230,7 @@ const FALLBACK_IMAGE_NAMES = [
   'io8.png',
   'io9.png',
   'io10.png',
+
   'visual1.jpg',
   'visual2.jpg',
   'visual3.jpg',
@@ -237,7 +243,7 @@ const FALLBACK_IMAGE_NAMES = [
   'visual10.jpg',
 ]
 
-const STORAGE_PREFIX = 'dino_oral_gold_session_v1'
+const STORAGE_PREFIX = 'dino_oral_gold_v2'
 
 const PARTS = {
   presentation: {
@@ -245,11 +251,13 @@ const PARTS = {
     subtitle: 'Presentation',
     minutes: 4,
   },
+
   followUp: {
     title: 'Part 2',
-    subtitle: 'Follow-up discussion',
+    subtitle: 'Follow-up',
     minutes: 5,
   },
+
   general: {
     title: 'Part 3',
     subtitle: 'General discussion',
@@ -257,47 +265,46 @@ const PARTS = {
   },
 }
 
-const INITIAL_MESSAGES = [
-  {
-    role: 'assistant',
-    content:
-      'Your oral practice starts here. Complete the preparation period, then begin your presentation when you are ready.',
-  },
-]
-
-function languageInfo(language) {
+function getLanguageInfo(language) {
   return (
-    LANGUAGES.find((item) => item.id === language) ||
-    LANGUAGES.find((item) => item.id === 'English B')
+    LANGUAGES.find(
+      (item) => item.id === language,
+    ) ||
+    LANGUAGES.find(
+      (item) => item.id === 'English B',
+    )
   )
 }
 
-function formatSeconds(totalSeconds) {
-  const safe = Math.max(0, Number(totalSeconds) || 0)
-  const minutes = Math.floor(safe / 60)
-  const seconds = safe % 60
+function formatTime(seconds) {
+  const safe = Math.max(
+    0,
+    Number(seconds) || 0,
+  )
 
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(
+  const minutes = Math.floor(safe / 60)
+  const remainder = safe % 60
+
+  return `${String(minutes).padStart(
     2,
     '0',
-  )}`
-}
-
-function randomItem(items) {
-  if (!items?.length) return null
-  return items[Math.floor(Math.random() * items.length)]
+  )}:${String(remainder).padStart(2, '0')}`
 }
 
 function shuffle(items) {
-  return [...items].sort(() => Math.random() - 0.5)
+  return [...items].sort(
+    () => Math.random() - 0.5,
+  )
 }
 
-function getSupportedRecordingMimeType() {
-  if (typeof MediaRecorder === 'undefined') {
+function getRecordingMimeType() {
+  if (
+    typeof MediaRecorder === 'undefined'
+  ) {
     return ''
   }
 
-  const types = [
+  const supported = [
     'audio/webm;codecs=opus',
     'audio/webm',
     'audio/mp4',
@@ -306,36 +313,52 @@ function getSupportedRecordingMimeType() {
   ]
 
   return (
-    types.find((type) => MediaRecorder.isTypeSupported?.(type)) || ''
+    supported.find((type) =>
+      MediaRecorder.isTypeSupported?.(type),
+    ) || ''
   )
 }
 
 function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
+  return new Promise(
+    (resolve, reject) => {
+      const reader =
+        new FileReader()
 
-    reader.onloadend = () => {
-      try {
-        const result = String(reader.result || '')
-        const commaIndex = result.indexOf(',')
+      reader.onloadend = () => {
+        const value = String(
+          reader.result || '',
+        )
 
-        if (commaIndex === -1) {
-          reject(new Error('Could not encode audio recording.'))
+        const comma =
+          value.indexOf(',')
+
+        if (comma === -1) {
+          reject(
+            new Error(
+              'Could not encode audio recording.',
+            ),
+          )
+
           return
         }
 
-        resolve(result.slice(commaIndex + 1))
-      } catch (error) {
-        reject(error)
+        resolve(
+          value.slice(comma + 1),
+        )
       }
-    }
 
-    reader.onerror = () => {
-      reject(new Error('Could not read the audio recording.'))
-    }
+      reader.onerror = () => {
+        reject(
+          new Error(
+            'Could not read audio recording.',
+          ),
+        )
+      }
 
-    reader.readAsDataURL(blob)
-  })
+      reader.readAsDataURL(blob)
+    },
+  )
 }
 
 async function callDinoAI({
@@ -345,35 +368,43 @@ async function callDinoAI({
   temperature = 0.3,
   maxTokens = 1800,
 }) {
-  const response = await fetch('/api/generate', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await fetch(
+    '/api/generate',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type':
+          'application/json',
+      },
+      body: JSON.stringify({
+        system,
+        user,
+        responseFormat,
+        temperature,
+        maxTokens,
+        model:
+          'openai/gpt-oss-120b',
+      }),
     },
-    body: JSON.stringify({
-      system,
-      user,
-      responseFormat,
-      temperature,
-      maxTokens,
-      model: 'openai/gpt-oss-120b',
-    }),
-  })
+  )
 
-  const text = await response.text()
+  const responseText =
+    await response.text()
 
-  let data = null
+  let data = {}
 
   try {
-    data = text ? JSON.parse(text) : null
+    data = responseText
+      ? JSON.parse(responseText)
+      : {}
   } catch {
-    data = null
+    data = {}
   }
 
   if (!response.ok) {
     throw new Error(
       data?.error ||
-        text ||
+        responseText ||
         `Dino AI request failed with status ${response.status}.`,
     )
   }
@@ -387,35 +418,43 @@ async function transcribeAudio({
   languageCode,
   prompt,
 }) {
-  const response = await fetch('/api/generate', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await fetch(
+    '/api/generate',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type':
+          'application/json',
+      },
+      body: JSON.stringify({
+        transcription: true,
+        audioBase64: base64,
+        mimeType,
+        language: languageCode,
+        prompt,
+        model:
+          'whisper-large-v3-turbo',
+      }),
     },
-    body: JSON.stringify({
-      transcription: true,
-      audioBase64: base64,
-      mimeType,
-      language: languageCode,
-      prompt,
-      model: 'whisper-large-v3-turbo',
-    }),
-  })
+  )
 
-  const text = await response.text()
+  const responseText =
+    await response.text()
 
-  let data = null
+  let data = {}
 
   try {
-    data = text ? JSON.parse(text) : null
+    data = responseText
+      ? JSON.parse(responseText)
+      : {}
   } catch {
-    data = null
+    data = {}
   }
 
   if (!response.ok) {
     throw new Error(
       data?.error ||
-        text ||
+        responseText ||
         `Transcription failed with status ${response.status}.`,
     )
   }
@@ -424,199 +463,734 @@ async function transcribeAudio({
 }
 
 function Oral() {
-  const [gold, setGold] = useState(
-    typeof window !== 'undefined' &&
-      window.__dinoIsGoldMember === true,
-  )
-  const [goldLoading, setGoldLoading] = useState(true)
-
-  const [language, setLanguage] = useState(
-    () =>
-      localStorage.getItem(`${STORAGE_PREFIX}_language`) ||
-      'English B',
-  )
-  const [level, setLevel] = useState(
-    () =>
-      localStorage.getItem(`${STORAGE_PREFIX}_level`) ||
-      'SL',
-  )
-
-  const [imageList, setImageList] = useState([])
-  const [imageLoading, setImageLoading] = useState(true)
-  const [imageIndex, setImageIndex] = useState(0)
-  const [imageBroken, setImageBroken] = useState(false)
-
-  const [theme, setTheme] = useState('Identities')
-  const [topic, setTopic] = useState('Lifestyles')
-
-  const [preparationMinutes, setPreparationMinutes] = useState(15)
-  const [preparationSeconds, setPreparationSeconds] = useState(15 * 60)
-  const [preparing, setPreparing] = useState(false)
-  const [preparationFinished, setPreparationFinished] =
+  const [gold, setGold] =
     useState(false)
 
-  const [notes, setNotes] = useState(
-    Array.from({ length: 10 }, () => ''),
-  )
+  const [goldLoading, setGoldLoading] =
+    useState(true)
 
-  const [part, setPart] = useState('presentation')
-  const [recording, setRecording] = useState(false)
-  const [recordingSeconds, setRecordingSeconds] = useState(0)
-  const [recordedBlob, setRecordedBlob] = useState(null)
-  const [recordedAudioUrl, setRecordedAudioUrl] = useState('')
-  const [transcribing, setTranscribing] = useState(false)
-  const [transcript, setTranscript] = useState('')
-  const [presentationGrade, setPresentationGrade] = useState(null)
-  const [conversationGrade, setConversationGrade] = useState(null)
+  const [expanded, setExpanded] =
+    useState(false)
 
-  const [questions, setQuestions] = useState([])
-  const [questionIndex, setQuestionIndex] = useState(0)
-  const [aiQuestionLoading, setAiQuestionLoading] = useState(false)
-  const [aiMessages, setAiMessages] = useState(
-    INITIAL_MESSAGES,
-  )
-  const [answerRecording, setAnswerRecording] = useState(false)
-  const [answerTranscript, setAnswerTranscript] =
-    useState('')
+  const [language, setLanguage] =
+    useState(
+      () =>
+        localStorage.getItem(
+          `${STORAGE_PREFIX}_language`,
+        ) ||
+        'English B',
+    )
+
+  const [level, setLevel] =
+    useState(
+      () =>
+        localStorage.getItem(
+          `${STORAGE_PREFIX}_level`,
+        ) || 'SL',
+    )
+
+  const [theme, setTheme] =
+    useState('Identities')
+
+  const [topic, setTopic] =
+    useState('Lifestyles')
+
+  const [images, setImages] =
+    useState([])
+
+  const [imageIndex, setImageIndex] =
+    useState(0)
+
+  const [imageBroken, setImageBroken] =
+    useState(false)
+
+  const [imageLoading, setImageLoading] =
+    useState(true)
+
+  const [preparationMinutes, setPreparationMinutes] =
+    useState(15)
+
+  const [
+    preparationSeconds,
+    setPreparationSeconds,
+  ] = useState(15 * 60)
+
+  const [preparing, setPreparing] =
+    useState(false)
+
+  const [
+    preparationFinished,
+    setPreparationFinished,
+  ] = useState(false)
+
+  const [notes, setNotes] =
+    useState(
+      Array.from(
+        { length: 10 },
+        () => '',
+      ),
+    )
+
+  const [part, setPart] =
+    useState('presentation')
+
+  const [recording, setRecording] =
+    useState(false)
+
+  const [
+    recordingSeconds,
+    setRecordingSeconds,
+  ] = useState(0)
+
+  const [
+    recordedBlob,
+    setRecordedBlob,
+  ] = useState(null)
+
+  const [
+    recordedAudioUrl,
+    setRecordedAudioUrl,
+  ] = useState('')
+
+  const [transcribing, setTranscribing] =
+    useState(false)
+
   const [answerTranscribing, setAnswerTranscribing] =
     useState(false)
 
-  const [generalTheme, setGeneralTheme] = useState(
-    'Experiences',
-  )
-  const [generalQuestions, setGeneralQuestions] =
+  const [transcript, setTranscript] =
+    useState('')
+
+  const [
+    answerTranscript,
+    setAnswerTranscript,
+  ] = useState('')
+
+  const [
+    presentationGrade,
+    setPresentationGrade,
+  ] = useState(null)
+
+  const [
+    conversationGrade,
+    setConversationGrade,
+  ] = useState(null)
+
+  const [questions, setQuestions] =
     useState([])
-  const [generalQuestionIndex, setGeneralQuestionIndex] =
+
+  const [questionIndex, setQuestionIndex] =
     useState(0)
 
-  const [overallResult, setOverallResult] = useState(null)
-  const [processing, setProcessing] = useState(false)
-  const [error, setError] = useState('')
-  const [copied, setCopied] = useState(false)
-
-  const mediaRecorderRef = useRef(null)
-  const mediaStreamRef = useRef(null)
-  const recorderChunksRef = useRef([])
-  const recordingTimerRef = useRef(null)
-  const preparationTimerRef = useRef(null)
-  const autoStartPresentationRef = useRef(false)
-
-  const currentLanguage = useMemo(
-    () => languageInfo(language),
-    [language],
-  )
-
-  const currentImage = imageList[imageIndex] || ''
-
-  const currentQuestion = useMemo(() => {
-    if (part === 'followUp') {
-      return questions[questionIndex] || ''
-    }
-
-    if (part === 'general') {
-      return generalQuestions[generalQuestionIndex] || ''
-    }
-
-    return ''
-  }, [
-    generalQuestionIndex,
+  const [
     generalQuestions,
-    part,
-    questionIndex,
-    questions,
-  ])
+    setGeneralQuestions,
+  ] = useState([])
 
-  const activePart = PARTS[part]
+  const [
+    generalQuestionIndex,
+    setGeneralQuestionIndex,
+  ] = useState(0)
 
-  const oralDurationSeconds = 15 * 60
+  const [generalTheme, setGeneralTheme] =
+    useState('Experiences')
 
-  const progressSeconds =
-    part === 'presentation'
-      ? 0
-      : part === 'followUp'
-        ? 4 * 60
-        : 9 * 60
+  const [messages, setMessages] =
+    useState([
+      {
+        role: 'assistant',
+        content:
+          'Your examiner is ready. Complete the preparation period, then begin your presentation.',
+      },
+    ])
 
-  const timerProgress =
-    part === 'presentation'
-      ? recordingSeconds / (3.5 * 60)
-      : 0
+  const [processing, setProcessing] =
+    useState(false)
 
-  const preparationProgress =
-    preparationMinutes > 0
-      ? 1 -
-        preparationSeconds /
-          (preparationMinutes * 60)
-      : 1
+  const [aiQuestionLoading, setAiQuestionLoading] =
+    useState(false)
 
-  const usedNotes = notes.filter(
-    (item) => item.trim().length > 0,
-  ).length
+  const [overallResult, setOverallResult] =
+    useState(false)
 
-  const loadGoldStatus = useCallback(async () => {
-    if (typeof window === 'undefined') {
-      setGoldLoading(false)
-      return
-    }
+  const [error, setError] =
+    useState('')
 
-    if (window.__dinoIsGoldMember === true) {
-      setGold(true)
-      setGoldLoading(false)
-      return
-    }
+  const [
+    copied,
+    setCopied,
+  ] = useState(false)
 
-    try {
-      const user = await getCurrentUser()
+  const mediaRecorderRef =
+    useRef(null)
 
-      if (!user) {
-        setGold(false)
-        setGoldLoading(false)
-        return
+  const mediaStreamRef =
+    useRef(null)
+
+  const recorderChunksRef =
+    useRef([])
+
+  const recordingTimerRef =
+    useRef(null)
+
+  const preparationTimerRef =
+    useRef(null)
+
+  const oralShellRef =
+    useRef(null)
+
+  const previousBodyStylesRef =
+    useRef(null)
+
+  const currentLanguage =
+    useMemo(
+      () =>
+        getLanguageInfo(
+          language,
+        ),
+      [language],
+    )
+
+  const currentImage =
+    images[imageIndex] || ''
+
+  const currentQuestion =
+    useMemo(() => {
+      if (part === 'followUp') {
+        return (
+          questions[
+            questionIndex
+          ] || ''
+        )
       }
 
-      const isGold = await getGoldMembership(user.id)
+      if (part === 'general') {
+        return (
+          generalQuestions[
+            generalQuestionIndex
+          ] || ''
+        )
+      }
 
-      window.__dinoIsGoldMember = Boolean(isGold)
-      setGold(Boolean(isGold))
+      return ''
+    }, [
+      part,
+      questions,
+      questionIndex,
+      generalQuestions,
+      generalQuestionIndex,
+    ])
 
-      window.dispatchEvent(
-        new CustomEvent(
-          'dino-gold-membership-check',
-        ),
-      )
-    } catch (membershipError) {
-      console.error(
-        'Failed to check Gold membership:',
-        membershipError,
-      )
-      setGold(false)
-    } finally {
-      setGoldLoading(false)
-    }
-  }, [])
+  const activePart =
+    PARTS[part]
+
+  /*
+   * --------------------------------------------------------------------------
+   * GOLD CHECK
+   * --------------------------------------------------------------------------
+   */
 
   useEffect(() => {
-    loadGoldStatus()
+    let mounted = true
 
-    const onGoldMembershipCheck = () => {
+    async function checkGold() {
+      try {
+        if (
+          window.__dinoIsGoldMember ===
+          true
+        ) {
+          if (mounted) {
+            setGold(true)
+            setGoldLoading(false)
+          }
+
+          return
+        }
+
+        const user =
+          await getCurrentUser()
+
+        if (!user) {
+          if (mounted) {
+            setGold(false)
+            setGoldLoading(false)
+          }
+
+          return
+        }
+
+        const isGold =
+          await getGoldMembership(
+            user.id,
+          )
+
+        window.__dinoIsGoldMember =
+          Boolean(isGold)
+
+        if (mounted) {
+          setGold(
+            Boolean(isGold),
+          )
+          setGoldLoading(false)
+        }
+
+        window.dispatchEvent(
+          new CustomEvent(
+            'dino-gold-membership-check',
+          ),
+        )
+      } catch (goldError) {
+        console.error(
+          'Gold membership check failed:',
+          goldError,
+        )
+
+        if (mounted) {
+          setGold(false)
+          setGoldLoading(false)
+        }
+      }
+    }
+
+    checkGold()
+
+    const handleGoldEvent = () => {
+      if (!mounted) return
+
       setGold(
-        window.__dinoIsGoldMember === true,
+        window.__dinoIsGoldMember ===
+          true,
       )
+
       setGoldLoading(false)
     }
 
     window.addEventListener(
       'dino-gold-membership-check',
-      onGoldMembershipCheck,
+      handleGoldEvent,
     )
 
     return () => {
+      mounted = false
+
       window.removeEventListener(
         'dino-gold-membership-check',
-        onGoldMembershipCheck,
+        handleGoldEvent,
       )
     }
-  }, [loadGoldStatus])
+  }, [])
+
+  /*
+   * --------------------------------------------------------------------------
+   * FORCE PAGE SCROLLING WHILE ORAL IS MOUNTED
+   * --------------------------------------------------------------------------
+   *
+   * The Dashboard has multiple nested fixed-height containers:
+   *
+   * animated-page
+   * dashboard-workspace
+   * dashboard-panel
+   * dashboard-page
+   *
+   * Simply setting body overflow-y:auto is not enough because those ancestors
+   * can still trap the Oral content inside a viewport-sized box.
+   */
+
+  useEffect(() => {
+    if (
+      typeof document ===
+      'undefined'
+    ) {
+      return undefined
+    }
+
+    const html =
+      document.documentElement
+
+    const body =
+      document.body
+
+    const root =
+      document.getElementById(
+        'root',
+      )
+
+    const app =
+      document.querySelector(
+        '.app',
+      )
+
+    const pageContainer =
+      document.querySelector(
+        '.page-container',
+      )
+
+    const animatedPage =
+      document.querySelector(
+        '.animated-page',
+      )
+
+    const dashboardPage =
+      document.querySelector(
+        '.dashboard-page',
+      )
+
+    const dashboardWorkspace =
+      document.querySelector(
+        '.dashboard-workspace',
+      )
+
+    const dashboardPanel =
+      document.querySelector(
+        '.dashboard-panel',
+      )
+
+    const elements = [
+      html,
+      body,
+      root,
+      app,
+      pageContainer,
+      animatedPage,
+      dashboardPage,
+      dashboardWorkspace,
+      dashboardPanel,
+    ].filter(Boolean)
+
+    previousBodyStylesRef.current =
+      elements.map(
+        (element) => ({
+          element,
+          style: {
+            height:
+              element.style.height,
+            minHeight:
+              element.style.minHeight,
+            maxHeight:
+              element.style.maxHeight,
+            overflow:
+              element.style.overflow,
+            overflowY:
+              element.style.overflowY,
+            overflowX:
+              element.style.overflowX,
+          },
+        }),
+      )
+
+    html.style.overflowY = 'auto'
+    html.style.overflowX = 'hidden'
+
+    body.style.overflowY = 'auto'
+    body.style.overflowX = 'hidden'
+    body.style.height = 'auto'
+    body.style.minHeight = '100vh'
+
+    if (root) {
+      root.style.height = 'auto'
+      root.style.minHeight = '100vh'
+      root.style.maxHeight = 'none'
+      root.style.overflow = 'visible'
+    }
+
+    if (app) {
+      app.style.height = 'auto'
+      app.style.minHeight = '100vh'
+      app.style.maxHeight = 'none'
+      app.style.overflow = 'visible'
+    }
+
+    if (pageContainer) {
+      pageContainer.style.height = 'auto'
+      pageContainer.style.minHeight =
+        '100vh'
+      pageContainer.style.maxHeight =
+        'none'
+      pageContainer.style.overflow =
+        'visible'
+    }
+
+    if (animatedPage) {
+      animatedPage.style.height =
+        'auto'
+      animatedPage.style.minHeight =
+        '100vh'
+      animatedPage.style.maxHeight =
+        'none'
+      animatedPage.style.overflow =
+        'visible'
+      animatedPage.style.alignItems =
+        'flex-start'
+    }
+
+    if (dashboardPage) {
+      dashboardPage.style.height =
+        'auto'
+      dashboardPage.style.minHeight =
+        '100vh'
+      dashboardPage.style.maxHeight =
+        'none'
+      dashboardPage.style.overflow =
+        'visible'
+    }
+
+    if (dashboardWorkspace) {
+      dashboardWorkspace.style.height =
+        'auto'
+      dashboardWorkspace.style.minHeight =
+        '100vh'
+      dashboardWorkspace.style.maxHeight =
+        'none'
+      dashboardWorkspace.style.overflow =
+        'visible'
+    }
+
+    if (dashboardPanel) {
+      dashboardPanel.style.height =
+        'auto'
+      dashboardPanel.style.minHeight =
+        '0'
+      dashboardPanel.style.maxHeight =
+        'none'
+      dashboardPanel.style.overflow =
+        'visible'
+    }
+
+    return () => {
+      if (
+        !previousBodyStylesRef.current
+      ) {
+        return
+      }
+
+      previousBodyStylesRef.current.forEach(
+        ({
+          element,
+          style,
+        }) => {
+          element.style.height =
+            style.height
+
+          element.style.minHeight =
+            style.minHeight
+
+          element.style.maxHeight =
+            style.maxHeight
+
+          element.style.overflow =
+            style.overflow
+
+          element.style.overflowY =
+            style.overflowY
+
+          element.style.overflowX =
+            style.overflowX
+        },
+      )
+
+      previousBodyStylesRef.current =
+        null
+    }
+  }, [])
+
+  /*
+   * --------------------------------------------------------------------------
+   * EXPAND / COLLAPSE
+   * --------------------------------------------------------------------------
+   */
+
+  const toggleExpanded =
+    async () => {
+      const element =
+        oralShellRef.current
+
+      if (!element) {
+        return
+      }
+
+      try {
+        if (
+          document.fullscreenElement
+        ) {
+          await document.exitFullscreen?.()
+          setExpanded(false)
+          return
+        }
+
+        if (
+          element.requestFullscreen
+        ) {
+          await element.requestFullscreen()
+          setExpanded(true)
+          return
+        }
+      } catch (fullscreenError) {
+        console.error(
+          'Fullscreen failed:',
+          fullscreenError,
+        )
+      }
+
+      setExpanded(
+        (current) => !current,
+      )
+    }
+
+  useEffect(() => {
+    const handleFullscreenChange =
+      () => {
+        setExpanded(
+          document.fullscreenElement ===
+            oralShellRef.current,
+        )
+      }
+
+    document.addEventListener(
+      'fullscreenchange',
+      handleFullscreenChange,
+    )
+
+    return () => {
+      document.removeEventListener(
+        'fullscreenchange',
+        handleFullscreenChange,
+      )
+    }
+  }, [])
+
+  /*
+   * --------------------------------------------------------------------------
+   * IMAGES
+   * --------------------------------------------------------------------------
+   */
+
+  useEffect(() => {
+    let alive = true
+
+    async function discoverImages() {
+      setImageLoading(true)
+
+      let discovered = []
+
+      const manifests = [
+        '/assets/io_images/manifest.json',
+        '/assets/io_images/images.json',
+      ]
+
+      for (
+        const manifest of manifests
+      ) {
+        try {
+          const response =
+            await fetch(
+              manifest,
+              {
+                cache: 'no-store',
+              },
+            )
+
+          if (!response.ok) {
+            continue
+          }
+
+          const data =
+            await response.json()
+
+          if (
+            Array.isArray(data)
+          ) {
+            discovered = data
+          } else if (
+            Array.isArray(
+              data?.images,
+            )
+          ) {
+            discovered =
+              data.images
+          }
+
+          if (
+            discovered.length
+          ) {
+            break
+          }
+        } catch {
+          // Continue to fallback.
+        }
+      }
+
+      if (
+        !discovered.length
+      ) {
+        discovered =
+          FALLBACK_IMAGE_NAMES
+      }
+
+      const normalised =
+        discovered
+          .map((entry) => {
+            const raw =
+              typeof entry ===
+              'string'
+                ? entry
+                : entry?.src ||
+                  entry?.path ||
+                  entry?.file
+
+            if (!raw) {
+              return ''
+            }
+
+            return raw.startsWith(
+              '/',
+            )
+              ? raw
+              : `/assets/io_images/${raw}`
+          })
+          .filter(Boolean)
+
+      const unique =
+        [
+          ...new Set(
+            normalised,
+          ),
+        ]
+
+      if (!alive) {
+        return
+      }
+
+      setImages(unique)
+
+      if (unique.length) {
+        setImageIndex(
+          Math.floor(
+            Math.random() *
+              unique.length,
+          ),
+        )
+      }
+
+      setImageBroken(false)
+      setImageLoading(false)
+    }
+
+    discoverImages()
+
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  useEffect(() => {
+    setImageBroken(false)
+  }, [currentImage])
+
+  /*
+   * --------------------------------------------------------------------------
+   * LOCAL STORAGE
+   * --------------------------------------------------------------------------
+   */
 
   useEffect(() => {
     localStorage.setItem(
@@ -632,104 +1206,25 @@ function Oral() {
     )
   }, [level])
 
-  useEffect(() => {
-    let alive = true
-
-    async function loadImages() {
-      setImageLoading(true)
-
-      const candidates = [
-        '/assets/io_images/manifest.json',
-        '/assets/io_images/images.json',
-      ]
-
-      let discovered = []
-
-      for (const manifestUrl of candidates) {
-        try {
-          const response = await fetch(manifestUrl, {
-            cache: 'no-store',
-          })
-
-          if (!response.ok) continue
-
-          const data = await response.json()
-
-          if (Array.isArray(data)) {
-            discovered = data
-          } else if (Array.isArray(data?.images)) {
-            discovered = data.images
-          }
-
-          if (discovered.length) break
-        } catch {
-          // Fall back to common filenames below.
-        }
-      }
-
-      if (!discovered.length) {
-        discovered = FALLBACK_IMAGE_NAMES
-      }
-
-      const normalized = discovered
-        .map((item) => {
-          const raw =
-            typeof item === 'string'
-              ? item
-              : item?.src || item?.path || item?.file
-
-          if (!raw) return ''
-
-          return raw.startsWith('/')
-            ? raw
-            : `/assets/io_images/${raw}`
-        })
-        .filter(Boolean)
-
-      const unique = [
-        ...new Set(normalized),
-      ]
-
-      if (alive) {
-        setImageList(unique)
-        setImageIndex(
-          Math.floor(
-            Math.random() * Math.max(unique.length, 1),
-          ),
-        )
-        setImageBroken(false)
-        setImageLoading(false)
-      }
-    }
-
-    loadImages()
-
-    return () => {
-      alive = false
-    }
-  }, [])
-
-  useEffect(() => {
-    setImageBroken(false)
-  }, [currentImage])
+  /*
+   * --------------------------------------------------------------------------
+   * CLEANUP
+   * --------------------------------------------------------------------------
+   */
 
   useEffect(() => {
     return () => {
-      if (recordedAudioUrl) {
-        URL.revokeObjectURL(recordedAudioUrl)
-      }
-    }
-  }, [recordedAudioUrl])
-
-  useEffect(() => {
-    return () => {
-      if (preparationTimerRef.current) {
+      if (
+        preparationTimerRef.current
+      ) {
         clearInterval(
           preparationTimerRef.current,
         )
       }
 
-      if (recordingTimerRef.current) {
+      if (
+        recordingTimerRef.current
+      ) {
         clearInterval(
           recordingTimerRef.current,
         )
@@ -737,306 +1232,475 @@ function Oral() {
 
       mediaStreamRef.current
         ?.getTracks()
-        ?.forEach((track) => track.stop())
+        ?.forEach(
+          (track) =>
+            track.stop(),
+        )
 
-      mediaRecorderRef.current = null
+      if (
+        recordedAudioUrl
+      ) {
+        URL.revokeObjectURL(
+          recordedAudioUrl,
+        )
+      }
     }
-  }, [])
+  }, [recordedAudioUrl])
+
+  /*
+   * --------------------------------------------------------------------------
+   * TOPIC
+   * --------------------------------------------------------------------------
+   */
 
   useEffect(() => {
-    if (topic && !THEME_TOPICS[theme]?.includes(topic)) {
+    const topics =
+      THEME_TOPICS[theme] ||
+      []
+
+    if (
+      !topics.includes(topic)
+    ) {
       setTopic(
-        THEME_TOPICS[theme]?.[0] ||
+        topics[0] ||
           'Lifestyles',
       )
     }
   }, [theme, topic])
 
+  /*
+   * --------------------------------------------------------------------------
+   * PREPARATION TIMER
+   * --------------------------------------------------------------------------
+   */
+
   useEffect(() => {
     if (
       !preparing ||
-      preparationFinished ||
-      preparationSeconds <= 0
+      preparationFinished
     ) {
-      return
+      return undefined
     }
 
-    preparationTimerRef.current = setInterval(() => {
-      setPreparationSeconds(
-        (current) => {
-          if (current <= 1) {
-            clearInterval(
-              preparationTimerRef.current,
-            )
-            preparationTimerRef.current = null
-            setPreparing(false)
-            setPreparationFinished(true)
-            autoStartPresentationRef.current = true
-            return 0
-          }
+    preparationTimerRef.current =
+      setInterval(() => {
+        setPreparationSeconds(
+          (current) => {
+            if (current <= 1) {
+              clearInterval(
+                preparationTimerRef.current,
+              )
 
-          return current - 1
-        },
-      )
-    }, 1000)
+              preparationTimerRef.current =
+                null
+
+              setPreparing(false)
+              setPreparationFinished(
+                true,
+              )
+
+              return 0
+            }
+
+            return current - 1
+          },
+        )
+      }, 1000)
 
     return () => {
-      if (preparationTimerRef.current) {
+      if (
+        preparationTimerRef.current
+      ) {
         clearInterval(
           preparationTimerRef.current,
         )
-        preparationTimerRef.current = null
+
+        preparationTimerRef.current =
+          null
       }
     }
   }, [
-    preparationFinished,
-    preparationSeconds,
     preparing,
+    preparationFinished,
   ])
 
-  useEffect(() => {
-    if (
-      preparationFinished &&
-      autoStartPresentationRef.current
-    ) {
-      autoStartPresentationRef.current = false
+  /*
+   * --------------------------------------------------------------------------
+   * RESET
+   * --------------------------------------------------------------------------
+   */
+
+  const resetPreparation =
+    useCallback(() => {
+      if (
+        preparationTimerRef.current
+      ) {
+        clearInterval(
+          preparationTimerRef.current,
+        )
+
+        preparationTimerRef.current =
+          null
+      }
+
+      const minutes =
+        level === 'HL'
+          ? 20
+          : 15
+
+      setPreparationMinutes(
+        minutes,
+      )
+
+      setPreparationSeconds(
+        minutes * 60,
+      )
+
+      setPreparing(false)
+
+      setPreparationFinished(
+        false,
+      )
+    }, [level])
+
+  const stopMedia =
+    useCallback(() => {
+      if (
+        recordingTimerRef.current
+      ) {
+        clearInterval(
+          recordingTimerRef.current,
+        )
+
+        recordingTimerRef.current =
+          null
+      }
+
+      mediaStreamRef.current
+        ?.getTracks()
+        ?.forEach(
+          (track) =>
+            track.stop(),
+        )
+
+      mediaStreamRef.current =
+        null
+
+      mediaRecorderRef.current =
+        null
+
+      setRecording(false)
+    }, [])
+
+  const resetPractice =
+    useCallback(() => {
+      stopMedia()
+
+      setRecordedBlob(null)
+      setTranscript('')
+      setAnswerTranscript('')
+      setPresentationGrade(null)
+      setConversationGrade(null)
+      setQuestions([])
+      setQuestionIndex(0)
+      setGeneralQuestions([])
+      setGeneralQuestionIndex(0)
+      setMessages([
+        {
+          role: 'assistant',
+          content:
+            'Your examiner is ready. Complete the preparation period, then begin your presentation.',
+        },
+      ])
+      setOverallResult(false)
+      setError('')
+      setCopied(false)
       setPart('presentation')
-      setTimeout(() => {
-        startRecording('presentation')
-      }, 250)
-    }
-  }, [preparationFinished])
 
-  const resetPreparation = useCallback(() => {
-    if (preparationTimerRef.current) {
-      clearInterval(
-        preparationTimerRef.current,
+      resetPreparation()
+    }, [
+      resetPreparation,
+      stopMedia,
+    ])
+
+  /*
+   * --------------------------------------------------------------------------
+   * PREPARATION
+   * --------------------------------------------------------------------------
+   */
+
+  const startPreparation =
+    () => {
+      setError('')
+      setPreparationFinished(
+        false,
       )
-      preparationTimerRef.current = null
-    }
 
-    const minutes =
-      level === 'HL' ? 20 : 15
-
-    setPreparationMinutes(minutes)
-    setPreparationSeconds(minutes * 60)
-    setPreparing(false)
-    setPreparationFinished(false)
-  }, [level])
-
-  const resetRecordingState = useCallback(() => {
-    if (recordingTimerRef.current) {
-      clearInterval(
-        recordingTimerRef.current,
+      setPreparationSeconds(
+        preparationMinutes * 60,
       )
-      recordingTimerRef.current = null
+
+      setPreparing(true)
     }
 
-    mediaRecorderRef.current?.stop?.()
+  /*
+   * --------------------------------------------------------------------------
+   * IMAGE SWITCH
+   * --------------------------------------------------------------------------
+   */
 
-    mediaStreamRef.current
-      ?.getTracks()
-      ?.forEach((track) => track.stop())
+  const chooseNewImage =
+    () => {
+      if (images.length <= 1) {
+        return
+      }
 
-    mediaRecorderRef.current = null
-    mediaStreamRef.current = null
-    recorderChunksRef.current = []
+      let next = imageIndex
 
-    setRecording(false)
-    setRecordingSeconds(0)
-  }, [])
+      while (
+        next === imageIndex
+      ) {
+        next =
+          Math.floor(
+            Math.random() *
+              images.length,
+          )
+      }
 
-  const startPreparation = () => {
-    setError('')
-    setPreparationFinished(false)
-    setPreparationSeconds(
-      preparationMinutes * 60,
-    )
-    setPreparing(true)
-  }
-
-  const chooseNewStimulus = () => {
-    if (imageList.length <= 1) return
-
-    let nextIndex = imageIndex
-
-    while (nextIndex === imageIndex) {
-      nextIndex = Math.floor(
-        Math.random() * imageList.length,
-      )
+      setImageIndex(next)
+      setImageBroken(false)
     }
 
-    setImageIndex(nextIndex)
-    setImageBroken(false)
-  }
+  /*
+   * --------------------------------------------------------------------------
+   * RECORDING
+   * --------------------------------------------------------------------------
+   */
 
-  const startRecording = async (targetPart = part) => {
-    setError('')
+  const startRecording =
+    async (
+      targetPart = part,
+    ) => {
+      setError('')
 
-    if (
-      recording ||
-      typeof navigator === 'undefined' ||
-      !navigator.mediaDevices?.getUserMedia
-    ) {
-      if (!navigator.mediaDevices?.getUserMedia) {
+      if (
+        typeof navigator ===
+          'undefined' ||
+        !navigator.mediaDevices?.getUserMedia
+      ) {
         setError(
           'Your browser does not support microphone recording.',
         )
-      }
-      return
-    }
 
-    try {
-      const stream =
-        await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        })
-
-      const mimeType =
-        getSupportedRecordingMimeType()
-
-      const recorder = new MediaRecorder(
-        stream,
-        mimeType
-          ? {
-              mimeType,
-            }
-          : undefined,
-      )
-
-      mediaStreamRef.current = stream
-      mediaRecorderRef.current = recorder
-      recorderChunksRef.current = []
-
-      recorder.ondataavailable = (
-        event,
-      ) => {
-        if (
-          event.data &&
-          event.data.size > 0
-        ) {
-          recorderChunksRef.current.push(
-            event.data,
-          )
-        }
+        return
       }
 
-      recorder.onstop = () => {
-        const actualMimeType =
-          recorder.mimeType ||
-          mimeType ||
-          'audio/webm'
+      if (recording) {
+        return
+      }
 
-        const blob = new Blob(
-          recorderChunksRef.current,
-          {
-            type: actualMimeType,
-          },
+      if (recordedAudioUrl) {
+        URL.revokeObjectURL(
+          recordedAudioUrl,
         )
-
-        if (recordedAudioUrl) {
-          URL.revokeObjectURL(
-            recordedAudioUrl,
-          )
-        }
-
-        setRecordedBlob(blob)
-        setRecordedAudioUrl(
-          URL.createObjectURL(blob),
-        )
-
-        stream
-          .getTracks()
-          .forEach((track) =>
-            track.stop(),
-          )
-
-        setRecording(false)
       }
 
-      recorder.start(1000)
+      setRecordedAudioUrl('')
+      setRecordedBlob(null)
+      setTranscript('')
 
-      setRecording(true)
-      setRecordingSeconds(0)
-      setPart(targetPart)
-
-      recordingTimerRef.current =
-        setInterval(() => {
-          setRecordingSeconds(
-            (current) => {
-              const next = current + 1
-
-              const targetLimit =
-                targetPart ===
-                'presentation'
-                  ? 4 * 60
-                  : targetPart ===
-                      'followUp'
-                    ? 5 * 60
-                    : 6 * 60
-
-              if (next >= targetLimit) {
-                setTimeout(() => {
-                  if (
-                    mediaRecorderRef.current
-                      ?.state === 'recording'
-                  ) {
-                    mediaRecorderRef.current.stop()
-                  }
-                }, 0)
-              }
-
-              return next
+      try {
+        const stream =
+          await navigator.mediaDevices.getUserMedia(
+            {
+              audio: {
+                echoCancellation:
+                  true,
+                noiseSuppression:
+                  true,
+                autoGainControl:
+                  true,
+              },
             },
           )
-        }, 1000)
-    } catch (recordingError) {
-      console.error(
-        'Microphone access failed:',
-        recordingError,
-      )
 
-      setError(
-        'Microphone access was blocked or unavailable. Allow microphone access and try again.',
-      )
+        const mimeType =
+          getRecordingMimeType()
+
+        const recorder =
+          new MediaRecorder(
+            stream,
+            mimeType
+              ? {
+                  mimeType,
+                }
+              : undefined,
+          )
+
+        mediaStreamRef.current =
+          stream
+
+        mediaRecorderRef.current =
+          recorder
+
+        recorderChunksRef.current =
+          []
+
+        recorder.ondataavailable = (
+          event,
+        ) => {
+          if (
+            event.data &&
+            event.data.size
+          ) {
+            recorderChunksRef.current.push(
+              event.data,
+            )
+          }
+        }
+
+        recorder.onstop = () => {
+          const finalType =
+            recorder.mimeType ||
+            mimeType ||
+            'audio/webm'
+
+          const blob =
+            new Blob(
+              recorderChunksRef.current,
+              {
+                type: finalType,
+              },
+            )
+
+          if (
+            recordedAudioUrl
+          ) {
+            URL.revokeObjectURL(
+              recordedAudioUrl,
+            )
+          }
+
+          setRecordedBlob(blob)
+
+          setRecordedAudioUrl(
+            URL.createObjectURL(
+              blob,
+            ),
+          )
+
+          stream
+            .getTracks()
+            .forEach(
+              (track) =>
+                track.stop(),
+            )
+
+          mediaStreamRef.current =
+            null
+
+          mediaRecorderRef.current =
+            null
+
+          setRecording(false)
+        }
+
+        recorder.start(1000)
+
+        setPart(targetPart)
+        setRecording(true)
+        setRecordingSeconds(0)
+
+        recordingTimerRef.current =
+          setInterval(() => {
+            setRecordingSeconds(
+              (current) => {
+                const next =
+                  current + 1
+
+                const maxSeconds =
+                  targetPart ===
+                  'presentation'
+                    ? 4 * 60
+                    : targetPart ===
+                        'followUp'
+                      ? 5 * 60
+                      : 6 * 60
+
+                if (
+                  next >=
+                  maxSeconds
+                ) {
+                  setTimeout(
+                    () => {
+                      if (
+                        mediaRecorderRef.current
+                          ?.state ===
+                        'recording'
+                      ) {
+                        mediaRecorderRef.current.stop()
+                      }
+                    },
+                    0,
+                  )
+                }
+
+                return next
+              },
+            )
+          }, 1000)
+      } catch (recordError) {
+        console.error(
+          'Microphone recording failed:',
+          recordError,
+        )
+
+        setError(
+          'Microphone access was blocked or unavailable. Allow microphone access and try again.',
+        )
+      }
     }
-  }
 
-  const stopRecording = () => {
-    if (
-      mediaRecorderRef.current?.state ===
-      'recording'
-    ) {
-      mediaRecorderRef.current.stop()
+  const stopRecording =
+    () => {
+      if (
+        recordingTimerRef.current
+      ) {
+        clearInterval(
+          recordingTimerRef.current,
+        )
+
+        recordingTimerRef.current =
+          null
+      }
+
+      if (
+        mediaRecorderRef.current
+          ?.state ===
+        'recording'
+      ) {
+        mediaRecorderRef.current.stop()
+      } else {
+        stopMedia()
+      }
     }
 
-    if (recordingTimerRef.current) {
-      clearInterval(
-        recordingTimerRef.current,
-      )
-      recordingTimerRef.current = null
-    }
+  /*
+   * --------------------------------------------------------------------------
+   * TRANSCRIPTION
+   * --------------------------------------------------------------------------
+   */
 
-    mediaStreamRef.current
-      ?.getTracks()
-      ?.forEach((track) => track.stop())
-
-    setRecording(false)
-  }
-
-  const transcribeCurrentRecording =
-    async ({
+  const transcribeRecording =
+    async (
+      blob = recordedBlob,
       targetPart = part,
-      targetBlob = recordedBlob,
-    } = {}) => {
-      if (!targetBlob) {
+    ) => {
+      if (!blob) {
         setError(
           'Record a response before transcribing it.',
         )
+
         return ''
       }
 
@@ -1046,37 +1710,44 @@ function Oral() {
       try {
         const base64 =
           await blobToBase64(
-            targetBlob,
+            blob,
           )
 
-        const prompt = [
-          `IB Language B ${level}`,
-          `Target language: ${currentLanguage.languageName}.`,
-          `Theme: ${theme}.`,
-          `Topic: ${topic}.`,
-          `Part: ${PARTS[targetPart]?.subtitle || targetPart}.`,
-          'Transcribe the student accurately in the spoken target language.',
-          'Preserve pauses only when useful for interpretation.',
-          'Do not translate.',
-        ].join(' ')
+        const prompt = `
+IB Language B individual oral practice.
 
-        const result =
+Level: ${level}
+Target language: ${currentLanguage.languageName}
+Theme: ${theme}
+Topic: ${topic}
+Part: ${
+          PARTS[targetPart]?.subtitle ||
+          targetPart
+        }
+
+Transcribe the student in the target language.
+Do not translate.
+Do not invent words.
+Preserve the student's actual wording.
+`
+
+        const text =
           await transcribeAudio({
             base64,
             mimeType:
-              targetBlob.type ||
+              blob.type ||
               'audio/webm',
             languageCode:
               currentLanguage.code,
             prompt,
           })
 
-        setTranscript(result)
+        setTranscript(text)
 
-        return result
+        return text
       } catch (transcriptionError) {
         console.error(
-          'Oral transcription failed:',
+          'Groq transcription failed:',
           transcriptionError,
         )
 
@@ -1091,16 +1762,165 @@ function Oral() {
       }
     }
 
-  const generateFollowUpQuestions =
+  /*
+   * --------------------------------------------------------------------------
+   * PRESENTATION GRADING
+   * --------------------------------------------------------------------------
+   */
+
+  const gradePresentation =
     async (presentationText) => {
+      if (
+        !presentationText?.trim()
+      ) {
+        return null
+      }
+
+      const schema = {
+        type: 'json_schema',
+        json_schema: {
+          name:
+            'ib_oral_presentation_feedback',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              language: {
+                type: 'number',
+                minimum: 0,
+                maximum: 12,
+              },
+              message: {
+                type: 'number',
+                minimum: 0,
+                maximum: 6,
+              },
+              feedback: {
+                type: 'string',
+              },
+              strengths: {
+                type: 'array',
+                items: {
+                  type: 'string',
+                },
+              },
+              improvements: {
+                type: 'array',
+                items: {
+                  type: 'string',
+                },
+              },
+            },
+            required: [
+              'language',
+              'message',
+              'feedback',
+              'strengths',
+              'improvements',
+            ],
+            additionalProperties: false,
+          },
+        },
+      }
+
+      try {
+        const content =
+          await callDinoAI({
+            system: `
+You are an expert IB Language B individual oral examiner.
+
+Student language:
+${currentLanguage.languageName}
+
+Level:
+${level}
+
+The student is completing Part 1 of an IB Language B individual oral.
+
+For SL, evaluate the student's presentation of the visual stimulus,
+its theme, implications and relationship to target culture.
+
+For HL, evaluate the student's engagement with the literary extract,
+including events, ideas, messages and implications.
+
+Use these formative criteria:
+
+Criterion A Language:
+0-12
+
+Criterion B1 Message - Presentation:
+0-6
+
+Judge the transcript conservatively.
+Do not invent pronunciation errors that cannot be known from a transcript.
+Give actionable feedback.
+
+      `,
+            user: `
+Theme:
+${theme}
+
+Topic:
+${topic}
+
+Stimulus image:
+${currentImage}
+
+Student transcript:
+${presentationText}
+
+Student preparation notes:
+${notes
+  .filter(
+    (item) =>
+      item.trim(),
+  )
+  .join('\n')}
+
+Grade this practice presentation.
+      `,
+            responseFormat:
+              schema,
+            temperature: 0.2,
+            maxTokens: 1400,
+          })
+
+        const parsed =
+          JSON.parse(content)
+
+        setPresentationGrade(
+          parsed,
+        )
+
+        return parsed
+      } catch (gradeError) {
+        console.error(
+          'Presentation grading failed:',
+          gradeError,
+        )
+
+        return null
+      }
+    }
+
+  /*
+   * --------------------------------------------------------------------------
+   * FOLLOW-UP QUESTIONS
+   * --------------------------------------------------------------------------
+   */
+
+  const generateFollowUpQuestions =
+    async (
+      presentationText,
+    ) => {
       setAiQuestionLoading(true)
-      setError('')
 
       try {
         const schema = {
           type: 'json_schema',
           json_schema: {
-            name: 'oral_followup_questions',
+            name:
+              'ib_oral_followup_questions',
             strict: true,
             schema: {
               type: 'object',
@@ -1114,7 +1934,9 @@ function Oral() {
                   },
                 },
               },
-              required: ['questions'],
+              required: [
+                'questions',
+              ],
               additionalProperties: false,
             },
           },
@@ -1123,205 +1945,227 @@ function Oral() {
         const content =
           await callDinoAI({
             system: `
-You are an expert IB Language B ${level} oral examiner.
+You are an experienced IB Language B examiner.
 
-Create authentic follow-up discussion questions for Part 2 of the
-IB Language B individual oral.
+Create realistic Part 2 follow-up questions.
 
-The student is speaking ${currentLanguage.languageName}.
-The stimulus theme is "${theme}" and the topic is "${topic}".
+Student language:
+${currentLanguage.languageName}
 
-For SL, the discussion must stay connected to the visual stimulus,
-the theme, target culture(s), and ideas raised by the student.
+Level:
+${level}
 
-For HL, the discussion must stay connected to the literary extract,
-its ideas, events, messages and the student's observations.
+Theme:
+${theme}
 
-Questions should become progressively more probing.
-Do not ask irrelevant factual trivia.
-Do not turn the discussion into a grammar quiz.
-Write questions in the target language only.
-        `,
+Topic:
+${topic}
+
+Questions must:
+- be written entirely in the target language
+- develop from the student's presentation
+- explore implications, perspectives and cultural context
+- become progressively more probing
+- avoid grammar-test questions
+- avoid yes/no questions
+- feel like an actual oral examination
+
+For SL:
+Keep the discussion closely connected to the visual stimulus,
+the topic, the five IB themes and target-culture perspectives.
+
+For HL:
+Keep the discussion connected to the extract,
+its events, ideas and messages.
+      `,
             user: `
-Here is the student's presentation transcript:
+Student presentation:
 
-${presentationText || '(No transcript available.)'}
+${presentationText}
 
-Generate the follow-up discussion questions now.
-        `,
-            responseFormat: schema,
-            temperature: 0.5,
+Generate the follow-up questions.
+      `,
+            responseFormat:
+              schema,
+            temperature: 0.45,
             maxTokens: 1200,
           })
 
         const parsed =
           JSON.parse(content)
 
-        setQuestions(
-          Array.isArray(parsed?.questions)
+        const nextQuestions =
+          Array.isArray(
+            parsed?.questions,
+          )
             ? parsed.questions
-            : [],
+            : []
+
+        setQuestions(
+          nextQuestions,
         )
 
         setQuestionIndex(0)
 
-        setAiMessages([
-          INITIAL_MESSAGES[0],
-          {
-            role: 'assistant',
-            content:
-              parsed?.questions?.[0] ||
-              'Let us continue with the follow-up discussion.',
-          },
-        ])
+        return nextQuestions
       } catch (questionError) {
         console.error(
           'Follow-up question generation failed:',
           questionError,
         )
 
-        const fallbackQuestions = [
-          `Pourquoi cette question est-elle importante dans ${currentLanguage.targetCulture} ?`,
-          `Quels sont les avantages et les inconvénients de cette situation ?`,
-          `Comment cette situation peut-elle affecter les jeunes ?`,
-          `Pouvez-vous comparer cette situation avec votre propre contexte culturel ?`,
-          `Quels changements pourraient améliorer cette situation ?`,
-        ]
+        const fallback =
+          [
+            `Pourquoi cette question est-elle importante dans le monde actuel ?`,
+            `Quels sont les avantages et les inconvénients de cette situation ?`,
+            `Comment cette question peut-elle affecter les jeunes ?`,
+            `Pouvez-vous comparer cette situation avec votre propre contexte culturel ?`,
+            `Quels changements pourraient améliorer cette situation ?`,
+          ]
 
         setQuestions(
-          fallbackQuestions,
+          fallback,
         )
+
         setQuestionIndex(0)
 
-        setAiMessages([
-          INITIAL_MESSAGES[0],
-          {
-            role: 'assistant',
-            content:
-              fallbackQuestions[0],
-          },
-        ])
+        return fallback
       } finally {
-        setAiQuestionLoading(false)
+        setAiQuestionLoading(
+          false,
+        )
       }
     }
 
-  const gradePresentation = async (
-    presentationText,
-  ) => {
-    if (!presentationText?.trim()) {
-      return
-    }
+  /*
+   * --------------------------------------------------------------------------
+   * GENERAL DISCUSSION
+   * --------------------------------------------------------------------------
+   */
 
-    const schema = {
-      type: 'json_schema',
-      json_schema: {
-        name: 'oral_presentation_grade',
-        strict: true,
-        schema: {
-          type: 'object',
-          properties: {
-            language: {
-              type: 'number',
-              minimum: 0,
-              maximum: 12,
-            },
-            message: {
-              type: 'number',
-              minimum: 0,
-              maximum: 6,
-            },
-            feedback: {
-              type: 'string',
-            },
-            strengths: {
-              type: 'array',
-              items: {
-                type: 'string',
+  const generateGeneralQuestions =
+    async () => {
+      setAiQuestionLoading(true)
+
+      try {
+        const otherThemes =
+          shuffle(
+            THEMES.filter(
+              (item) =>
+                item !== theme,
+            ),
+          )
+
+        const selectedTheme =
+          otherThemes[0] ||
+          'Experiences'
+
+        setGeneralTheme(
+          selectedTheme,
+        )
+
+        const schema = {
+          type: 'json_schema',
+          json_schema: {
+            name:
+              'ib_oral_general_questions',
+            strict: true,
+            schema: {
+              type: 'object',
+              properties: {
+                questions: {
+                  type: 'array',
+                  minItems: 5,
+                  maxItems: 7,
+                  items: {
+                    type: 'string',
+                  },
+                },
               },
-            },
-            improvements: {
-              type: 'array',
-              items: {
-                type: 'string',
-              },
+              required: [
+                'questions',
+              ],
+              additionalProperties: false,
             },
           },
-          required: [
-            'language',
-            'message',
-            'feedback',
-            'strengths',
-            'improvements',
-          ],
-          additionalProperties: false,
-        },
-      },
-    }
+        }
 
-    try {
-      const content =
-        await callDinoAI({
-          system: `
-You are grading an IB Language B individual oral practice performance.
+        const content =
+          await callDinoAI({
+            system: `
+You are an IB Language B examiner.
 
-Target language: ${currentLanguage.languageName}
-Level: ${level}
-Theme: ${theme}
-Topic: ${topic}
+Create Part 3 general discussion questions.
 
-For SL Part 1, evaluate:
-- spoken language quality, range, accuracy, pronunciation/flow as evidenced by the transcript
-- engagement with the visual stimulus
-- relevance and explicit connection to target culture(s)
+Target language:
+${currentLanguage.languageName}
 
-For HL Part 1, evaluate:
-- spoken language quality, range and accuracy
-- quality and relevance of the student's engagement with the literary extract
-- treatment of events, ideas and messages in the extract
+Level:
+${level}
 
-Do not invent pronunciation errors that cannot be established from the transcript.
-
-The official oral criteria include:
-Criterion A Language: 12 marks.
-Criterion B1 Message - Presentation: 6 marks.
-
-Give a practical formative grade, not a falsely precise official result.
-        `,
-          user: `
-Visual/theme context:
+Main theme already used:
 ${theme}
-${topic}
 
-Stimulus:
-${currentImage}
+New discussion theme:
+${selectedTheme}
 
-Student presentation transcript:
-${presentationText}
+Topic areas:
+${(
+  THEME_TOPICS[
+    selectedTheme
+  ] || []
+).join(', ')}
 
-Preparation notes:
-${notes.filter(Boolean).join('\n')}
+Questions must:
+- be entirely in the target language
+- be open-ended
+- encourage comparison, explanation and evaluation
+- cover real IB Language B discussion territory
+- not become grammar drills
+- not ask trivial factual questions
+            `,
+            user: `
+Generate the Part 3 questions now.
+            `,
+            responseFormat:
+              schema,
+            temperature: 0.45,
+            maxTokens: 1200,
+          })
 
-Assess this performance.
-        `,
-          responseFormat: schema,
-          temperature: 0.2,
-          maxTokens: 1400,
-        })
+        const parsed =
+          JSON.parse(content)
 
-      const parsed =
-        JSON.parse(content)
+        return Array.isArray(
+          parsed?.questions,
+        )
+          ? parsed.questions
+          : []
+      } catch (generalError) {
+        console.error(
+          'General discussion generation failed:',
+          generalError,
+        )
 
-      setPresentationGrade(parsed)
-      return parsed
-    } catch (gradeError) {
-      console.error(
-        'Presentation grading failed:',
-        gradeError,
-      )
-      return null
+        return [
+          `Quel rôle les jeunes peuvent-ils jouer dans cette question ?`,
+          `Pourquoi cette question est-elle importante pour la société ?`,
+          `Comment cette situation est-elle différente dans votre pays ?`,
+          `Quels sont les avantages et les inconvénients de cette situation ?`,
+          `Comment cette situation pourrait-elle évoluer à l'avenir ?`,
+        ]
+      } finally {
+        setAiQuestionLoading(
+          false,
+        )
+      }
     }
-  }
+
+  /*
+   * --------------------------------------------------------------------------
+   * CONVERSATION GRADING
+   * --------------------------------------------------------------------------
+   */
 
   const gradeConversation =
     async ({
@@ -1331,7 +2175,8 @@ Assess this performance.
       const schema = {
         type: 'json_schema',
         json_schema: {
-          name: 'oral_conversation_grade',
+          name:
+            'ib_oral_conversation_feedback',
           strict: true,
           schema: {
             type: 'object',
@@ -1378,52 +2223,71 @@ Assess this performance.
         const content =
           await callDinoAI({
             system: `
-You are an IB Language B individual oral examiner grading a practice conversation.
+You are grading an IB Language B individual oral practice conversation.
 
-Target language: ${currentLanguage.languageName}
-Level: ${level}
+Target language:
+${currentLanguage.languageName}
 
-Criterion B2 Message - Conversation: 6 marks.
-Criterion C Interactive skills - Communication: 6 marks.
+Level:
+${level}
 
-Judge:
-- relevance and depth of responses
-- ability to sustain and develop conversation
-- comprehension as shown by responses
+Evaluate:
+
+Criterion B2 Message - Conversation: 0-6
+
+Criterion C Interactive Skills - Communication: 0-6
+
+Consider:
+- relevance
+- depth
+- development of ideas
+- ability to sustain interaction
 - independent contributions
-- appropriateness and effectiveness of communication
+- responses to questions
+- effectiveness of communication
 
-Do not grade subject-matter knowledge.
-Do not punish a student for having opinions you disagree with.
-Do not invent audio-only pronunciation faults from text.
-        `,
-          user: `
-Part 2 follow-up transcript:
-${followUpTranscript || '(No transcript.)'}
+Do not invent pronunciation mistakes from text transcripts.
+            `,
+            user: `
+Follow-up discussion:
 
-Part 3 general discussion transcript:
-${generalTranscript || '(No transcript.)'}
+${followUpTranscript}
 
-Give a realistic formative assessment.
-        `,
-          responseFormat: schema,
-          temperature: 0.2,
-          maxTokens: 1400,
-        })
+General discussion:
+
+${generalTranscript}
+
+Give formative feedback.
+            `,
+            responseFormat:
+              schema,
+            temperature: 0.2,
+            maxTokens: 1400,
+          })
 
         const parsed =
           JSON.parse(content)
 
-        setConversationGrade(parsed)
+        setConversationGrade(
+          parsed,
+        )
+
         return parsed
       } catch (conversationError) {
         console.error(
           'Conversation grading failed:',
           conversationError,
         )
+
         return null
       }
     }
+
+  /*
+   * --------------------------------------------------------------------------
+   * PRESENTATION SUBMIT
+   * --------------------------------------------------------------------------
+   */
 
   const submitPresentation =
     async () => {
@@ -1431,6 +2295,7 @@ Give a realistic formative assessment.
         setError(
           'Record your presentation first.',
         )
+
         return
       }
 
@@ -1439,44 +2304,58 @@ Give a realistic formative assessment.
 
       try {
         const text =
-          await transcribeCurrentRecording(
-            {
-              targetPart:
-                'presentation',
-              targetBlob:
-                recordedBlob,
-            },
+          await transcribeRecording(
+            recordedBlob,
+            'presentation',
           )
 
-        if (!text) return
+        if (!text) {
+          return
+        }
 
-        await gradePresentation(text)
-
-        await generateFollowUpQuestions(
+        await gradePresentation(
           text,
         )
 
-        setPart('followUp')
-        setAnswerTranscript('')
-        setAiMessages([
+        const generatedQuestions =
+          await generateFollowUpQuestions(
+            text,
+          )
+
+        const firstQuestion =
+          generatedQuestions[0] ||
+          'Why is this issue important in your target culture?'
+
+        setMessages([
           {
             role: 'assistant',
             content:
-              'Your presentation is recorded. I will now ask follow-up questions about the stimulus and your ideas.',
+              'Your presentation is complete. We will now move into the follow-up discussion.',
           },
           {
             role: 'assistant',
             content:
-              questions[0] ||
-              'Why is this issue important in your target culture?',
+              firstQuestion,
           },
         ])
+
+        setQuestionIndex(0)
+        setPart('followUp')
+        setRecordedBlob(null)
+        setRecordedAudioUrl('')
+        setTranscript('')
       } finally {
         setProcessing(false)
       }
     }
 
-  const submitConversationAnswer =
+  /*
+   * --------------------------------------------------------------------------
+   * CONVERSATION SUBMIT
+   * --------------------------------------------------------------------------
+   */
+
+  const submitConversation =
     async () => {
       if (
         !recordedBlob &&
@@ -1485,64 +2364,66 @@ Give a realistic formative assessment.
         setError(
           'Record your answer before submitting it.',
         )
+
         return
       }
 
-      setAnswerTranscribing(true)
+      setAnswerTranscribing(
+        true,
+      )
+
       setError('')
 
       try {
-        let text =
+        let answer =
           answerTranscript.trim()
 
         if (recordedBlob) {
-          text =
-            (await transcribeCurrentRecording(
-              {
-                targetPart: part,
-                targetBlob:
-                  recordedBlob,
-              },
-            )) || text
+          answer =
+            (await transcribeRecording(
+              recordedBlob,
+              part,
+            )) || answer
         }
 
-        if (!text) {
+        if (!answer) {
           setError(
             'No spoken response was detected.',
           )
+
           return
         }
 
-        const currentQuestionText =
-          currentQuestion ||
-          'Continue the discussion.'
-
-        setAiMessages(
+        setMessages(
           (current) => [
             ...current,
             {
               role: 'user',
-              content: text,
+              content: answer,
             },
           ],
         )
 
-        if (part === 'followUp') {
+        if (
+          part === 'followUp'
+        ) {
+          const nextIndex =
+            questionIndex + 1
+
           if (
-            questionIndex <
-            questions.length - 1
+            nextIndex <
+            questions.length
           ) {
             const nextQuestion =
               questions[
-                questionIndex + 1
+                nextIndex
               ]
 
             setQuestionIndex(
-              (current) =>
-                current + 1,
+              nextIndex,
             )
 
-            setAiMessages(
+            setMessages(
               (current) => [
                 ...current,
                 {
@@ -1554,262 +2435,160 @@ Give a realistic formative assessment.
             )
 
             setRecordedBlob(null)
-            setAnswerTranscript('')
+            setRecordedAudioUrl('')
+            setAnswerTranscript(
+              '' ,
+            )
+
             return
           }
 
-          const general =
+          const generated =
             await generateGeneralQuestions()
 
-          setGeneralQuestions(
-            general,
-          )
-          setGeneralQuestionIndex(0)
-          setPart('general')
-          setRecordedBlob(null)
-          setAnswerTranscript('')
+          const first =
+            generated[0] ||
+            'Let us move to another IB theme.'
 
-          setAiMessages(
+          setGeneralQuestions(
+            generated,
+          )
+
+          setGeneralQuestionIndex(
+            0,
+          )
+
+          setPart('general')
+
+          setMessages(
             (current) => [
               ...current,
               {
                 role: 'assistant',
                 content:
-                  general[0] ||
-                  'Let us move to a different theme.',
+                  'We will now move to the general discussion.',
+              },
+              {
+                role: 'assistant',
+                content: first,
               },
             ],
+          )
+
+          setRecordedBlob(null)
+          setRecordedAudioUrl('')
+          setAnswerTranscript(
+            '',
           )
 
           return
         }
 
-        if (part === 'general') {
-          const nextIndex =
-            generalQuestionIndex + 1
+        const nextGeneral =
+          generalQuestionIndex +
+          1
 
-          if (
-            nextIndex <
-            generalQuestions.length
-          ) {
-            const nextQuestion =
-              generalQuestions[
-                nextIndex
-              ]
+        if (
+          nextGeneral <
+          generalQuestions.length
+        ) {
+          const nextQuestion =
+            generalQuestions[
+              nextGeneral
+            ]
 
-            setGeneralQuestionIndex(
-              nextIndex,
-            )
-
-            setAiMessages(
-              (current) => [
-                ...current,
-                {
-                  role: 'assistant',
-                  content:
-                    nextQuestion,
-                },
-              ],
-            )
-
-            setRecordedBlob(null)
-            setAnswerTranscript('')
-            return
-          }
-
-          const priorConversation =
-            aiMessages
-              .map(
-                (message) =>
-                  `${message.role}: ${message.content}`,
-              )
-              .join('\n\n')
-
-          setOverallResult({
-            completed: true,
-            transcript,
-            finalConversation:
-              `${priorConversation}\n\nassistant: ${currentQuestionText}\n\nstudent: ${text}`,
-          })
-
-          await gradeConversation({
-            followUpTranscript:
-              priorConversation,
-            generalTranscript:
-              `${currentQuestionText}\n${text}`,
-          })
-
-          setRecordedBlob(null)
-          setAnswerTranscript('')
-        }
-      } finally {
-        setAnswerTranscribing(false)
-      }
-    }
-
-  const generateGeneralQuestions =
-    async () => {
-      setAiQuestionLoading(true)
-
-      try {
-        const schema = {
-          type: 'json_schema',
-          json_schema: {
-            name: 'oral_general_discussion_questions',
-            strict: true,
-            schema: {
-              type: 'object',
-              properties: {
-                questions: {
-                  type: 'array',
-                  minItems: 5,
-                  maxItems: 7,
-                  items: {
-                    type: 'string',
-                  },
-                },
-              },
-              required: ['questions'],
-              additionalProperties: false,
-            },
-          },
-        }
-
-        const otherThemes =
-          shuffle(
-            THEMES.filter(
-              (item) =>
-                item !== theme,
-            ),
+          setGeneralQuestionIndex(
+            nextGeneral,
           )
 
-        const selectedTheme =
-          otherThemes[0] ||
-          generalTheme
+          setMessages(
+            (current) => [
+              ...current,
+              {
+                role: 'assistant',
+                content:
+                  nextQuestion,
+              },
+            ],
+          )
 
-        setGeneralTheme(
-          selectedTheme,
-        )
+          setRecordedBlob(null)
+          setRecordedAudioUrl('')
+          setAnswerTranscript(
+            '',
+          )
 
-        const content =
-          await callDinoAI({
-            system: `
-You are an expert IB Language B examiner.
+          return
+        }
 
-Create Part 3 general discussion questions for a ${level} individual oral.
+        const entireConversation =
+          messages
+            .map(
+              (message) =>
+                `${message.role}: ${message.content}`,
+            )
+            .join('\n\n')
 
-The student speaks ${currentLanguage.languageName}.
-Use the IB Language B five-theme framework.
+        setOverallResult(true)
 
-Part 3 should be a genuine general discussion on at least one additional syllabus theme.
-Do not return grammar exercises.
-Do not ask yes/no questions.
-Create progressively more developed questions.
-Write everything in the target language.
-        `,
-            user: `
-Primary theme from Part 1:
-${theme}
+        await gradeConversation({
+          followUpTranscript:
+            entireConversation,
+          generalTranscript:
+            answer,
+        })
 
-Additional theme for Part 3:
-${selectedTheme}
-
-Suggested topic areas:
-${THEME_TOPICS[selectedTheme].join(', ')}
-
-Generate questions now.
-        `,
-            responseFormat: schema,
-            temperature: 0.5,
-            maxTokens: 1200,
-          })
-
-        const parsed =
-          JSON.parse(content)
-
-        return Array.isArray(
-          parsed?.questions,
-        )
-          ? parsed.questions
-          : []
-      } catch (generalError) {
-        console.error(
-          'General discussion generation failed:',
-          generalError,
-        )
-
-        return [
-          `Quels changements aimeriez-vous voir dans cette société ?`,
-          `Quel rôle les jeunes peuvent-ils jouer dans cette question ?`,
-          `Comment cette question est-elle différente dans votre pays ?`,
-          `Quels sont les avantages et les inconvénients de cette situation ?`,
-          `Comment cette situation pourrait-elle évoluer à l'avenir ?`,
-        ]
+        setRecordedBlob(null)
+        setRecordedAudioUrl('')
+        setAnswerTranscript('')
       } finally {
-        setAiQuestionLoading(false)
+        setAnswerTranscribing(
+          false,
+        )
       }
     }
 
-  const resetPractice = () => {
-    resetRecordingState()
+  /*
+   * --------------------------------------------------------------------------
+   * COPY
+   * --------------------------------------------------------------------------
+   */
 
-    setRecordedBlob(null)
+  const copyTranscript =
+    async () => {
+      if (!transcript) {
+        return
+      }
 
-    if (recordedAudioUrl) {
-      URL.revokeObjectURL(
-        recordedAudioUrl,
-      )
+      try {
+        await navigator.clipboard.writeText(
+          transcript,
+        )
+
+        setCopied(true)
+
+        setTimeout(() => {
+          setCopied(false)
+        }, 1500)
+      } catch {
+        setError(
+          'Could not copy transcript.',
+        )
+      }
     }
 
-    setRecordedAudioUrl('')
-    setTranscript('')
-    setPresentationGrade(null)
-    setConversationGrade(null)
-    setQuestions([])
-    setQuestionIndex(0)
-    setGeneralQuestions([])
-    setGeneralQuestionIndex(0)
-    setAnswerTranscript('')
-    setAiMessages(
-      INITIAL_MESSAGES,
-    )
-    setOverallResult(null)
-    setError('')
-    setCopied(false)
+  /*
+   * --------------------------------------------------------------------------
+   * SCORE
+   * --------------------------------------------------------------------------
+   */
 
-    resetPreparation()
-    setPart('presentation')
-  }
-
-  const nextStimulus = () => {
-    chooseNewStimulus()
-    resetPractice()
-  }
-
-  const copyTranscript = async () => {
-    if (!transcript) return
-
-    try {
-      await navigator.clipboard.writeText(
-        transcript,
-      )
-      setCopied(true)
-
-      setTimeout(() => {
-        setCopied(false)
-      }, 1500)
-    } catch {
-      setError(
-        'Could not copy the transcript.',
-      )
-    }
-  }
-
-  const totalGrade =
+  const totalScore =
     presentationGrade &&
     conversationGrade
       ? Number(
-          presentationGrade.language || 0,
+          presentationGrade.language ||
+            0,
         ) +
         Number(
           presentationGrade.message ||
@@ -1825,14 +2604,23 @@ Generate questions now.
         )
       : null
 
+  /*
+   * --------------------------------------------------------------------------
+   * GOLD LOCK
+   * --------------------------------------------------------------------------
+   */
+
   if (goldLoading) {
     return (
       <div
         style={{
-          minHeight: '460px',
+          minHeight:
+            '460px',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          alignItems:
+            'center',
+          justifyContent:
+            'center',
           color: '#777',
           fontSize: '11px',
         }}
@@ -1850,13 +2638,16 @@ Generate questions now.
             ✦
           </div>
 
-          <h2>Gold only.</h2>
+          <h2>
+            Gold only.
+          </h2>
 
           <p>
-            Individual Oral practice, AI
-            conversation, image stimuli,
-            recording and transcription are
-            available to Dino Gold members.
+            Individual Oral practice,
+            AI discussion, recording,
+            image stimuli and Groq
+            transcription are available
+            to Dino Gold members.
           </p>
 
           <button
@@ -1878,11 +2669,94 @@ Generate questions now.
     <>
       <style>
         {`
+          body:has(.dino-oral-shell),
+          html:has(.dino-oral-shell) {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+          }
+
+          #root:has(.dino-oral-shell),
+          .app:has(.dino-oral-shell),
+          .page-container:has(.dino-oral-shell) {
+            height: auto !important;
+            min-height: 100vh !important;
+            max-height: none !important;
+            overflow: visible !important;
+          }
+
+          .animated-page:has(.dino-oral-shell),
+          .dashboard-page:has(.dino-oral-shell),
+          .dashboard-workspace:has(.dino-oral-shell),
+          .dashboard-panel:has(.dino-oral-shell),
+          .dashboard-content:has(.dino-oral-shell) {
+            height: auto !important;
+            min-height: 100vh !important;
+            max-height: none !important;
+            overflow: visible !important;
+          }
+
           .dino-oral-shell {
+            position: relative;
             width: 100%;
             min-height: 100%;
+            height: auto;
+            overflow: visible;
             padding: 2px;
             box-sizing: border-box;
+          }
+
+          .dino-oral-shell.dino-oral-expanded {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            min-height: 100dvh;
+            max-height: none;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 30px 32px 40px;
+            background:
+              linear-gradient(
+                180deg,
+                #f8f8f8 0%,
+                #ffffff 100%
+              );
+          }
+
+          .dino-oral-shell:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            min-height: 100dvh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 30px 32px 40px;
+            background: #ffffff;
+          }
+
+          .dino-oral-shell:fullscreen
+            .dino-oral-workspace {
+            max-width: 1450px;
+            margin-left: auto;
+            margin-right: auto;
+          }
+
+          .dino-oral-shell:fullscreen
+            .dino-oral-topbar {
+            max-width: 1450px;
+            margin-left: auto;
+            margin-right: auto;
+          }
+
+          .dino-oral-shell:fullscreen
+            .dino-oral-result,
+          .dino-oral-shell:fullscreen
+            .dino-oral-error {
+            max-width: 1450px;
+            margin-left: auto;
+            margin-right: auto;
           }
 
           .dino-oral-topbar {
@@ -1913,11 +2787,19 @@ Generate questions now.
           }
 
           .dino-oral-description {
-            max-width: 650px;
+            max-width: 690px;
             margin: 10px 0 0;
             color: #777;
             font-size: 11px;
             line-height: 1.55;
+          }
+
+          .dino-oral-top-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
           }
 
           .dino-oral-controls {
@@ -1939,9 +2821,35 @@ Generate questions now.
             font-size: 10px;
           }
 
+          .dino-oral-expand-button {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0,0,0,.09);
+            border-radius: 10px;
+            background: rgba(255,255,255,.82);
+            color: #111;
+            font-size: 17px;
+            cursor: pointer;
+            transition:
+              transform .16s ease,
+              background .16s ease,
+              box-shadow .16s ease;
+          }
+
+          .dino-oral-expand-button:hover {
+            transform: translateY(-1px);
+            background: #fff;
+            box-shadow: 0 7px 18px rgba(0,0,0,.07);
+          }
+
           .dino-oral-workspace {
             display: grid;
-            grid-template-columns: minmax(0, 1.18fr) minmax(320px, .82fr);
+            grid-template-columns:
+              minmax(0, 1.15fr)
+              minmax(330px, .85fr);
             gap: 14px;
             align-items: stretch;
           }
@@ -1952,7 +2860,8 @@ Generate questions now.
             border-radius: 18px;
             background: rgba(255,255,255,.78);
             backdrop-filter: blur(18px);
-            box-shadow: 0 18px 50px rgba(0,0,0,.035);
+            box-shadow:
+              0 18px 50px rgba(0,0,0,.035);
           }
 
           .dino-oral-card-header {
@@ -2000,18 +2909,18 @@ Generate questions now.
 
           .dino-oral-image {
             width: 100%;
-            height: 100%;
             min-height: 370px;
+            height: 100%;
             display: block;
             object-fit: cover;
           }
 
           .dino-oral-image-empty {
             min-height: 370px;
+            padding: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 30px;
             text-align: center;
             color: #8a8a8a;
             font-size: 10px;
@@ -2020,8 +2929,8 @@ Generate questions now.
 
           .dino-oral-stimulus-tag {
             position: absolute;
-            left: 12px;
             top: 12px;
+            left: 12px;
             padding: 6px 9px;
             border: 1px solid rgba(0,0,0,.07);
             border-radius: 999px;
@@ -2040,6 +2949,7 @@ Generate questions now.
           }
 
           .dino-oral-info-box {
+            min-width: 0;
             padding: 11px;
             border: 1px solid rgba(0,0,0,.07);
             border-radius: 12px;
@@ -2052,12 +2962,6 @@ Generate questions now.
             font-size: 8px;
             font-weight: 700;
             text-transform: uppercase;
-          }
-
-          .dino-oral-info-value {
-            color: #161616;
-            font-size: 10px;
-            line-height: 1.4;
           }
 
           .dino-oral-actions {
@@ -2183,8 +3087,8 @@ Generate questions now.
 
           .dino-oral-note {
             width: 100%;
-            box-sizing: border-box;
             min-height: 48px;
+            box-sizing: border-box;
             padding: 9px 10px;
             border: 1px solid rgba(0,0,0,.07);
             border-radius: 10px;
@@ -2259,6 +3163,7 @@ Generate questions now.
 
           .dino-oral-chat-body {
             flex: 1;
+            min-height: 280px;
             padding: 15px;
             overflow-y: auto;
           }
@@ -2354,9 +3259,9 @@ Generate questions now.
           }
 
           .dino-oral-transcript {
+            max-height: 200px;
             margin-top: 10px;
             padding: 11px;
-            max-height: 190px;
             overflow-y: auto;
             border: 1px solid rgba(0,0,0,.06);
             border-radius: 11px;
@@ -2438,10 +3343,20 @@ Generate questions now.
           }
 
           @media (max-width: 700px) {
+            .dino-oral-shell {
+              padding-left: 16px;
+              padding-right: 16px;
+            }
+
+            .dino-oral-shell.dino-oral-expanded {
+              padding: 22px 16px 30px;
+            }
+
             .dino-oral-topbar {
               flex-direction: column;
             }
 
+            .dino-oral-top-actions,
             .dino-oral-controls {
               justify-content: flex-start;
             }
@@ -2455,11 +3370,26 @@ Generate questions now.
             .dino-oral-image {
               min-height: 260px;
             }
+
+            .dino-oral-phase-tab {
+              min-height: 42px;
+            }
+
+            .dino-oral-chat {
+              min-height: 500px;
+            }
           }
         `}
       </style>
 
-      <div className="dino-oral-shell">
+      <div
+        ref={oralShellRef}
+        className={
+          expanded
+            ? 'dino-oral-shell dino-oral-expanded'
+            : 'dino-oral-shell'
+        }
+      >
         <div className="dino-oral-topbar">
           <div>
             <span className="dino-oral-kicker">
@@ -2471,57 +3401,87 @@ Generate questions now.
             </h2>
 
             <p className="dino-oral-description">
-              A full simulated IB Language B individual
-              oral with preparation, stimulus
-              presentation, follow-up discussion,
-              general discussion, recording,
-              multilingual transcription and AI
+              Simulate the Individual Oral with
+              preparation, stimulus presentation,
+              follow-up discussion, general discussion,
+              recording, Groq transcription and AI
               formative feedback.
             </p>
           </div>
 
-          <div className="dino-oral-controls">
-            <select
-              className="dino-oral-select"
-              value={language}
-              onChange={(event) => {
-                setLanguage(
-                  event.target.value,
-                )
-                setTranscript('')
-                setPresentationGrade(null)
-                setConversationGrade(null)
-              }}
-            >
-              {LANGUAGES.map(
-                (item) => (
-                  <option
-                    key={item.id}
-                    value={item.id}
-                  >
-                    {item.label}
-                  </option>
-                ),
-              )}
-            </select>
+          <div className="dino-oral-top-actions">
+            <div className="dino-oral-controls">
+              <select
+                className="dino-oral-select"
+                value={language}
+                onChange={(event) => {
+                  setLanguage(
+                    event.target.value,
+                  )
 
-            <select
-              className="dino-oral-select"
-              value={level}
-              onChange={(event) => {
-                setLevel(
-                  event.target.value,
-                )
-                resetPreparation()
-              }}
+                  setTranscript('')
+                  setPresentationGrade(
+                    null,
+                  )
+                  setConversationGrade(
+                    null,
+                  )
+                }}
+              >
+                {LANGUAGES.map(
+                  (item) => (
+                    <option
+                      key={item.id}
+                      value={item.id}
+                    >
+                      {item.label}
+                    </option>
+                  ),
+                )}
+              </select>
+
+              <select
+                className="dino-oral-select"
+                value={level}
+                onChange={(event) => {
+                  setLevel(
+                    event.target.value,
+                  )
+
+                  resetPreparation()
+                }}
+              >
+                <option value="SL">
+                  Standard Level
+                </option>
+
+                <option value="HL">
+                  Higher Level
+                </option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              className="dino-oral-expand-button"
+              aria-label={
+                expanded
+                  ? 'Collapse oral workspace'
+                  : 'Expand oral workspace'
+              }
+              title={
+                expanded
+                  ? 'Collapse'
+                  : 'Expand'
+              }
+              onClick={
+                toggleExpanded
+              }
             >
-              <option value="SL">
-                Standard Level
-              </option>
-              <option value="HL">
-                Higher Level
-              </option>
-            </select>
+              {expanded
+                ? '×'
+                : '⛶'}
+            </button>
           </div>
         </div>
 
@@ -2535,9 +3495,7 @@ Generate questions now.
               </strong>
 
               <span className="dino-oral-pill">
-                {level === 'SL'
-                  ? '15 min preparation'
-                  : '20 min preparation'}
+                Gold · {level}
               </span>
             </div>
 
@@ -2545,7 +3503,7 @@ Generate questions now.
               <div className="dino-oral-image-wrap">
                 {imageLoading ? (
                   <div className="dino-oral-image-empty">
-                    Loading IO visual stimuli...
+                    Loading IO stimulus images...
                   </div>
                 ) : currentImage &&
                   !imageBroken ? (
@@ -2554,11 +3512,11 @@ Generate questions now.
                       className="dino-oral-image"
                       src={currentImage}
                       alt={`IB Language B oral stimulus for ${theme}`}
-                      onError={() => {
+                      onError={() =>
                         setImageBroken(
                           true,
                         )
-                      }}
+                      }
                     />
 
                     <div className="dino-oral-stimulus-tag">
@@ -2567,12 +3525,11 @@ Generate questions now.
                   </>
                 ) : (
                   <div className="dino-oral-image-empty">
-                    No compatible image was loaded
-                    from public/assets/io_images.
+                    No compatible image was found in
                     <br />
-                    Add the IO stimulus images to that
-                    folder or provide an images.json
-                    manifest there.
+                    <strong>
+                      public/assets/io_images
+                    </strong>
                   </div>
                 )}
               </div>
@@ -2593,6 +3550,8 @@ Generate questions now.
                       setTheme(
                         event.target.value,
                       )
+
+                      setError('')
                     }}
                     disabled={
                       preparing ||
@@ -2658,13 +3617,13 @@ Generate questions now.
                   type="button"
                   className="dino-oral-button secondary"
                   onClick={
-                    chooseNewStimulus
+                    chooseNewImage
                   }
                   disabled={
                     preparing ||
                     recording ||
                     preparationFinished ||
-                    imageList.length < 2
+                    images.length < 2
                   }
                 >
                   New stimulus
@@ -2690,16 +3649,16 @@ Generate questions now.
               <div className="dino-oral-timer-row">
                 <div className="dino-oral-timer-time">
                   {preparing
-                    ? formatSeconds(
+                    ? formatTime(
                         preparationSeconds,
                       )
                     : recording
-                      ? formatSeconds(
+                      ? formatTime(
                           recordingSeconds,
                         )
                       : preparationFinished
                         ? 'READY'
-                        : formatSeconds(
+                        : formatTime(
                             preparationMinutes *
                               60,
                           )}
@@ -2720,8 +3679,9 @@ Generate questions now.
                     {preparing
                       ? `${preparationMinutes} minutes`
                       : recording
-                        ? `${activePart.minutes} minute target`
-                        : level === 'HL'
+                        ? `${activePart.minutes} minute maximum`
+                        : level ===
+                            'HL'
                           ? '20 minutes'
                           : '15 minutes'}
                   </span>
@@ -2733,15 +3693,23 @@ Generate questions now.
                   style={{
                     width: `${
                       preparing
-                        ? Math.min(
-                            100,
-                            preparationProgress *
+                        ? Math.max(
+                            0,
+                            Math.min(
                               100,
+                              (1 -
+                                preparationSeconds /
+                                  (preparationMinutes *
+                                    60)) *
+                                100,
+                            ),
                           )
                         : recording
                           ? Math.min(
                               100,
-                              timerProgress *
+                              (recordingSeconds /
+                                (activePart.minutes *
+                                  60)) *
                                 100,
                             )
                           : 0
@@ -2762,11 +3730,14 @@ Generate questions now.
                         clearInterval(
                           preparationTimerRef.current,
                         )
+
                         preparationTimerRef.current =
                           null
                       }
 
-                      setPreparing(false)
+                      setPreparing(
+                        false,
+                      )
                     }}
                   >
                     Pause preparation
@@ -2781,40 +3752,48 @@ Generate questions now.
               </h3>
 
               <p className="dino-oral-section-description">
-                Use brief prompts only. The IB
-                examination allows approximately ten
-                short points, not a scripted speech.
+                Use brief prompts rather than a
+                memorised script.
               </p>
 
               <div className="dino-oral-notes">
                 {notes.map(
-                  (value, index) => (
+                  (
+                    value,
+                    index,
+                  ) => (
                     <textarea
                       key={index}
                       className="dino-oral-note"
                       value={value}
                       maxLength={180}
                       placeholder={`Point ${index + 1}`}
-                      onChange={(event) => {
+                      onChange={(
+                        event,
+                      ) => {
                         const next =
                           [...notes]
 
                         next[index] =
                           event.target.value
 
-                        setNotes(next)
+                        setNotes(
+                          next,
+                        )
                       }}
-                      disabled={
-                        preparationFinished &&
-                        !preparing
-                      }
                     />
                   ),
                 )}
               </div>
 
               <div className="dino-oral-note-counter">
-                {usedNotes}/10 note points used
+                {
+                  notes.filter(
+                    (item) =>
+                      item.trim(),
+                  ).length
+                }
+                /10 note points used
               </div>
             </div>
           </div>
@@ -2826,7 +3805,7 @@ Generate questions now.
               </strong>
 
               <span className="dino-oral-pill">
-                {level} · {currentLanguage.languageName}
+                {currentLanguage.languageName}
               </span>
             </div>
 
@@ -2834,7 +3813,7 @@ Generate questions now.
               {Object.entries(
                 PARTS,
               ).map(
-                ([key, value]) => (
+                ([key, info]) => (
                   <button
                     key={key}
                     type="button"
@@ -2843,24 +3822,20 @@ Generate questions now.
                         ? 'dino-oral-phase-tab active'
                         : 'dino-oral-phase-tab'
                     }
-                    onClick={() => {
-                      if (
-                        preparationFinished &&
-                        !recording
-                      ) {
-                        setPart(key)
-                      }
-                    }}
+                    onClick={() =>
+                      setPart(key)
+                    }
                     disabled={
                       recording ||
                       !preparationFinished
                     }
                   >
                     <strong>
-                      {value.title}
+                      {info.title}
                     </strong>
+
                     <span>
-                      {value.subtitle}
+                      {info.subtitle}
                     </span>
                   </button>
                 ),
@@ -2869,10 +3844,13 @@ Generate questions now.
 
             <div className="dino-oral-chat">
               <div className="dino-oral-chat-body">
-                {aiMessages.map(
-                  (message, index) => (
+                {messages.map(
+                  (
+                    message,
+                    index,
+                  ) => (
                     <div
-                      key={`${index}-${message.role}`}
+                      key={`${message.role}-${index}`}
                       className={
                         message.role ===
                         'user'
@@ -2881,7 +3859,9 @@ Generate questions now.
                       }
                     >
                       <div className="dino-oral-message-bubble">
-                        {message.content}
+                        {
+                          message.content
+                        }
                       </div>
                     </div>
                   ),
@@ -2893,11 +3873,13 @@ Generate questions now.
                   'presentation' && (
                   <div className="dino-oral-question-box">
                     <div className="dino-oral-question-label">
-                      Current examiner question
+                      Examiner question
                     </div>
 
                     <div className="dino-oral-question">
-                      {currentQuestion}
+                      {
+                        currentQuestion
+                      }
                     </div>
                   </div>
                 )}
@@ -2914,17 +3896,17 @@ Generate questions now.
 
                   <span className="dino-oral-recording-text">
                     {recording
-                      ? 'Recording your response'
+                      ? 'Recording'
                       : transcribing ||
                           answerTranscribing
                         ? 'Transcribing with Groq'
                         : processing
-                          ? 'Preparing examiner feedback'
+                          ? 'Preparing AI feedback'
                           : 'Microphone ready'}
                   </span>
 
                   <span className="dino-oral-recording-time">
-                    {formatSeconds(
+                    {formatTime(
                       recordingSeconds,
                     )}
                   </span>
@@ -2954,13 +3936,12 @@ Generate questions now.
                         disabled={
                           transcribing ||
                           answerTranscribing ||
-                          processing ||
-                          aiQuestionLoading
+                          processing
                         }
                       >
                         {part ===
                         'presentation'
-                          ? 'Start presentation recording'
+                          ? 'Start presentation'
                           : 'Record answer'}
                       </button>
                     )}
@@ -3009,9 +3990,10 @@ Generate questions now.
                         type="button"
                         className="dino-oral-button secondary"
                         onClick={
-                          submitConversationAnswer
+                          submitConversation
                         }
                         disabled={
+                          transcribing ||
                           answerTranscribing ||
                           aiQuestionLoading
                         }
@@ -3025,30 +4007,27 @@ Generate questions now.
                 </div>
 
                 {transcript && (
-                  <div>
+                  <>
                     <div className="dino-oral-transcript">
                       {transcript}
                     </div>
 
-                    {part ===
-                      'presentation' && (
-                      <button
-                        type="button"
-                        className="dino-oral-button secondary"
-                        style={{
-                          marginTop:
-                            '7px',
-                        }}
-                        onClick={
-                          copyTranscript
-                        }
-                      >
-                        {copied
-                          ? 'Copied'
-                          : 'Copy transcript'}
-                      </button>
-                    )}
-                  </div>
+                    <button
+                      type="button"
+                      className="dino-oral-button secondary"
+                      style={{
+                        marginTop:
+                          '7px',
+                      }}
+                      onClick={
+                        copyTranscript
+                      }
+                    >
+                      {copied
+                        ? 'Copied'
+                        : 'Copy transcript'}
+                    </button>
+                  </>
                 )}
               </div>
 
@@ -3097,7 +4076,7 @@ Generate questions now.
                         index,
                       ) => (
                         <li
-                          key={`s-${index}`}
+                          key={`strength-${index}`}
                         >
                           <strong>
                             Strength:
@@ -3116,7 +4095,7 @@ Generate questions now.
                         index,
                       ) => (
                         <li
-                          key={`i-${index}`}
+                          key={`improve-${index}`}
                         >
                           <strong>
                             Improve:
@@ -3174,7 +4153,7 @@ Generate questions now.
                         index,
                       ) => (
                         <li
-                          key={`cs-${index}`}
+                          key={`conversation-strength-${index}`}
                         >
                           <strong>
                             Strength:
@@ -3193,7 +4172,7 @@ Generate questions now.
                         index,
                       ) => (
                         <li
-                          key={`ci-${index}`}
+                          key={`conversation-improve-${index}`}
                         >
                           <strong>
                             Improve:
@@ -3209,7 +4188,7 @@ Generate questions now.
           </div>
         </div>
 
-        {overallResult?.completed && (
+        {overallResult && (
           <div className="dino-oral-result">
             <span className="dino-oral-kicker">
               Oral complete
@@ -3225,17 +4204,17 @@ Generate questions now.
             </h3>
 
             <div className="dino-oral-result-score">
-              {totalGrade !== null
-                ? `${totalGrade}/30`
+              {totalScore !== null
+                ? `${totalScore}/30`
                 : '—'}
             </div>
 
             <p
               style={{
+                maxWidth:
+                  '700px',
                 margin:
                   '8px 0 0',
-                maxWidth:
-                  '650px',
                 color:
                   '#777',
                 fontSize:
@@ -3244,10 +4223,9 @@ Generate questions now.
                   1.5,
               }}
             >
-              This is formative AI feedback for
-              practice. Your official IB result is
-              determined by your teacher/examiner using
-              the IB assessment criteria.
+              This is formative AI
+              feedback for practice,
+              not an official IB result.
             </p>
 
             <div className="dino-oral-actions">
@@ -3264,9 +4242,10 @@ Generate questions now.
               <button
                 type="button"
                 className="dino-oral-button secondary"
-                onClick={
-                  nextStimulus
-                }
+                onClick={() => {
+                  chooseNewImage()
+                  resetPractice()
+                }}
               >
                 New stimulus
               </button>
