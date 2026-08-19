@@ -4,6 +4,7 @@ import React, {
   useState,
 } from 'react'
 import AnimatedBackground from '../components/AnimatedBackground'
+import Oral from './oral'
 import {
   getCurrentUser,
   getProfile,
@@ -3810,7 +3811,7 @@ ${writingAnswer}
               ['course', 'Course'],
               ['reading', 'Reading'],
               ['writing', 'Writing'],
-              ['coming', 'More'],
+              ['internalOral', 'Speaking IO'],
             ].map(
               ([value, label]) => (
                 <button
@@ -5075,23 +5076,9 @@ ${writingAnswer}
               </section>
             )}
 
-            {activeTab === 'coming' && (
+            {activeTab === 'internalOral' && (
               <section className="dino-panel">
-                <div className="dino-coming-page">
-                  <div className="dino-coming-content">
-                    <div className="dino-coming-icon">
-                      ✦
-                    </div>
-
-                    <h2>
-                      Coming Soon...
-                    </h2>
-
-                    <p>
-                      Grammar activities and sentence structure practice are currently being developed for Dino.
-                    </p>
-                  </div>
-                </div>
+                <Oral />
               </section>
             )}
           </main>
