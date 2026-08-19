@@ -3773,15 +3773,53 @@ ${writingAnswer}
               Log out
             </button>
 
-            <button
-              type="button"
-              className="dino-upgrade-button"
-              onClick={() => {
-                window.location.href = "/upgrade";
-              }}
-            >
-              ✦ Upgrade to Gold
-            </button>
+            {(() => {
+              const [gold, setGold] = window.React?.useState?.(false) || [false, () => {}];
+
+              if (!window.__dinoGoldCheckStarted) {
+                window.__dinoGoldCheckStarted = true;
+
+                import("../api/credentials")
+                  .then(async ({ getCurrentUser, getGoldMembership }) => {
+                    try {
+                      const user = await getCurrentUser();
+
+                      if (!user) {
+                        return;
+                      }
+
+                      const isGold = await getGoldMembership(user.id);
+
+                      window.__dinoIsGoldMember = isGold;
+
+                      window.dispatchEvent(
+                        new CustomEvent("dino-gold-membership-check"),
+                      );
+                    } catch (error) {
+                      console.error(
+                        "Failed to check Gold membership:",
+                        error,
+                      );
+                    }
+                  });
+              }
+
+              if (window.__dinoIsGoldMember) {
+                return null;
+              }
+
+              return (
+                <button
+                  type="button"
+                  className="dino-upgrade-button"
+                  onClick={() => {
+                    window.location.href = "/upgrade";
+                  }}
+                >
+                  ✦ Upgrade to Gold
+                </button>
+              );
+            })()}
           </div>
 
 
