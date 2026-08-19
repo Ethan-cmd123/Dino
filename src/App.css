@@ -1862,7 +1862,7 @@ button:disabled {
    NEW DINO DASHBOARD
    ========================================================= */
 
-body[data-page="dashboard"] {
+body[data-page="dashboard"]:not(:has(.dino-oral-shell)) {
   overflow: hidden !important;
 }
 
@@ -1999,7 +1999,7 @@ body[data-page="dashboard"] {
   min-height: 0;
   flex: 1;
   margin-top: 18px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Course */
@@ -3287,3 +3287,32 @@ html:has(.blog-article) {
   overflow: visible !important;
 }
 
+/* ==========================================================================
+   ORAL PAGE - ENABLE PAGE SCROLLING
+   ========================================================================== */
+
+body:has(.dino-oral-shell) {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+html:has(.dino-oral-shell) {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+#root:has(.dino-oral-shell),
+.app:has(.dino-oral-shell),
+.page-container:has(.dino-oral-shell) {
+  height: auto !important;
+  min-height: 100vh !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.dino-oral-shell {
+  height: auto !important;
+  min-height: 100vh;
+  max-height: none !important;
+  overflow: visible !important;
+}
