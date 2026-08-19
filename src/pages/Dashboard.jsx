@@ -14,10 +14,8 @@ import {
   spendUserCredits,
   onAuthStateChange,
   signOut,
-  getCurrentUser,
   getGoldMembership,
-} from '../api/credentials'
-
+} from "../api/credentials";
 /*
 |--------------------------------------------------------------------------
 | Groq

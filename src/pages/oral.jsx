@@ -9,15 +9,8 @@ import React, {
 } from 'react'
 import {
   getCurrentUser,
-  getProfile,
-  getCourseProgress,
-  setCourseTopicCompleted,
-  syncUserCredits,
-  spendUserCredits,
-  onAuthStateChange,
-  signOut,
   getGoldMembership,
-} from "../api/credentials";
+} from '../api/credentials'
 
 const LANGUAGES = [
   {
