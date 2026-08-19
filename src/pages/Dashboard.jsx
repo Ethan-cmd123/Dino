@@ -2358,13 +2358,16 @@ Target-language topic: ${selected.local}
         }
 
         .dino-dashboard-sticky {
-          position: sticky;
-          top: 0;
-          z-index: 50;
-          margin: -28px -34px 0;
-          padding: 28px 34px 12px;
-          background: rgba(255,255,255,.9);
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          z-index: 9999 !important;
+          margin: 0 !important;
+          padding: 28px 34px 12px !important;
+          background: rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
         }
 
         .dino-kicker {
