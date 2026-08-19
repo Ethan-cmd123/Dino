@@ -372,6 +372,88 @@ function blobToBase64(blob) {
   )
 }
 
+function readJsonResponse(responseText) {
+  if (!responseText) {
+    return {}
+  }
+
+  try {
+    return JSON.parse(responseText)
+  } catch {
+    return {
+      raw: responseText,
+    }
+  }
+}
+
+function getApiError(data, fallback) {
+  const error = data?.error
+
+  if (typeof error === 'string') {
+    return error
+  }
+
+  if (typeof error?.message === 'string') {
+    return error.message
+  }
+
+  if (typeof data?.message === 'string') {
+    return data.message
+  }
+
+  if (typeof data?.raw === 'string') {
+    return data.raw
+  }
+
+  return fallback
+}
+
+function parseAIJson(content, label = 'AI response') {
+  if (content && typeof content === 'object') {
+    return content
+  }
+
+  const text = String(content || '').trim()
+
+  if (!text) {
+    throw new Error(`${label} was empty. Please try again.`)
+  }
+
+  const withoutFence = text
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim()
+
+  const candidates = [
+    withoutFence,
+    text,
+  ]
+
+  const firstBrace = withoutFence.indexOf('{')
+  const lastBrace = withoutFence.lastIndexOf('}')
+
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    candidates.push(
+      withoutFence.slice(
+        firstBrace,
+        lastBrace + 1,
+      ),
+    )
+  }
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate)
+    } catch {
+      // Try the next normalised form.
+    }
+  }
+
+  throw new Error(
+    `${label} was not valid JSON. Please try again.`,
+  )
+}
+
 async function callDinoAI({
   system,
   user,
@@ -402,27 +484,25 @@ async function callDinoAI({
   const responseText =
     await response.text()
 
-  let data = {}
-
-  try {
-    data = responseText
-      ? JSON.parse(
-          responseText,
-        )
-      : {}
-  } catch {
-    data = {}
-  }
+  const data = readJsonResponse(
+    responseText,
+  )
 
   if (!response.ok) {
     throw new Error(
-      data?.error ||
-        responseText ||
+      getApiError(
+        data,
         `Dino AI request failed with status ${response.status}.`,
+      ),
     )
   }
 
-  return data?.content || ''
+  return (
+    data?.content ||
+    data?.message?.content ||
+    data?.text ||
+    ''
+  )
 }
 
 async function transcribeAudio({
@@ -455,27 +535,33 @@ async function transcribeAudio({
   const responseText =
     await response.text()
 
-  let data = {}
-
-  try {
-    data = responseText
-      ? JSON.parse(
-          responseText,
-        )
-      : {}
-  } catch {
-    data = {}
-  }
+  const data = readJsonResponse(
+    responseText,
+  )
 
   if (!response.ok) {
     throw new Error(
-      data?.error ||
-        responseText ||
+      getApiError(
+        data,
         `Transcription failed with status ${response.status}.`,
+      ),
     )
   }
 
-  return data?.text || ''
+  const transcript = String(
+    data?.text ||
+      data?.transcript ||
+      data?.content ||
+      '',
+  ).trim()
+
+  if (!transcript) {
+    throw new Error(
+      'No speech was detected. Check the microphone and record again.',
+    )
+  }
+
+  return transcript
 }
 
 function Oral() {
@@ -1459,9 +1545,12 @@ function Oral() {
           'undefined' ||
         !navigator.mediaDevices
           ?.getUserMedia
+        ||
+        typeof MediaRecorder ===
+          'undefined'
       ) {
         setError(
-          'Your browser does not support microphone recording.',
+          'Your browser does not support microphone recording. Try an up-to-date browser.',
         )
 
         return
@@ -1480,6 +1569,7 @@ function Oral() {
       setRecordedAudioUrl('')
       setRecordedBlob(null)
       setTranscript('')
+      setAnswerTranscript('')
 
       try {
         const stream =
@@ -1531,6 +1621,17 @@ function Oral() {
           }
 
         recorder.onstop = () => {
+          if (
+            recordingTimerRef.current
+          ) {
+            clearInterval(
+              recordingTimerRef.current,
+            )
+
+            recordingTimerRef.current =
+              null
+          }
+
           const finalType =
             recorder.mimeType ||
             mimeType ||
@@ -1544,6 +1645,28 @@ function Oral() {
                   finalType,
               },
             )
+
+          if (blob.size < 1024) {
+            setRecordedBlob(null)
+            setRecordedAudioUrl('')
+            setError(
+              'The recording was empty. Check your microphone and record again.',
+            )
+
+            stream
+              .getTracks()
+              .forEach(
+                (track) =>
+                  track.stop(),
+              )
+
+            mediaStreamRef.current =
+              null
+            mediaRecorderRef.current =
+              null
+            setRecording(false)
+            return
+          }
 
           if (
             recordedAudioUrl
@@ -1575,6 +1698,13 @@ function Oral() {
             null
 
           setRecording(false)
+        }
+
+        recorder.onerror = () => {
+          setError(
+            'Recording failed before audio could be saved. Please try again.',
+          )
+          stopMedia()
         }
 
         recorder.start(1000)
@@ -1712,7 +1842,14 @@ Preserve the student's actual wording.
             prompt,
           })
 
-        setTranscript(text)
+        if (
+          targetPart ===
+          'presentation'
+        ) {
+          setTranscript(text)
+        } else {
+          setAnswerTranscript(text)
+        }
 
         return text
       } catch (transcriptionError) {
@@ -1869,8 +2006,10 @@ Grade this practice performance.
               1400,
           })
 
-        const parsed =
-          JSON.parse(content)
+        const parsed = parseAIJson(
+          content,
+          'Presentation feedback',
+        )
 
         setPresentationGrade(
           parsed,
@@ -1980,8 +2119,10 @@ Generate the follow-up questions.
               1200,
           })
 
-        const parsed =
-          JSON.parse(content)
+        const parsed = parseAIJson(
+          content,
+          'Follow-up questions',
+        )
 
         const nextQuestions =
           Array.isArray(
@@ -2126,8 +2267,10 @@ Questions should:
               1200,
           })
 
-        const parsed =
-          JSON.parse(content)
+        const parsed = parseAIJson(
+          content,
+          'General discussion questions',
+        )
 
         return Array.isArray(
           parsed?.questions,
@@ -2268,8 +2411,10 @@ Give formative feedback.
               1400,
           })
 
-        const parsed =
-          JSON.parse(content)
+        const parsed = parseAIJson(
+          content,
+          'Conversation feedback',
+        )
 
         setConversationGrade(
           parsed,
@@ -2682,35 +2827,55 @@ Give formative feedback.
 
   if (!gold) {
     return (
-      <div className="dino-coming-page">
-        <div className="dino-coming-content">
-          <div className="dino-coming-icon">
-            ✦
-          </div>
+      <div className="dino-oral-gate">
+        <style>
+          {`
+            .dino-oral-gate { min-height: min(720px, calc(100vh - 120px)); display: grid; place-items: center; position: relative; overflow: hidden; padding: 32px 20px; background: radial-gradient(circle at 8% 12%, rgba(255,209,89,.35), transparent 28%), radial-gradient(circle at 92% 90%, rgba(193,130,17,.27), transparent 32%), linear-gradient(135deg, #16100a, #302112 55%, #110d09); }
+            .dino-oral-gate::before, .dino-oral-gate::after { content: ''; position: absolute; width: 340px; height: 340px; border: 1px solid rgba(255,223,142,.2); border-radius: 50%; pointer-events: none; }
+            .dino-oral-gate::before { top: -172px; right: -95px; } .dino-oral-gate::after { bottom: -220px; left: -96px; }
+            .dino-oral-gate-card { width: min(100%, 720px); position: relative; z-index: 1; padding: clamp(28px, 6vw, 56px); border: 1px solid rgba(255,224,146,.35); border-radius: 28px; background: linear-gradient(145deg, rgba(255,255,255,.15), rgba(255,255,255,.045)); box-shadow: 0 28px 80px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.2); color: #fffaf0; text-align: center; backdrop-filter: blur(18px); }
+            .dino-oral-gate-mark { width: 62px; height: 62px; display: grid; place-items: center; margin: 0 auto 18px; border: 1px solid rgba(255,227,155,.5); border-radius: 19px; background: linear-gradient(145deg, #ffe39a, #b47815); color: #3b2200; font-size: 31px; box-shadow: 0 10px 28px rgba(0,0,0,.26); }
+            .dino-oral-gate-eyebrow { display: block; margin-bottom: 10px; color: #f9cf72; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+            .dino-oral-gate h2 { max-width: 560px; margin: 0 auto; font-size: clamp(31px, 5.5vw, 52px); line-height: .98; letter-spacing: -.055em; }
+            .dino-oral-gate-copy { max-width: 510px; margin: 16px auto 0; color: rgba(255,250,240,.74); font-size: 14px; line-height: 1.65; }
+            .dino-oral-gate-features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 28px 0; text-align: left; }
+            .dino-oral-gate-feature { min-height: 94px; padding: 14px; border: 1px solid rgba(255,255,255,.13); border-radius: 15px; background: rgba(0,0,0,.16); }
+            .dino-oral-gate-feature span { display: block; font-size: 19px; } .dino-oral-gate-feature strong { display: block; margin-top: 8px; font-size: 12px; } .dino-oral-gate-feature small { display: block; margin-top: 4px; color: rgba(255,250,240,.62); font-size: 10px; line-height: 1.35; }
+            .dino-oral-gate-button { min-height: 48px; padding: 0 22px; border: 0; border-radius: 13px; background: linear-gradient(135deg, #ffe7a5, #d69a2e); color: #342000; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 22px rgba(0,0,0,.2); transition: transform .16s ease, box-shadow .16s ease; }
+            .dino-oral-gate-button:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0,0,0,.27); } .dino-oral-gate-note { margin: 12px 0 0; color: rgba(255,250,240,.5); font-size: 10px; }
+            @media (max-width: 560px) { .dino-oral-gate { padding: 16px; } .dino-oral-gate-card { border-radius: 21px; } .dino-oral-gate-features { grid-template-columns: 1fr; } .dino-oral-gate-feature { min-height: auto; } }
+          `}
+        </style>
 
-          <h2>
-            Gold only.
-          </h2>
-
-          <p>
-            Individual Oral practice,
-            AI discussion, recording,
-            image stimuli and Groq
-            transcription are available
-            to Dino Gold members.
+        <section className="dino-oral-gate-card">
+          <div className="dino-oral-gate-mark">✦</div>
+          <span className="dino-oral-gate-eyebrow">
+            Dino Gold · Oral studio
+          </span>
+          <h2>Practise the oral with an examiner that keeps up.</h2>
+          <p className="dino-oral-gate-copy">
+            Rehearse the complete IB Language B oral—from visual stimulus to discussion—with private recordings and helpful AI feedback.
           </p>
+
+          <div className="dino-oral-gate-features">
+            <div className="dino-oral-gate-feature"><span>◉</span><strong>Real practice flow</strong><small>Preparation, presentation and both discussion parts.</small></div>
+            <div className="dino-oral-gate-feature"><span>⌁</span><strong>Audio to transcript</strong><small>Turn your recorded answer into feedback-ready text.</small></div>
+            <div className="dino-oral-gate-feature"><span>✦</span><strong>Specific feedback</strong><small>Get formative guidance for your next attempt.</small></div>
+          </div>
 
           <button
             type="button"
-            className="dino-upgrade-button"
+            className="dino-oral-gate-button"
             onClick={() => {
-              window.location.href =
-                '/upgrade'
+              window.location.href = '/upgrade'
             }}
           >
-            ✦ Upgrade to Gold
+            Unlock Oral Practice with Gold →
           </button>
-        </div>
+          <p className="dino-oral-gate-note">
+            Your recordings stay in this practice session.
+          </p>
+        </section>
       </div>
     )
   }

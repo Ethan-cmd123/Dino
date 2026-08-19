@@ -175,10 +175,21 @@ export default async function handler(req, res) {
         })
       }
 
-      const cleanBase64 =
-        audioBase64
-          .replace(/^data:.*?;base64,/, '')
-          .trim()
+      const cleanBase64 = audioBase64
+        .replace(/^data:.*?;base64,/i, '')
+        .replace(/\s/g, '')
+
+      if (
+        !cleanBase64 ||
+        !/^[A-Za-z0-9+/]*={0,2}$/.test(
+          cleanBase64,
+        )
+      ) {
+        return res.status(400).json({
+          error:
+            'The recording could not be decoded. Please record again.',
+        })
+      }
 
       let audioBuffer
 
@@ -199,6 +210,15 @@ export default async function handler(req, res) {
         return res.status(400).json({
           error:
             'Audio recording was empty.',
+        })
+      }
+
+      // Groq accepts files up to 25 MB. Keep a little headroom for the
+      // multipart request and return an actionable error before forwarding.
+      if (audioBuffer.length > 24 * 1024 * 1024) {
+        return res.status(413).json({
+          error:
+            'This recording is too large to transcribe. Record a shorter response and try again.',
         })
       }
 
@@ -230,16 +250,26 @@ export default async function handler(req, res) {
           'm4a',
       }
 
+      const normalisedMimeType =
+        String(mimeType)
+          .split(';')[0]
+          .trim()
+          .toLowerCase()
+
       const extension =
+        extensionMap[mimeType] ||
         extensionMap[
-          mimeType
-        ] || 'webm'
+          normalisedMimeType
+        ] ||
+        'webm'
 
       const fileBlob =
         new Blob(
           [audioBuffer],
           {
-            type: mimeType,
+            type:
+              normalisedMimeType ||
+              'audio/webm',
           },
         )
 
@@ -254,8 +284,10 @@ export default async function handler(req, res) {
 
       formData.append(
         'model',
-        model ||
-          'whisper-large-v3-turbo',
+        model ===
+        'whisper-large-v3'
+          ? 'whisper-large-v3'
+          : 'whisper-large-v3-turbo',
       )
 
       formData.append(
