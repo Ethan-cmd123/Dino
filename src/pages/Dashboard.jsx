@@ -2891,7 +2891,9 @@ Target-language topic: ${selected.local}
 
         .dino-reading-card {
           min-width: 0;
-          min-height: 0;
+          height: 650px;
+          min-height: 650px;
+          max-height: 650px;
 
           border: 1px solid rgba(255,255,255,.70);
           border-radius: 16px;
@@ -2974,9 +2976,13 @@ Target-language topic: ${selected.local}
         }
 
         .dino-reading-generator {
-          min-height: 0;
+          height: 650px;
+          min-height: 650px;
+          max-height: 650px;
+
           display: flex;
           flex-direction: column;
+
           overflow: hidden;
         }
 
