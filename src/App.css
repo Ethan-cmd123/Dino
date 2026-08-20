@@ -1482,10 +1482,9 @@ button:disabled {
 .dashboard-content {
   min-height: 0;
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
   margin-top: 25px;
 }
-
 .dashboard-section-heading {
   max-width: 670px;
 }
@@ -1866,7 +1865,8 @@ button:disabled {
    ========================================================= */
 
 body[data-page="dashboard"]:not(:has(.dino-oral-shell)) {
-  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
 }
 
 .dashboard-page {
@@ -1878,8 +1878,8 @@ body[data-page="dashboard"]:not(:has(.dino-oral-shell)) {
   position: relative;
   z-index: 10;
   width: min(1340px, 100%);
-  height: calc(100dvh - 58px);
-  min-height: 0;
+  min-height: 100dvh;
+  height: auto;
   display: flex;
   flex-direction: column;
 }
