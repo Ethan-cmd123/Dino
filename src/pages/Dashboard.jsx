@@ -2370,7 +2370,7 @@ Target-language topic: ${selected.local}
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
 
-          border-radius: 999px;
+          border-radius: 700px;
           overflow: hidden;
         }
 
