@@ -2976,9 +2976,9 @@ Target-language topic: ${selected.local}
         }
 
         .dino-reading-generator {
-          height: 650px;
-          min-height: 650px;
-          max-height: 650px;
+          height: 250px;
+          min-height: 250px;
+          max-height: 250px;
 
           display: flex;
           flex-direction: column;
