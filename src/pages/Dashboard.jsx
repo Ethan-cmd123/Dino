@@ -2326,53 +2326,71 @@ Target-language topic: ${selected.local}
           overflow-y: auto !important;
         }
 
-        /* Keep the real navbar visible */
+        /* Completely hide the site's normal navbar on the dashboard */
         body[data-page="dashboard"] .navbar {
-          display: flex !important;
-          position: relative;
-          z-index: 10000;
+          display: none !important;
         }
 
-        /* Everything on the dashboard starts underneath the navbar */
-        .dino-dashboard {
-          --dino-navbar-height: 72px;
+        /* =========================================================
+          DASHBOARD BASE
+          ========================================================= */
 
+        .dino-dashboard {
           position: relative;
           width: 100%;
           min-height: 100dvh;
-          padding: calc(var(--dino-navbar-height) + 28px) 34px 24px;
+          padding: 28px 34px 40px;
           overflow: visible;
         }
 
         .dino-dashboard-shell {
           position: relative;
-          z-index: 10;
+          z-index: 1;
           width: min(1260px, 100%);
           min-height: 100%;
           margin: 0 auto;
           display: flex;
           flex-direction: column;
+          min-width: 0;
         }
 
-        /* Dashboard header stays fixed, but BELOW the navbar */
+        /* =========================================================
+          DASHBOARD STICKY HEADER
+          This is now the ONLY top navigation on the dashboard.
+          ========================================================= */
+
         .dino-dashboard-sticky {
-          position: fixed !important;
-          top: var(--dino-navbar-height) !important;
-          left: 0 !important;
-          right: 0 !important;
-          z-index: 9999 !important;
-          margin: 0 !important;
-          padding: 18px 34px 12px !important;
+          position: sticky !important;
+          top: 0 !important;
+          z-index: 100 !important;
 
-          background: rgba(255, 255, 255, 0.72) !important;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          width: 100%;
 
-          backdrop-filter: blur(22px) saturate(140%);
-          -webkit-backdrop-filter: blur(22px) saturate(140%);
+          margin: -28px 0 0 !important;
+          padding: 28px 0 12px !important;
 
-          box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.04),
-            inset 0 1px 0 rgba(255, 255, 255, 0.7);
+          background:
+            linear-gradient(
+              to bottom,
+              rgba(255,255,255,.97) 0%,
+              rgba(255,255,255,.91) 62%,
+              rgba(255,255,255,.72) 82%,
+              rgba(255,255,255,0) 100%
+            ) !important;
+
+          border: 0 !important;
+          box-shadow: none !important;
+
+          backdrop-filter: blur(14px) saturate(115%);
+          -webkit-backdrop-filter: blur(14px) saturate(115%);
+        }
+
+        .dino-dashboard-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 30px;
+          flex: 0 0 auto;
         }
 
         .dino-kicker {
@@ -2401,10 +2419,15 @@ Target-language topic: ${selected.local}
           font-style: italic;
         }
 
+        /* =========================================================
+          HEADER ACTIONS
+          ========================================================= */
+
         .dino-header-actions {
           display: flex;
           align-items: center;
           gap: 9px;
+          min-width: 0;
         }
 
         .dino-user-email {
@@ -2420,23 +2443,41 @@ Target-language topic: ${selected.local}
           display: inline-flex;
           align-items: center;
           gap: 7px;
+
           padding: 7px 10px;
-          border: 1px solid color-mix(in srgb, var(--accent) 40%, rgba(0,0,0,.08));
+
+          border: 1px solid color-mix(
+            in srgb,
+            var(--accent) 40%,
+            rgba(0,0,0,.08)
+          );
+
           border-radius: 999px;
-          background: rgba(255,255,255,.7);
+
+          background: rgba(255,255,255,.72);
+
           color: #111;
           font-size: 9px;
           line-height: 1;
-          box-shadow: 0 8px 24px rgba(0,0,0,.02);
+
+          box-shadow:
+            0 6px 18px rgba(0,0,0,.025),
+            inset 0 1px 0 rgba(255,255,255,.85);
+
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
         }
 
         .dino-points-coin {
           display: inline-flex;
           align-items: center;
           justify-content: center;
+
           width: 14px;
           height: 14px;
+
           border-radius: 50%;
+
           font-size: 10px;
           line-height: 1;
         }
@@ -2444,13 +2485,41 @@ Target-language topic: ${selected.local}
         .dino-logout-button {
           height: 31px;
           padding: 0 11px;
-          border: 1px solid rgba(0,0,0,.08);
+
+          border: 1px solid rgba(0,0,0,.07);
           border-radius: 9px;
-          background: rgba(255,255,255,.75);
+
+          background: rgba(255,255,255,.68);
+
           color: #666;
           font-size: 8px;
+
           cursor: pointer;
+
+          box-shadow:
+            0 5px 14px rgba(0,0,0,.02),
+            inset 0 1px 0 rgba(255,255,255,.82);
+
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+
+          transition:
+            background .15s ease,
+            color .15s ease,
+            transform .15s ease,
+            border-color .15s ease;
         }
+
+        .dino-logout-button:hover {
+          background: rgba(255,255,255,.88);
+          color: #222;
+          border-color: rgba(0,0,0,.1);
+          transform: translateY(-1px);
+        }
+
+        /* =========================================================
+          PROGRESS
+          ========================================================= */
 
         .dino-progress {
           width: 210px;
@@ -2484,27 +2553,32 @@ Target-language topic: ${selected.local}
           transition: width .3s ease;
         }
 
+        /* =========================================================
+          TABS
+          ========================================================= */
+
         .dino-tabs {
           width: 100%;
-          margin-top: 22px;
+          margin-top: 20px;
           padding: 4px;
 
           display: flex;
           gap: 3px;
+
           overflow-x: auto;
           scrollbar-width: none;
 
-          border: 1px solid rgba(255, 255, 255, 0.58);
-          border-radius: 14px;
+          border: 1px solid rgba(255,255,255,.74);
+          border-radius: 13px;
 
-          background: rgba(255, 255, 255, 0.5);
-
-          backdrop-filter: blur(20px) saturate(135%);
-          -webkit-backdrop-filter: blur(20px) saturate(135%);
+          background: rgba(255,255,255,.58);
 
           box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.035),
-            inset 0 1px 0 rgba(255, 255, 255, 0.75);
+            0 8px 24px rgba(0,0,0,.035),
+            inset 0 1px 0 rgba(255,255,255,.9);
+
+          backdrop-filter: blur(16px) saturate(115%);
+          -webkit-backdrop-filter: blur(16px) saturate(115%);
 
           flex: 0 0 auto;
         }
@@ -2515,19 +2589,30 @@ Target-language topic: ${selected.local}
 
         .dino-tab {
           flex: 1 0 auto;
+
           min-height: 38px;
           padding: 8px 14px;
+
           border-radius: 10px;
           border: 0;
+
           background: transparent;
+
           color: #767676;
+
           font-family: Inter, sans-serif;
           font-size: 10px;
           font-weight: 500;
           letter-spacing: -.025em;
+
           white-space: nowrap;
+
           cursor: pointer;
-          transition: background .18s ease, color .18s ease;
+
+          transition:
+            background .18s ease,
+            color .18s ease,
+            transform .18s ease;
         }
 
         .dino-tab:hover {
@@ -2537,38 +2622,74 @@ Target-language topic: ${selected.local}
         .dino-tab.active {
           background: var(--accent);
           color: #062515;
+          box-shadow:
+            0 3px 10px color-mix(
+              in srgb,
+              var(--accent) 28%,
+              transparent
+            );
         }
+
+        /* =========================================================
+          MAIN
+          ========================================================= */
 
         .dino-main {
           min-height: 0;
-          margin-top: 30px;
-          padding-top: 120px;
+          margin-top: 18px;
+          padding-top: 0;
         }
 
-        .dino-.dino-panel {
+        /* =========================================================
+          MAIN GLASS PANEL
+          ========================================================= */
+
+        .dino-panel {
           position: relative;
+
+          width: 100%;
           height: auto;
           min-height: 0;
+
           padding: 22px;
+
           overflow: visible;
 
-          border: 1px solid rgba(255, 255, 255, 0.55);
-          border-radius: 22px;
+          border: 1px solid rgba(255,255,255,.76);
+          border-radius: 20px;
+
+          background:
+            linear-gradient(
+              145deg,
+              rgba(255,255,255,.80),
+              rgba(255,255,255,.60)
+            );
+
+          box-shadow:
+            0 18px 45px rgba(0,0,0,.045),
+            0 2px 10px rgba(0,0,0,.025),
+            inset 0 1px 0 rgba(255,255,255,.92),
+            inset 0 -1px 0 rgba(255,255,255,.35);
+
+          backdrop-filter: blur(18px) saturate(120%);
+          -webkit-backdrop-filter: blur(18px) saturate(120%);
+        }
+
+        .dino-panel::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+
+          border-radius: inherit;
 
           background:
             linear-gradient(
               135deg,
-              rgba(255, 255, 255, 0.72),
-              rgba(255, 255, 255, 0.48)
+              rgba(255,255,255,.30),
+              transparent 30%
             );
 
-          backdrop-filter: blur(24px) saturate(135%);
-          -webkit-backdrop-filter: blur(24px) saturate(135%);
-
-          box-shadow:
-            0 20px 55px rgba(0, 0, 0, 0.06),
-            inset 0 1px 0 rgba(255, 255, 255, 0.85),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+          pointer-events: none;
         }
 
         .dino-panel-heading {
@@ -2596,11 +2717,17 @@ Target-language topic: ${selected.local}
           line-height: 1.5;
         }
 
+        /* =========================================================
+          THEMES
+          ========================================================= */
+
         .dino-theme-grid {
           min-height: 0;
+
           display: grid;
           grid-template-columns: repeat(5, minmax(0,1fr));
           gap: 10px;
+
           overflow: visible;
         }
 
@@ -2610,17 +2737,32 @@ Target-language topic: ${selected.local}
           min-height: 340px;
           padding: 14px;
 
-          border: 1px solid rgba(255, 255, 255, 0.6);
+          border: 1px solid rgba(255,255,255,.72);
           border-radius: 16px;
 
-          background: rgba(255, 255, 255, 0.42);
-
-          backdrop-filter: blur(18px) saturate(130%);
-          -webkit-backdrop-filter: blur(18px) saturate(130%);
+          background: rgba(255,255,255,.48);
 
           box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.035),
-            inset 0 1px 0 rgba(255, 255, 255, 0.75);
+            0 8px 22px rgba(0,0,0,.025),
+            inset 0 1px 0 rgba(255,255,255,.86);
+
+          backdrop-filter: blur(14px) saturate(115%);
+          -webkit-backdrop-filter: blur(14px) saturate(115%);
+
+          transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            background .18s ease;
+        }
+
+        .dino-theme:hover {
+          transform: translateY(-2px);
+
+          background: rgba(255,255,255,.60);
+
+          box-shadow:
+            0 14px 28px rgba(0,0,0,.04),
+            inset 0 1px 0 rgba(255,255,255,.92);
         }
 
         .dino-theme-top {
@@ -2657,35 +2799,34 @@ Target-language topic: ${selected.local}
 
         .dino-topic {
           position: relative;
+
           display: grid;
           grid-template-columns: 15px minmax(0,1fr);
           gap: 9px;
           align-items: center;
+
           padding: 8px;
 
-          border: 1px solid rgba(255, 255, 255, 0.58);
+          border: 1px solid rgba(255,255,255,.66);
           border-radius: 10px;
 
-          background: rgba(255, 255, 255, 0.38);
-
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255,255,255,.48);
 
           box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.65);
+            inset 0 1px 0 rgba(255,255,255,.75);
 
           cursor: pointer;
 
           transition:
-            background .18s ease,
-            transform .18s ease,
-            border-color .18s ease;
+            transform .15s ease,
+            background .15s ease,
+            border-color .15s ease;
         }
 
         .dino-topic:hover {
-          background: rgba(255, 255, 255, 0.55);
-          border-color: rgba(255, 255, 255, 0.8);
           transform: translateY(-1px);
+          background: rgba(255,255,255,.66);
+          border-color: rgba(255,255,255,.9);
         }
 
         .dino-topic input {
@@ -2698,13 +2839,17 @@ Target-language topic: ${selected.local}
           display: inline-flex;
           align-items: center;
           justify-content: center;
+
           width: 15px;
           height: 15px;
+
           border: 1px solid rgba(0,0,0,.14);
           border-radius: 4px;
+
           color: #fff;
           font-size: 8px;
-          background: #fff;
+
+          background: rgba(255,255,255,.82);
         }
 
         .dino-topic.completed .dino-check {
@@ -2727,11 +2872,17 @@ Target-language topic: ${selected.local}
         .dino-topic-copy small {
           margin-top: 2px;
           overflow: hidden;
+
           color: #999;
           font-size: 7px;
+
           text-overflow: ellipsis;
           white-space: nowrap;
         }
+
+        /* =========================================================
+          READING
+          ========================================================= */
 
         .dino-reading-panel {
           overflow: visible;
@@ -2744,29 +2895,46 @@ Target-language topic: ${selected.local}
         .dino-reading-card {
           min-width: 0;
           min-height: 0;
-          border: 0;
-          border-radius: 0;
-          background: transparent;
-          backdrop-filter: none;
-          box-shadow: none;
+
+          border: 1px solid rgba(255,255,255,.70);
+          border-radius: 16px;
+
+          background: rgba(255,255,255,.48);
+
+          backdrop-filter: blur(14px) saturate(115%);
+          -webkit-backdrop-filter: blur(14px) saturate(115%);
+
+          box-shadow:
+            0 10px 26px rgba(0,0,0,.03),
+            inset 0 1px 0 rgba(255,255,255,.84);
         }
 
         .dino-expand-button {
           width: 28px;
           height: 28px;
           flex: 0 0 28px;
+
           display: inline-flex;
           align-items: center;
           justify-content: center;
+
           padding: 0;
+
           border: 1px solid rgba(0,0,0,.07);
           border-radius: 8px;
-          background: rgba(255,255,255,.8);
+
+          background: rgba(255,255,255,.76);
+
           color: #5f5f5f;
           font-size: 13px;
           line-height: 1;
+
           cursor: pointer;
-          transition: background .15s ease, color .15s ease, transform .15s ease;
+
+          transition:
+            background .15s ease,
+            color .15s ease,
+            transform .15s ease;
         }
 
         .dino-expand-button:hover {
@@ -2779,19 +2947,27 @@ Target-language topic: ${selected.local}
           position: fixed;
           inset: 0;
           z-index: 80;
+
           background: rgba(0,0,0,.28);
+
           backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
         }
 
         .dino-card-expanded {
           position: fixed !important;
           inset: 28px;
+
           z-index: 81;
+
           width: auto !important;
           height: auto !important;
+
           min-width: 0;
           min-height: 0;
+
           border-radius: 22px;
+
           box-shadow: 0 30px 90px rgba(0,0,0,.16);
         }
 
@@ -2810,10 +2986,13 @@ Target-language topic: ${selected.local}
         .dino-card-topbar {
           min-height: 51px;
           padding: 0 17px;
+
           border-bottom: 1px solid rgba(0,0,0,.06);
+
           display: flex;
           align-items: center;
           justify-content: space-between;
+
           flex: 0 0 51px;
         }
 
@@ -2886,12 +3065,16 @@ Target-language topic: ${selected.local}
         .dino-select {
           width: 100%;
           min-height: 42px;
+
           padding: 0 11px;
+
           border: 1px solid rgba(0,0,0,.08);
           border-radius: 11px;
           outline: none;
-          background: #fff;
+
+          background: rgba(255,255,255,.84);
           color: #272727;
+
           font-family: inherit;
           font-size: 10px;
         }
@@ -2900,19 +3083,30 @@ Target-language topic: ${selected.local}
         .dino-answer-box:focus,
         .dino-writing-textarea:focus {
           border-color: var(--accent);
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+
+          box-shadow:
+            0 0 0 3px color-mix(
+              in srgb,
+              var(--accent) 16%,
+              transparent
+            );
         }
 
         .dino-generate {
           width: 100%;
           min-height: 42px;
+
           margin-top: 13px;
+
           border: 0;
           border-radius: 11px;
+
           background: var(--accent);
           color: #062515;
+
           font-size: 9px;
           font-weight: 600;
+
           cursor: pointer;
         }
 
@@ -2930,10 +3124,13 @@ Target-language topic: ${selected.local}
         .dino-error {
           margin-top: 10px;
           padding: 9px 10px;
+
           border: 1px solid rgba(150,0,0,.08);
           border-radius: 10px;
+
           background: rgba(255,245,245,.9);
           color: #8c4545;
+
           font-size: 9px;
           line-height: 1.4;
         }
@@ -2947,9 +3144,14 @@ Target-language topic: ${selected.local}
 
         .dino-generated-question {
           padding: 14px;
+
           border: 1px solid rgba(0,0,0,.06);
           border-radius: 14px;
-          background: rgba(250,250,250,.65);
+
+          background: rgba(255,255,255,.48);
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.72);
         }
 
         .dino-question-header {
@@ -2973,8 +3175,13 @@ Target-language topic: ${selected.local}
         .dino-reading-context {
           margin-top: 11px;
           padding: 12px;
+
           border-radius: 11px;
-          background: rgba(255,255,255,.85);
+
+          background: rgba(255,255,255,.68);
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.72);
         }
 
         .dino-reading-context-label {
@@ -3002,14 +3209,19 @@ Target-language topic: ${selected.local}
         .dino-answer-box {
           width: 100%;
           min-height: 90px;
+
           margin-top: 11px;
           padding: 10px;
+
           resize: vertical;
+
           border: 1px solid rgba(0,0,0,.08);
           border-radius: 11px;
           outline: none;
-          background: #fff;
+
+          background: rgba(255,255,255,.88);
           color: #222;
+
           font: inherit;
           font-size: 10px;
           line-height: 1.5;
@@ -3021,6 +3233,7 @@ Target-language topic: ${selected.local}
 
         .dino-question-actions {
           margin-top: 9px;
+
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -3035,12 +3248,16 @@ Target-language topic: ${selected.local}
         .dino-mark-button {
           min-height: 32px;
           padding: 0 12px;
+
           border: 0;
           border-radius: 9px;
+
           background: var(--accent);
           color: #062515;
+
           font-size: 8px;
           font-weight: 600;
+
           cursor: pointer;
         }
 
@@ -3052,8 +3269,10 @@ Target-language topic: ${selected.local}
         .dino-feedback {
           margin-top: 10px;
           padding: 11px;
+
           border-radius: 11px;
-          background: rgba(244,244,244,.95);
+
+          background: rgba(244,244,244,.9);
         }
 
         .dino-feedback-score {
@@ -3065,12 +3284,15 @@ Target-language topic: ${selected.local}
         .dino-total-score {
           margin-top: 14px;
           padding: 12px;
+
           display: flex;
           justify-content: space-between;
           align-items: center;
+
           border: 1px solid rgba(0,0,0,.06);
           border-radius: 11px;
-          background: rgba(255,255,255,.75);
+
+          background: rgba(255,255,255,.65);
         }
 
         .dino-total-score span {
@@ -3087,26 +3309,37 @@ Target-language topic: ${selected.local}
           min-height: 32px;
           margin-top: 10px;
           padding: 0 12px;
+
           border: 1px solid rgba(0,0,0,.08);
           border-radius: 9px;
-          background: #fff;
+
+          background: rgba(255,255,255,.78);
           color: #353535;
+
           font-size: 8px;
           cursor: pointer;
         }
+
+        /* =========================================================
+          TUTOR
+          ========================================================= */
 
         .dino-tutor-card {
           display: flex;
           flex-direction: column;
           overflow: hidden;
+
+          border-radius: 15px;
         }
 
         .dino-tutor-head {
           min-height: 62px;
           padding: 0 16px;
+
           display: flex;
           align-items: center;
           justify-content: space-between;
+
           border-bottom: 1px solid rgba(0,0,0,.06);
         }
 
@@ -3119,12 +3352,16 @@ Target-language topic: ${selected.local}
         .dino-tutor-avatar {
           width: 30px;
           height: 30px;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           border-radius: 9px;
+
           background: #111;
           color: #fff;
+
           font-size: 10px;
           font-weight: 600;
         }
@@ -3149,6 +3386,7 @@ Target-language topic: ${selected.local}
           display: inline-flex;
           align-items: center;
           gap: 5px;
+
           color: #7f7f7f;
           font-size: 7px;
         }
@@ -3156,15 +3394,20 @@ Target-language topic: ${selected.local}
         .dino-tutor-online-dot {
           width: 6px;
           height: 6px;
+
           border-radius: 50%;
+
           background: #7b9b77;
         }
 
         .dino-chat-area {
           min-height: 0;
           flex: 1;
+
           padding: 13px;
+
           overflow-y: auto;
+
           display: flex;
           flex-direction: column;
           gap: 9px;
@@ -3172,15 +3415,18 @@ Target-language topic: ${selected.local}
 
         .dino-chat-message {
           max-width: 94%;
+
           padding: 9px 10px;
+
           border-radius: 11px;
+
           font-size: 9px;
           line-height: 1.45;
         }
 
         .dino-chat-message.tutor {
           align-self: flex-start;
-          background: #f4f4f4;
+          background: rgba(244,244,244,.86);
           color: #343434;
         }
 
@@ -3198,13 +3444,18 @@ Target-language topic: ${selected.local}
         .dino-chat-input {
           width: 100%;
           min-height: 55px;
+
           padding: 9px;
+
           resize: vertical;
+
           border: 1px solid rgba(0,0,0,.08);
           border-radius: 10px;
           outline: none;
-          background: #fff;
+
+          background: rgba(255,255,255,.88);
           color: #222;
+
           font-family: inherit;
           font-size: 9px;
           line-height: 1.45;
@@ -3213,13 +3464,18 @@ Target-language topic: ${selected.local}
         .dino-chat-send {
           width: 100%;
           min-height: 32px;
+
           margin-top: 7px;
+
           border: 0;
           border-radius: 9px;
+
           background: #111;
           color: #fff;
+
           font-size: 8px;
           font-weight: 600;
+
           cursor: pointer;
         }
 
@@ -3233,8 +3489,11 @@ Target-language topic: ${selected.local}
         .dino-typing-dot {
           width: 5px;
           height: 5px;
+
           border-radius: 50%;
+
           background: #999;
+
           animation: dinoTyping 1s infinite ease-in-out;
         }
 
@@ -3258,9 +3517,14 @@ Target-language topic: ${selected.local}
           }
         }
 
+        /* =========================================================
+          WRITING
+          ========================================================= */
+
         .dino-writing-workspace {
           min-height: 0;
           height: auto;
+
           display: grid;
           grid-template-columns: 340px minmax(0,1fr);
           gap: 14px;
@@ -3268,16 +3532,26 @@ Target-language topic: ${selected.local}
 
         .dino-writing-card {
           min-height: 0;
-          border: 0;
-          border-radius: 0;
-          background: transparent;
-          backdrop-filter: none;
+
+          border: 1px solid rgba(255,255,255,.70);
+          border-radius: 16px;
+
+          background: rgba(255,255,255,.48);
+
+          backdrop-filter: blur(14px) saturate(115%);
+          -webkit-backdrop-filter: blur(14px) saturate(115%);
+
+          box-shadow:
+            0 10px 26px rgba(0,0,0,.03),
+            inset 0 1px 0 rgba(255,255,255,.84);
+
           overflow: visible;
         }
 
         .dino-writing-controls {
           padding: 20px;
           overflow: visible;
+
           display: flex;
           flex-direction: column;
         }
@@ -3294,10 +3568,13 @@ Target-language topic: ${selected.local}
         .dino-writing-editor-topbar {
           min-height: 51px;
           padding: 0 17px;
+
           border-bottom: 1px solid rgba(0,0,0,.06);
+
           display: flex;
           align-items: center;
           justify-content: flex-end;
+
           flex: 0 0 51px;
         }
 
@@ -3318,25 +3595,36 @@ Target-language topic: ${selected.local}
         .dino-prompt-empty {
           height: 100%;
           min-height: 420px;
+
           max-width: 520px;
           margin: 0 auto;
+
           display: flex;
           flex-direction: column;
           justify-content: center;
+
           text-align: center;
         }
 
         .dino-prompt-icon {
           width: 44px;
           height: 44px;
+
           margin: 0 auto 13px;
+
           border: 1px solid rgba(0,0,0,.08);
           border-radius: 13px;
-          background: #fff;
+
+          background: rgba(255,255,255,.75);
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           color: #777;
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.9);
         }
 
         .dino-prompt-empty h3 {
@@ -3354,9 +3642,14 @@ Target-language topic: ${selected.local}
 
         .dino-writing-task {
           padding: 16px;
+
           border: 1px solid rgba(0,0,0,.06);
           border-radius: 14px;
-          background: rgba(250,250,250,.7);
+
+          background: rgba(255,255,255,.48);
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.72);
         }
 
         .dino-writing-task h3 {
@@ -3383,15 +3676,19 @@ Target-language topic: ${selected.local}
 
         .dino-writing-meta span {
           padding: 5px 7px;
+
           border-radius: 999px;
-          background: #fff;
+          background: rgba(255,255,255,.78);
+
           color: #858585;
           font-size: 7px;
+
           border: 1px solid rgba(0,0,0,.05);
         }
 
         .dino-writing-answer-label {
           margin-top: 15px;
+
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -3410,14 +3707,19 @@ Target-language topic: ${selected.local}
         .dino-writing-textarea {
           width: 100%;
           min-height: 270px;
+
           margin-top: 8px;
           padding: 12px;
+
           resize: vertical;
+
           border: 1px solid rgba(0,0,0,.08);
           border-radius: 12px;
           outline: none;
-          background: #fff;
+
+          background: rgba(255,255,255,.88);
           color: #222;
+
           font-family: inherit;
           font-size: 10px;
           line-height: 1.55;
@@ -3430,9 +3732,11 @@ Target-language topic: ${selected.local}
         .dino-writing-grade {
           margin-top: 15px;
           padding: 15px;
+
           border: 1px solid rgba(0,0,0,.07);
           border-radius: 14px;
-          background: rgba(248,248,248,.8);
+
+          background: rgba(248,248,248,.72);
         }
 
         .dino-writing-grade-score {
@@ -3460,9 +3764,12 @@ Target-language topic: ${selected.local}
         .dino-criterion-scores span,
         .dino-vocabulary-count {
           padding: 5px 7px;
+
           border: 1px solid rgba(0,0,0,.06);
           border-radius: 999px;
+
           background: rgba(255,255,255,.7);
+
           color: #666;
           font-size: 8px;
         }
@@ -3508,6 +3815,10 @@ Target-language topic: ${selected.local}
           font-weight: 600;
         }
 
+        /* =========================================================
+          VOCABULARY
+          ========================================================= */
+
         .dino-vocabulary-workspace {
           display: grid;
           grid-template-columns: 300px minmax(0, 1fr);
@@ -3544,13 +3855,18 @@ Target-language topic: ${selected.local}
         .dino-vocabulary-card {
           width: 100%;
           min-height: 280px;
+
           margin-top: 20px;
           padding: 0;
+
           border: 0;
           border-radius: 18px;
+
           background: transparent;
           color: inherit;
+
           text-align: left;
+
           perspective: 1200px;
           cursor: pointer;
         }
@@ -3558,10 +3874,14 @@ Target-language topic: ${selected.local}
         .dino-flashcard-inner {
           position: relative;
           display: block;
+
           width: 100%;
           min-height: 280px;
+
           transform-style: preserve-3d;
-          transition: transform .55s cubic-bezier(.2,.75,.2,1);
+
+          transition:
+            transform .55s cubic-bezier(.2,.75,.2,1);
         }
 
         .dino-vocabulary-card.is-flipped .dino-flashcard-inner {
@@ -3571,20 +3891,38 @@ Target-language topic: ${selected.local}
         .dino-flashcard-face {
           position: absolute;
           inset: 0;
+
           display: flex;
           flex-direction: column;
           justify-content: center;
+
           padding: 28px;
-          border: 1px solid rgba(0,0,0,.07);
+
+          border: 1px solid rgba(255,255,255,.74);
           border-radius: 18px;
-          background: rgba(255,255,255,.72);
+
+          background: rgba(255,255,255,.62);
+
+          box-shadow:
+            0 12px 28px rgba(0,0,0,.035),
+            inset 0 1px 0 rgba(255,255,255,.88);
+
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
         }
 
         .dino-flashcard-back {
           transform: rotateY(180deg);
-          background: color-mix(in srgb, var(--accent) 13%, white);
+
+          background:
+            color-mix(
+              in srgb,
+              var(--accent) 13%,
+              rgba(255,255,255,.78)
+            );
         }
 
         .dino-flashcard-hint {
@@ -3614,12 +3952,24 @@ Target-language topic: ${selected.local}
         }
 
         .dino-vocabulary-card:focus-visible {
-          outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+          outline:
+            3px solid
+            color-mix(
+              in srgb,
+              var(--accent) 45%,
+              transparent
+            );
+
           outline-offset: 4px;
         }
 
         .dino-vocabulary-card:hover .dino-flashcard-face {
-          border-color: color-mix(in srgb, var(--accent) 48%, rgba(0,0,0,.07));
+          border-color:
+            color-mix(
+              in srgb,
+              var(--accent) 38%,
+              rgba(0,0,0,.07)
+            );
         }
 
         .dino-vocabulary-card .dino-flashcard-front > strong {
@@ -3636,11 +3986,17 @@ Target-language topic: ${selected.local}
           gap: 8px;
         }
 
+        /* =========================================================
+          COMING SOON
+          ========================================================= */
+
         .dino-coming-page {
           height: 100%;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           text-align: center;
         }
 
@@ -3651,21 +4007,32 @@ Target-language topic: ${selected.local}
         .dino-coming-icon {
           width: 50px;
           height: 50px;
+
           margin: 0 auto;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           border: 1px solid rgba(0,0,0,.08);
           border-radius: 15px;
-          background: rgba(255,255,255,.8);
+
+          background: rgba(255,255,255,.76);
+
           font-size: 17px;
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.9);
         }
 
         .dino-coming-content h2 {
           margin: 18px 0 0;
+
           color: #111;
+
           font-size: clamp(48px,7vw,82px);
           line-height: .9;
+
           font-weight: 600;
           letter-spacing: -.09em;
         }
@@ -3673,10 +4040,149 @@ Target-language topic: ${selected.local}
         .dino-coming-content p {
           max-width: 430px;
           margin: 17px auto 0;
+
           color: #808080;
+
           font-size: 12px;
           line-height: 1.5;
         }
+
+        /* =========================================================
+          GOLD BUTTON
+          ========================================================= */
+
+        .dino-upgrade-button {
+          position: relative;
+
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          gap: 7px;
+
+          padding: 10px 16px;
+
+          border: 1px solid rgba(255, 215, 90, 0.65);
+          border-radius: 10px;
+
+          background:
+            linear-gradient(
+              135deg,
+              #fff4b0 0%,
+              #f7d65a 25%,
+              #d9a928 50%,
+              #f6d96a 75%,
+              #fff1a3 100%
+            );
+
+          color: #5a3b00;
+
+          font-weight: 800;
+          font-size: 13px;
+          letter-spacing: -0.2px;
+
+          cursor: pointer;
+
+          box-shadow:
+            0 0 0 1px rgba(255,215,90,0.15),
+            0 4px 14px rgba(218,168,37,0.28),
+            inset 0 1px 0 rgba(255,255,255,0.75);
+
+          overflow: hidden;
+
+          transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            filter .18s ease;
+        }
+
+        .dino-upgrade-button::before {
+          content: "";
+
+          position: absolute;
+
+          top: -40%;
+          left: -90%;
+
+          width: 55%;
+          height: 180%;
+
+          background:
+            linear-gradient(
+              90deg,
+              transparent,
+              rgba(255,255,255,.75),
+              transparent
+            );
+
+          transform: rotate(20deg);
+
+          animation:
+            dino-gold-shine 2.8s ease-in-out infinite;
+
+          pointer-events: none;
+        }
+
+        .dino-upgrade-button::after {
+          content: "✦";
+
+          position: absolute;
+
+          top: 2px;
+          right: 7px;
+
+          font-size: 9px;
+          color: rgba(255,255,255,.9);
+
+          animation:
+            dino-gold-sparkle 1.5s ease-in-out infinite;
+
+          pointer-events: none;
+        }
+
+        .dino-upgrade-button:hover {
+          transform: translateY(-1px);
+
+          filter: brightness(1.06);
+
+          box-shadow:
+            0 0 0 1px rgba(255,215,90,0.25),
+            0 7px 20px rgba(218,168,37,0.4),
+            0 0 18px rgba(255,215,90,0.18),
+            inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .dino-upgrade-button:active {
+          transform: translateY(0);
+        }
+
+        @keyframes dino-gold-shine {
+          0% {
+            left: -90%;
+          }
+
+          45%,
+          100% {
+            left: 140%;
+          }
+        }
+
+        @keyframes dino-gold-sparkle {
+          0%,
+          100% {
+            opacity: .35;
+            transform: scale(.85) rotate(0deg);
+          }
+
+          50% {
+            opacity: 1;
+            transform: scale(1.15) rotate(20deg);
+          }
+        }
+
+        /* =========================================================
+          RESPONSIVE
+          ========================================================= */
 
         @media (max-width: 1050px) {
           .dino-theme-grid {
@@ -3704,23 +4210,33 @@ Target-language topic: ${selected.local}
 
         @media (max-width: 820px) {
           .dino-dashboard {
-            --dino-navbar-height: 64px;
-
-            padding:
-              calc(var(--dino-navbar-height) + 18px)
-              18px
-              18px;
+            padding: 18px 18px 30px;
           }
 
           .dino-dashboard-sticky {
-            top: var(--dino-navbar-height) !important;
-            margin: 0 !important;
-            padding: 14px 18px 10px !important;
+            top: 0 !important;
+
+            margin: -18px 0 0 !important;
+            padding: 18px 0 12px !important;
+
+            background:
+              linear-gradient(
+                to bottom,
+                rgba(255,255,255,.98) 0%,
+                rgba(255,255,255,.92) 68%,
+                rgba(255,255,255,0) 100%
+              ) !important;
           }
 
           .dino-dashboard-header {
             align-items: flex-start;
             flex-direction: column;
+            gap: 18px;
+          }
+
+          .dino-header-actions {
+            width: 100%;
+            flex-wrap: wrap;
           }
 
           .dino-progress {
@@ -3730,7 +4246,6 @@ Target-language topic: ${selected.local}
 
           .dino-panel {
             padding: 16px;
-            overflow: visible;
             border-radius: 18px;
           }
 
@@ -3805,40 +4320,10 @@ Target-language topic: ${selected.local}
           .dino-panel-title {
             font-size: 22px;
           }
-        }
 
-        /* Prevent dashboard content from ever sitting beneath the navbar */
-        body[data-page="dashboard"] .dino-dashboard,
-        body[data-page="dashboard"] .dino-dashboard-shell,
-        body[data-page="dashboard"] .dino-main {
-          isolation: isolate;
-        }
-
-        body[data-page="dashboard"] .navbar {
-          z-index: 10000 !important;
-        }
-
-        body[data-page="dashboard"] .dino-dashboard-sticky {
-          z-index: 9999 !important;
-        }
-
-        /* Slight glass highlight on major cards */
-        .dino-panel::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-
-          border-radius: inherit;
-
-          background:
-            linear-gradient(
-              135deg,
-              rgba(255,255,255,.28),
-              transparent 35%
-            );
-
-          opacity: .7;
+          .dino-dashboard-sticky {
+            padding-bottom: 10px !important;
+          }
         }
       `}</style>
 
