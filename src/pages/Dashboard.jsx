@@ -3564,9 +3564,18 @@ Target-language topic: ${selected.local}
         }
 
         .dino-writing-editor {
+          height: 450px;
+          min-height: 450px;
+          max-height: 450px;
+
           padding: 0;
-          overflow: visible;
+
+          display: flex;
+          flex-direction: column;
+
+          overflow: hidden;
         }
+        
 
         .dino-writing-editor-topbar {
           min-height: 51px;
@@ -3582,7 +3591,13 @@ Target-language topic: ${selected.local}
         }
 
         .dino-writing-editor-content {
+          min-height: 0;
+          flex: 1;
+
           padding: 22px;
+
+          overflow-y: auto;
+          overflow-x: hidden;
         }
 
         .dino-writing-editor.dino-card-expanded {
