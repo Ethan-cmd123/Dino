@@ -2365,7 +2365,7 @@ Target-language topic: ${selected.local}
           z-index: 9999 !important;
           margin: 0 !important;
           padding: 28px 34px 12px !important;
-          background: rgba(255, 255, 255, 0.9);
+          background: rgba(255, 255, 255, 0.09);
           backdrop-filter: blur(18px);
           -webkit-backdrop-filter: blur(18px);
         }
