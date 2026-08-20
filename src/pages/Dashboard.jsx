@@ -2530,6 +2530,7 @@ Target-language topic: ${selected.local}
         .dino-panel {
           height: auto;
           min-height: 0;
+          margin-top: 18px;
           padding: 22px;
           overflow: visible;
 
