@@ -2372,9 +2372,9 @@ Target-language topic: ${selected.local}
           background:
             linear-gradient(
               to bottom,
-              rgba(255,255,255,.97) 0%,
-              rgba(255,255,255,.91) 62%,
-              rgba(255,255,255,.72) 82%,
+              rgba(255, 255, 255, 0) 0%,
+              rgba(255,255,255, 0) 62%,
+              rgba(255,255,255, 0) 82%,
               rgba(255,255,255,0) 100%
             ) !important;
 
