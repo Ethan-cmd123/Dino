@@ -2326,15 +2326,21 @@ Target-language topic: ${selected.local}
           overflow-y: auto !important;
         }
 
+        /* Keep the real navbar visible */
         body[data-page="dashboard"] .navbar {
-          display: none !important;
+          display: flex !important;
+          position: relative;
+          z-index: 10000;
         }
 
+        /* Everything on the dashboard starts underneath the navbar */
         .dino-dashboard {
+          --dino-navbar-height: 72px;
+
           position: relative;
           width: 100%;
           min-height: 100dvh;
-          padding: 28px 34px 24px;
+          padding: calc(var(--dino-navbar-height) + 28px) 34px 24px;
           overflow: visible;
         }
 
@@ -2346,26 +2352,27 @@ Target-language topic: ${selected.local}
           margin: 0 auto;
           display: flex;
           flex-direction: column;
-          min-height: 0;
         }
 
-        .dino-dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          gap: 30px;
-          flex: 0 0 auto;
-        }
-
+        /* Dashboard header stays fixed, but BELOW the navbar */
         .dino-dashboard-sticky {
           position: fixed !important;
-          top: 0 !important;
+          top: var(--dino-navbar-height) !important;
           left: 0 !important;
           right: 0 !important;
           z-index: 9999 !important;
           margin: 0 !important;
-          padding: 28px 34px 12px !important;
-          background: rgba(255, 255, 255, 0.09);
+          padding: 18px 34px 12px !important;
+
+          background: rgba(255, 255, 255, 0.72) !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+          backdrop-filter: blur(22px) saturate(140%);
+          -webkit-backdrop-filter: blur(22px) saturate(140%);
+
+          box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.04),
+            inset 0 1px 0 rgba(255, 255, 255, 0.7);
         }
 
         .dino-kicker {
@@ -2481,14 +2488,24 @@ Target-language topic: ${selected.local}
           width: 100%;
           margin-top: 22px;
           padding: 4px;
+
           display: flex;
           gap: 3px;
           overflow-x: auto;
           scrollbar-width: none;
-          border: 1px solid rgba(0,0,0,.07);
+
+          border: 1px solid rgba(255, 255, 255, 0.58);
           border-radius: 14px;
-          background: rgba(255,255,255,.72);
-          backdrop-filter: blur(16px);
+
+          background: rgba(255, 255, 255, 0.5);
+
+          backdrop-filter: blur(20px) saturate(135%);
+          -webkit-backdrop-filter: blur(20px) saturate(135%);
+
+          box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.035),
+            inset 0 1px 0 rgba(255, 255, 255, 0.75);
+
           flex: 0 0 auto;
         }
 
@@ -2524,14 +2541,34 @@ Target-language topic: ${selected.local}
 
         .dino-main {
           min-height: 0;
-          margin-top: 16px;
+          margin-top: 30px;
+          padding-top: 120px;
         }
 
-        .dino-panel {
+        .dino-.dino-panel {
+          position: relative;
           height: auto;
           min-height: 0;
           padding: 22px;
           overflow: visible;
+
+          border: 1px solid rgba(255, 255, 255, 0.55);
+          border-radius: 22px;
+
+          background:
+            linear-gradient(
+              135deg,
+              rgba(255, 255, 255, 0.72),
+              rgba(255, 255, 255, 0.48)
+            );
+
+          backdrop-filter: blur(24px) saturate(135%);
+          -webkit-backdrop-filter: blur(24px) saturate(135%);
+
+          box-shadow:
+            0 20px 55px rgba(0, 0, 0, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.85),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.25);
         }
 
         .dino-panel-heading {
@@ -2572,9 +2609,18 @@ Target-language topic: ${selected.local}
           height: 100%;
           min-height: 340px;
           padding: 14px;
-          border: 1px solid rgba(0,0,0,.07);
+
+          border: 1px solid rgba(255, 255, 255, 0.6);
           border-radius: 16px;
-          background: rgba(255,255,255,.65);
+
+          background: rgba(255, 255, 255, 0.42);
+
+          backdrop-filter: blur(18px) saturate(130%);
+          -webkit-backdrop-filter: blur(18px) saturate(130%);
+
+          box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.035),
+            inset 0 1px 0 rgba(255, 255, 255, 0.75);
         }
 
         .dino-theme-top {
@@ -2616,10 +2662,30 @@ Target-language topic: ${selected.local}
           gap: 9px;
           align-items: center;
           padding: 8px;
-          border: 1px solid rgba(0,0,0,.06);
+
+          border: 1px solid rgba(255, 255, 255, 0.58);
           border-radius: 10px;
-          background: rgba(255,255,255,.75);
+
+          background: rgba(255, 255, 255, 0.38);
+
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
           cursor: pointer;
+
+          transition:
+            background .18s ease,
+            transform .18s ease,
+            border-color .18s ease;
+        }
+
+        .dino-topic:hover {
+          background: rgba(255, 255, 255, 0.55);
+          border-color: rgba(255, 255, 255, 0.8);
+          transform: translateY(-1px);
         }
 
         .dino-topic input {
@@ -3638,12 +3704,18 @@ Target-language topic: ${selected.local}
 
         @media (max-width: 820px) {
           .dino-dashboard {
-            padding: 18px;
+            --dino-navbar-height: 64px;
+
+            padding:
+              calc(var(--dino-navbar-height) + 18px)
+              18px
+              18px;
           }
 
           .dino-dashboard-sticky {
-            margin: -18px -18px 0;
-            padding: 18px 18px 10px;
+            top: var(--dino-navbar-height) !important;
+            margin: 0 !important;
+            padding: 14px 18px 10px !important;
           }
 
           .dino-dashboard-header {
@@ -3659,6 +3731,7 @@ Target-language topic: ${selected.local}
           .dino-panel {
             padding: 16px;
             overflow: visible;
+            border-radius: 18px;
           }
 
           .dino-theme-grid {
@@ -3732,6 +3805,40 @@ Target-language topic: ${selected.local}
           .dino-panel-title {
             font-size: 22px;
           }
+        }
+
+        /* Prevent dashboard content from ever sitting beneath the navbar */
+        body[data-page="dashboard"] .dino-dashboard,
+        body[data-page="dashboard"] .dino-dashboard-shell,
+        body[data-page="dashboard"] .dino-main {
+          isolation: isolate;
+        }
+
+        body[data-page="dashboard"] .navbar {
+          z-index: 10000 !important;
+        }
+
+        body[data-page="dashboard"] .dino-dashboard-sticky {
+          z-index: 9999 !important;
+        }
+
+        /* Slight glass highlight on major cards */
+        .dino-panel::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+
+          border-radius: inherit;
+
+          background:
+            linear-gradient(
+              135deg,
+              rgba(255,255,255,.28),
+              transparent 35%
+            );
+
+          opacity: .7;
         }
       `}</style>
 
