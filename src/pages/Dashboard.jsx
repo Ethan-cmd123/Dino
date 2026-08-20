@@ -4218,19 +4218,16 @@ Target-language topic: ${selected.local}
             margin: -18px 0 0 !important;
             padding: 18px 0 12px !important;
 
-            background: rgba(255, 255, 255, 0.16) !important;
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0 !important;
 
-            border: 1px solid rgba(255, 255, 255, 0.42) !important;
-            border-radius: 18px !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
 
-            backdrop-filter: blur(18px) saturate(135%);
-            -webkit-backdrop-filter: blur(18px) saturate(135%);
+            box-shadow: none !important;
 
-            box-shadow:
-              0 10px 30px rgba(0, 0, 0, 0.035),
-              inset 0 1px 0 rgba(255, 255, 255, 0.55);
-
-            overflow: hidden;
+            overflow: visible !important;
           }
 
           .dino-dashboard-header {
