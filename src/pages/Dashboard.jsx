@@ -4214,22 +4214,26 @@ Target-language topic: ${selected.local}
           }
 
           .dino-dashboard-sticky {
+            position: sticky !important;
             top: 0 !important;
-            margin: -18px 0 0 !important;
-            padding: 18px 0 12px !important;
+            z-index: 100 !important;
+
+            width: 100%;
+
+            margin: -28px 0 0 !important;
+            padding: 28px 0 12px !important;
 
             background: transparent !important;
             border: 0 !important;
             border-radius: 0 !important;
 
+            box-shadow: none !important;
+
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
 
-            box-shadow: none !important;
-
             overflow: visible !important;
           }
-
           .dino-dashboard-header {
             align-items: flex-start;
             flex-direction: column;
