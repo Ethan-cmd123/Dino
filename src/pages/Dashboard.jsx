@@ -2359,16 +2359,18 @@ Target-language topic: ${selected.local}
 
         .dino-dashboard-sticky {
           position: fixed !important;
-          top: 0 !important;
-          left: 12px !important;
-          right: 12px !important;
+          top: 10px !important;
+          left: 10px !important;
+          right: 10px !important;
           z-index: 9999 !important;
           margin: 0 !important;
           padding: 28px 34px 12px !important;
+
           background: rgba(255, 255, 255, 0.09);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
-          border-radius: 0 0 18px 18px;
+
+          border-radius: 999px;
           overflow: hidden;
         }
 
