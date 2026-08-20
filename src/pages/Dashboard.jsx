@@ -2380,9 +2380,6 @@ Target-language topic: ${selected.local}
 
           border: 0 !important;
           box-shadow: none !important;
-
-          backdrop-filter: blur(14px) saturate(115%);
-          -webkit-backdrop-filter: blur(14px) saturate(115%);
         }
 
         .dino-dashboard-header {
