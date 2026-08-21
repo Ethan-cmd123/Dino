@@ -2403,7 +2403,7 @@ Target-language topic: ${selected.local}
 
         .dino-dashboard-heading {
           margin: 0;
-          color: #00d26a;
+          color: #f9f9f9;
           font-family: Inter, sans-serif;
           font-size: clamp(42px, 5vw, 64px);
           line-height: .93;
@@ -4795,35 +4795,7 @@ Target-language topic: ${selected.local}
                             : 'Ready'}
                         </span>
 
-                        <button
-                          type="button"
-                          className="dino-expand-button"
-                          aria-label={
-                            expandedSection ===
-                            'questionbank'
-                              ? 'Close expanded question bank'
-                              : 'Expand question bank'
-                          }
-                          title={
-                            expandedSection ===
-                            'questionbank'
-                              ? 'Close expanded view'
-                              : 'Expand question bank'
-                          }
-                          onClick={() =>
-                            setExpandedSection(
-                              expandedSection ===
-                                'questionbank'
-                                ? null
-                                : 'questionbank',
-                            )
-                          }
-                        >
-                          {expandedSection ===
-                          'questionbank'
-                            ? '↙'
-                            : '↗'}
-                        </button>
+                        
                       </div>
                     </div>
 
@@ -5451,35 +5423,9 @@ Target-language topic: ${selected.local}
                     }`}
                   >
                     <div className="dino-writing-editor-topbar">
-                      <button
-                        type="button"
-                        className="dino-expand-button"
-                        aria-label={
-                          expandedSection ===
-                          'writing'
-                            ? 'Close expanded writing section'
-                            : 'Expand writing section'
-                        }
-                        title={
-                          expandedSection ===
-                          'writing'
-                            ? 'Close expanded view'
-                            : 'Expand writing section'
-                        }
-                        onClick={() =>
-                          setExpandedSection(
-                            expandedSection ===
-                              'writing'
-                              ? null
-                              : 'writing',
-                          )
-                        }
-                      >
-                        {expandedSection ===
-                        'writing'
-                          ? '↙'
-                          : '↗'}
-                      </button>
+                      
+
+                      
                     </div>
 
                     <div className="dino-writing-editor-content">
