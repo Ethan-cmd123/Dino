@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
-import AnimatedBackground from '../components/AnimatedBackground'
 
-/***
+/*
 |--------------------------------------------------------------------------
 | BLOG DATABASE
 |--------------------------------------------------------------------------
@@ -30,23 +29,27 @@ const BLOG_POSTS = [
     date: 'August 16, 2026',
     readTime: '5 min read',
     featured: true,
+
     content: [
       {
         type: 'paragraph',
         text:
           'IB Language B is much easier to approach when you stop treating it like a giant vocabulary memorisation contest. The real goal is being able to communicate clearly, understand different types of texts and respond naturally under pressure.',
       },
+
       {
         type: 'heading',
         level: 2,
         text:
           'Focus on the skills that actually matter',
       },
+
       {
         type: 'paragraph',
         text:
           'A strong study routine should combine reading, writing, listening and speaking. Spending all of your time memorising vocabulary creates the illusion of progress while leaving important communication skills untouched.',
       },
+
       {
         type: 'list',
         items: [
@@ -56,48 +59,52 @@ const BLOG_POSTS = [
           'Speak regularly instead of waiting until exam season.',
         ],
       },
+
       {
         type: 'heading',
         level: 2,
         text:
           'Build vocabulary through context',
       },
+
       {
         type: 'paragraph',
         text:
           'Instead of memorising isolated words, learn vocabulary through sentences and situations. This makes it much easier to retrieve the correct word when you actually need it.',
       },
+
       {
         type: 'quote',
         text:
           'The best vocabulary is vocabulary you can actually use.',
       },
+
       {
         type: 'heading',
         level: 2,
         text:
           'Use mistakes as data',
       },
+
       {
         type: 'paragraph',
         text:
           'Every mistake gives you information about what needs work. Keep track of repeated grammar errors, weak vocabulary and problems with specific text types. That gives your study sessions a target instead of turning them into random revision.',
       },
+
       {
         type: 'code',
         language: 'text',
-        text: `Weekly study loop
+        text:
+`Weekly study loop
 
 1. Read
-
 2. Write
-
 3. Get feedback
-
 4. Review mistakes
-
 5. Repeat`,
       },
+
       {
         type: 'paragraph',
         text:
@@ -105,6 +112,7 @@ const BLOG_POSTS = [
       },
     ],
   },
+
   {
     slug: 'how-to-use-feedback-tools-for-language-learning',
     title: 'How to Use Feedback Tools for Language Learning',
@@ -115,23 +123,27 @@ const BLOG_POSTS = [
     date: 'August 15, 2026',
     readTime: '4 min read',
     featured: false,
+
     content: [
       {
         type: 'paragraph',
         text:
           'Feedback tools can be useful for language learning when you use them to guide your own work rather than complete it for you.',
       },
+
       {
         type: 'heading',
         level: 2,
         text:
           'Ask for feedback instead of answers',
       },
+
       {
         type: 'paragraph',
         text:
           'One of the most effective approaches is to submit your own work and ask for feedback. That lets you identify mistakes while still doing the thinking yourself.',
       },
+
       {
         type: 'list',
         items: [
@@ -141,6 +153,7 @@ const BLOG_POSTS = [
           'Ask for exam-style feedback.',
         ],
       },
+
       {
         type: 'paragraph',
         text:
@@ -148,6 +161,7 @@ const BLOG_POSTS = [
       },
     ],
   },
+
   {
     slug: 'best-way-to-study-for-language-exams',
     title: 'The Best Way to Study for Language Exams',
@@ -158,29 +172,34 @@ const BLOG_POSTS = [
     date: 'August 14, 2026',
     readTime: '6 min read',
     featured: false,
+
     content: [
       {
         type: 'paragraph',
         text:
           'Effective exam preparation is less about studying for longer and more about deliberately practising the skills the exam actually measures.',
       },
+
       {
         type: 'heading',
         level: 2,
         text:
           'Start with weak areas',
       },
+
       {
         type: 'paragraph',
         text:
           'Spend most of your time on areas where you are making repeated mistakes. Reviewing something you already know feels productive, but it usually produces very little improvement.',
       },
+
       {
         type: 'heading',
         level: 2,
         text:
           'Practise under realistic conditions',
       },
+
       {
         type: 'paragraph',
         text:
@@ -190,7 +209,7 @@ const BLOG_POSTS = [
   },
 ]
 
-/***
+/*
 |--------------------------------------------------------------------------
 | HELPERS
 |--------------------------------------------------------------------------
@@ -206,261 +225,7 @@ function getPostBySlug(slug) {
   )
 }
 
-function setMetaTag(attribute, value, content) {
-  let tag = document.head.querySelector(
-    `meta[${attribute}="${value}"]`,
-  )
-
-  if (!tag) {
-    tag = document.createElement('meta')
-    tag.setAttribute(attribute, value)
-    document.head.appendChild(tag)
-  }
-
-  tag.setAttribute('content', content)
-}
-
-function setCanonicalUrl(url) {
-  let canonical =
-    document.head.querySelector(
-      'link[rel="canonical"]',
-    )
-
-  if (!canonical) {
-    canonical = document.createElement('link')
-    canonical.setAttribute(
-      'rel',
-      'canonical',
-    )
-    document.head.appendChild(canonical)
-  }
-
-  canonical.setAttribute('href', url)
-}
-
-function setStructuredData(data) {
-  const existing =
-    document.head.querySelector(
-      'script[data-dino-blog-schema="true"]',
-    )
-
-  if (existing) {
-    existing.remove()
-  }
-
-  const script = document.createElement('script')
-
-  script.type = 'application/ld+json'
-  script.setAttribute(
-    'data-dino-blog-schema',
-    'true',
-  )
-  script.textContent = JSON.stringify(data)
-
-  document.head.appendChild(script)
-}
-
-function setBlogSEO(post = null) {
-  const siteUrl =
-    window.location.origin
-
-  if (post) {
-    const url = `${siteUrl}/blog/${post.slug}`
-
-    document.title =
-      `${post.title} — Dino`
-
-    setMetaTag(
-      'name',
-      'description',
-      post.description,
-    )
-
-    setMetaTag(
-      'property',
-      'og:title',
-      `${post.title} — Dino`,
-    )
-
-    setMetaTag(
-      'property',
-      'og:description',
-      post.description,
-    )
-
-    setMetaTag(
-      'property',
-      'og:type',
-      'article',
-    )
-
-    setMetaTag(
-      'property',
-      'og:url',
-      url,
-    )
-
-    setMetaTag(
-      'property',
-      'og:site_name',
-      'Dino',
-    )
-
-    setMetaTag(
-      'name',
-      'twitter:card',
-      'summary',
-    )
-
-    setMetaTag(
-      'name',
-      'twitter:title',
-      `${post.title} — Dino`,
-    )
-
-    setMetaTag(
-      'name',
-      'twitter:description',
-      post.description,
-    )
-
-    setMetaTag(
-      'name',
-      'robots',
-      'index, follow',
-    )
-
-    setCanonicalUrl(url)
-
-    setStructuredData({
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: post.title,
-      description: post.description,
-      author: {
-        '@type': 'Person',
-        name: post.author,
-      },
-      publisher: {
-        '@type': 'Organization',
-        name: 'Dino',
-      },
-      datePublished: new Date(
-        post.date,
-      ).toISOString(),
-      dateModified: new Date(
-        post.date,
-      ).toISOString(),
-      mainEntityOfPage: {
-        '@type': 'WebPage',
-        '@id': url,
-      },
-      articleSection: post.category,
-    })
-
-    return
-  }
-
-  const url = `${siteUrl}/blog`
-
-  document.title =
-    'Dino Blog — IB Language B, Language Learning & Study Tips'
-
-  setMetaTag(
-    'name',
-    'description',
-    'Learn smarter with Dino. Read practical guides for IB Language B, language learning, study skills, writing, reading and exam preparation.',
-  )
-
-  setMetaTag(
-    'property',
-    'og:title',
-    'Dino Blog — IB Language B, Language Learning & Study Tips',
-  )
-
-  setMetaTag(
-    'property',
-    'og:description',
-    'Practical guides for IB Language B, language learning, study skills and exam preparation.',
-  )
-
-  setMetaTag(
-    'property',
-    'og:type',
-    'website',
-  )
-
-  setMetaTag(
-    'property',
-    'og:url',
-    url,
-  )
-
-  setMetaTag(
-    'property',
-    'og:site_name',
-    'Dino',
-  )
-
-  setMetaTag(
-    'name',
-    'twitter:card',
-    'summary',
-  )
-
-  setMetaTag(
-    'name',
-    'twitter:title',
-    'Dino Blog — IB Language B, Language Learning & Study Tips',
-  )
-
-  setMetaTag(
-    'name',
-    'twitter:description',
-    'Practical guides for IB Language B, language learning, study skills and exam preparation.',
-  )
-
-  setMetaTag(
-    'name',
-    'robots',
-    'index, follow',
-  )
-
-  setCanonicalUrl(url)
-
-  setStructuredData({
-    '@context': 'https://schema.org',
-    '@type': 'Blog',
-    name: 'Dino Blog',
-    description:
-      'Practical guides for IB Language B, language learning, study skills and exam preparation.',
-    url,
-    publisher: {
-      '@type': 'Organization',
-      name: 'Dino',
-    },
-    blogPost: BLOG_POSTS.map(
-      (post) => ({
-        '@type': 'BlogPosting',
-        headline: post.title,
-        description: post.description,
-        url: `${siteUrl}/blog/${post.slug}`,
-        datePublished: new Date(
-          post.date,
-        ).toISOString(),
-        dateModified: new Date(
-          post.date,
-        ).toISOString(),
-        author: {
-          '@type': 'Person',
-          name: post.author,
-        },
-      }),
-    ),
-  })
-}
-
-/***
+/*
 |--------------------------------------------------------------------------
 | CONTENT RENDERER
 |--------------------------------------------------------------------------
@@ -536,7 +301,7 @@ function BlogContent({ content }) {
   )
 }
 
-/***
+/*
 |--------------------------------------------------------------------------
 | BLOG INDEX
 |--------------------------------------------------------------------------
@@ -555,138 +320,131 @@ function BlogIndex({ navigate }) {
         !post.featured,
     )
 
-  useEffect(() => {
-    setBlogSEO()
-  }, [])
-
   return (
-    <AnimatedBackground className="onboarding-page">
-      <section className="blog-page">
-        <div className="blog-header">
-          <p className="blog-eyebrow">
-            DINO BLOG
+    <section className="blog-page">
+      <div className="blog-header">
+        <p className="blog-eyebrow">
+          DINO BLOG
+        </p>
+
+        <h1>
+          Learn smarter.
+        </h1>
+
+        <p className="blog-description">
+          Ideas, strategies and resources
+          for becoming better at languages,
+          learning and school.
+        </p>
+      </div>
+
+      {featuredPosts.length > 0 && (
+        <section className="blog-featured">
+          {featuredPosts.map(
+            (post) => (
+              <button
+                type="button"
+                className="blog-featured-card"
+                key={post.slug}
+                onClick={() =>
+                  navigate(
+                    `/blog/${post.slug}`,
+                  )
+                }
+              >
+                <div className="blog-card-meta">
+                  <span>
+                    {post.category}
+                  </span>
+
+                  <span>
+                    {post.readTime}
+                  </span>
+                </div>
+
+                <h2>
+                  {post.title}
+                </h2>
+
+                <p>
+                  {post.description}
+                </p>
+
+                <span className="blog-read-link">
+                  Read article
+                  <span>
+                    →
+                  </span>
+                </span>
+              </button>
+            ),
+          )}
+        </section>
+      )}
+
+      <section className="blog-list-section">
+        <div className="blog-section-heading">
+          <p>
+            LATEST
           </p>
 
-          <h1>
-            Learn smarter.
-          </h1>
-
-          <p className="blog-description">
-            Ideas, strategies and resources
-            for becoming better at languages,
-            learning and school.
-          </p>
+          <h2>
+            From the blog
+          </h2>
         </div>
 
-        {featuredPosts.length > 0 && (
-          <section className="blog-featured">
-            {featuredPosts.map(
-              (post) => (
-                <button
-                  type="button"
-                  className="blog-featured-card"
-                  key={post.slug}
-                  onClick={() =>
-                    navigate(
-                      `/blog/${post.slug}`,
-                    )
-                  }
-                >
-                  <div className="blog-card-meta">
-                    <span>
-                      {post.category}
-                    </span>
-
-                    <span>
-                      {post.readTime}
-                    </span>
-                  </div>
-
-                  <h2>
-                    {post.title}
-                  </h2>
-
-                  <p>
-                    {post.description}
-                  </p>
-
-                  <span className="blog-read-link">
-                    Read article
-
-                    <span>
-                      →
-                    </span>
+        <div className="blog-grid">
+          {regularPosts.map(
+            (post) => (
+              <button
+                type="button"
+                className="blog-card"
+                key={post.slug}
+                onClick={() =>
+                  navigate(
+                    `/blog/${post.slug}`,
+                  )
+                }
+              >
+                <div className="blog-card-meta">
+                  <span>
+                    {post.category}
                   </span>
-                </button>
-              ),
-            )}
-          </section>
-        )}
 
-        <section className="blog-list-section">
-          <div className="blog-section-heading">
-            <p>
-              LATEST
-            </p>
+                  <span>
+                    {post.readTime}
+                  </span>
+                </div>
 
-            <h2>
-              From the blog
-            </h2>
-          </div>
+                <h3>
+                  {post.title}
+                </h3>
 
-          <div className="blog-grid">
-            {regularPosts.map(
-              (post) => (
-                <button
-                  type="button"
-                  className="blog-card"
-                  key={post.slug}
-                  onClick={() =>
-                    navigate(
-                      `/blog/${post.slug}`,
-                    )
-                  }
-                >
-                  <div className="blog-card-meta">
-                    <span>
-                      {post.category}
-                    </span>
+                <p>
+                  {post.description}
+                </p>
 
-                    <span>
-                      {post.readTime}
-                    </span>
-                  </div>
+                <div className="blog-card-bottom">
+                  <span>
+                    {formatDate(
+                      post.date,
+                    )}
+                  </span>
 
-                  <h3>
-                    {post.title}
-                  </h3>
-
-                  <p>
-                    {post.description}
-                  </p>
-
-                  <div className="blog-card-bottom">
-                    <span>
-                      {formatDate(
-                        post.date,
-                      )}
-                    </span>
-
-                    <span>
-                      →
-                    </span>
-                  </div>
-                </button>
-              ),
-            )}
-          </div>
-        </section>
+                  <span>
+                    →
+                  </span>
+                </div>
+              </button>
+            ),
+          )}
+        </div>
       </section>
-    </AnimatedBackground>
+    </section>
   )
 }
 
-/***
+/*
 |--------------------------------------------------------------------------
 | BLOG ARTICLE
 |--------------------------------------------------------------------------
@@ -704,155 +462,103 @@ function BlogArticle({
       document.title =
         'Blog post not found — Dino'
 
-      setMetaTag(
-        'name',
-        'description',
-        'The requested Dino blog article could not be found.',
-      )
-
-      setMetaTag(
-        'name',
-        'robots',
-        'noindex, nofollow',
-      )
-
-      setMetaTag(
-        'property',
-        'og:title',
-        'Blog post not found — Dino',
-      )
-
-      setMetaTag(
-        'property',
-        'og:description',
-        'The requested Dino blog article could not be found.',
-      )
-
-      setMetaTag(
-        'property',
-        'og:type',
-        'website',
-      )
-
-      setMetaTag(
-        'name',
-        'twitter:card',
-        'summary',
-      )
-
-      setCanonicalUrl(
-        `${window.location.origin}/blog/${slug}`,
-      )
-
-      const existing =
-        document.head.querySelector(
-          'script[data-dino-blog-schema="true"]',
-        )
-
-      if (existing) {
-        existing.remove()
-      }
-
       return
     }
 
-    setBlogSEO(post)
-  }, [post, slug])
+    document.title =
+      `${post.title} — Dino`
+  }, [post])
 
   if (!post) {
     return (
-      <AnimatedBackground className="onboarding-page">
-        <section className="blog-not-found">
-          <p className="blog-eyebrow">
-            BLOG
-          </p>
+      <section className="blog-not-found">
+        <p className="blog-eyebrow">
+          BLOG
+        </p>
 
-          <h1>
-            Article not found.
-          </h1>
+        <h1>
+          Article not found.
+        </h1>
 
-          <p>
-            This post does not exist.
-          </p>
+        <p>
+          This post does not exist.
+        </p>
 
-          <button
-            type="button"
-            onClick={() =>
-              navigate('/blog')
-            }
-          >
-            Back to Blog
-          </button>
-        </section>
-      </AnimatedBackground>
-    )
-  }
-
-  return (
-    <AnimatedBackground className="onboarding-page">
-      <article className="blog-article">
         <button
           type="button"
-          className="blog-back"
           onClick={() =>
             navigate('/blog')
           }
         >
-          ← Back to Blog
+          Back to Blog
         </button>
+      </section>
+    )
+  }
 
-        <header className="blog-article-header">
-          <div className="blog-card-meta">
-            <span>
-              {post.category}
-            </span>
+  return (
+    <article className="blog-article">
+      <button
+        type="button"
+        className="blog-back"
+        onClick={() =>
+          navigate('/blog')
+        }
+      >
+        ← Back to Blog
+      </button>
 
-            <span>
-              {post.readTime}
-            </span>
-          </div>
+      <header className="blog-article-header">
+        <div className="blog-card-meta">
+          <span>
+            {post.category}
+          </span>
 
-          <h1>
-            {post.title}
-          </h1>
+          <span>
+            {post.readTime}
+          </span>
+        </div>
 
-          <p className="blog-article-description">
-            {post.description}
-          </p>
+        <h1>
+          {post.title}
+        </h1>
 
-          <div className="blog-author">
-            <span>
-              By {post.author}
-            </span>
+        <p className="blog-article-description">
+          {post.description}
+        </p>
 
-            <span>
-              {formatDate(
-                post.date,
-              )}
-            </span>
-          </div>
-        </header>
+        <div className="blog-author">
+          <span>
+            By {post.author}
+          </span>
 
-        <BlogContent
-          content={post.content}
-        />
+          <span>
+            {formatDate(
+              post.date,
+            )}
+          </span>
+        </div>
+      </header>
 
-        <footer className="blog-article-footer">
-          <button
-            type="button"
-            onClick={() =>
-              navigate('/blog')
-            }
-          >
-            ← Back to all articles
-          </button>
-        </footer>
-      </article>
-    </AnimatedBackground>
+      <BlogContent
+        content={post.content}
+      />
+
+      <footer className="blog-article-footer">
+        <button
+          type="button"
+          onClick={() =>
+            navigate('/blog')
+          }
+        >
+          ← Back to all articles
+        </button>
+      </footer>
+    </article>
   )
 }
 
-/***
+/*
 |--------------------------------------------------------------------------
 | MAIN BLOG COMPONENT
 |--------------------------------------------------------------------------
@@ -878,7 +584,7 @@ export default function Blog({
   )
 }
 
-/***
+/*
 |--------------------------------------------------------------------------
 | OPTIONAL EXPORT
 |--------------------------------------------------------------------------
