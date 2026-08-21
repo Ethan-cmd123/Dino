@@ -28,7 +28,6 @@ function Home({ navigate }) {
   const dinoRefs = useRef([])
   const [showScrollCard, setShowScrollCard] = useState(false)
   const scrollTimeoutRef = useRef(null)
-  const lastScrollYRef = useRef(0)
 
   const duplicatedGreetings = [
     ...greetings,
@@ -38,42 +37,67 @@ function Home({ navigate }) {
   ]
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
-      const scrollingDown =
-        currentScrollY > lastScrollYRef.current
+    const showCard = () => {
+      setShowScrollCard(true)
 
-      lastScrollYRef.current = currentScrollY
-
-      if (scrollingDown && currentScrollY > 90) {
-        setShowScrollCard(true)
-
-        if (scrollTimeoutRef.current) {
-          clearTimeout(scrollTimeoutRef.current)
-        }
-
-        scrollTimeoutRef.current = setTimeout(() => {
-          setShowScrollCard(false)
-        }, 7000)
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
       }
 
-      if (currentScrollY <= 20) {
+      scrollTimeoutRef.current = setTimeout(() => {
         setShowScrollCard(false)
+      }, 7000)
+    }
 
-        if (scrollTimeoutRef.current) {
-          clearTimeout(scrollTimeoutRef.current)
-        }
+    const handleWheel = (event) => {
+      if (event.deltaY > 0) {
+        showCard()
       }
     }
 
-    lastScrollYRef.current = window.scrollY
+    const handleTouchMove = () => {
+      showCard()
+    }
 
-    window.addEventListener('scroll', handleScroll, {
+    const handleKeyDown = (event) => {
+      const scrollKeys = [
+        'ArrowDown',
+        'PageDown',
+        ' ',
+        'End',
+      ]
+
+      if (scrollKeys.includes(event.key)) {
+        showCard()
+      }
+    }
+
+    window.addEventListener('wheel', handleWheel, {
       passive: true,
+      capture: true,
+    })
+
+    window.addEventListener('touchmove', handleTouchMove, {
+      passive: true,
+      capture: true,
+    })
+
+    window.addEventListener('keydown', handleKeyDown, {
+      capture: true,
     })
 
     return () => {
-      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('wheel', handleWheel, {
+        capture: true,
+      })
+
+      window.removeEventListener('touchmove', handleTouchMove, {
+        capture: true,
+      })
+
+      window.removeEventListener('keydown', handleKeyDown, {
+        capture: true,
+      })
 
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
@@ -305,22 +329,21 @@ function Home({ navigate }) {
           position: fixed;
           left: 50%;
           bottom: 24px;
-          transform: translateX(-50%);
           width: min(720px, calc(100vw - 32px));
-          z-index: 99999;
+          z-index: 999999;
           padding: 20px;
           border-radius: 24px;
           background:
             linear-gradient(
               135deg,
-              rgba(255, 255, 255, 0.96),
-              rgba(248, 255, 251, 0.94)
+              rgba(255, 255, 255, 0.98),
+              rgba(248, 255, 251, 0.96)
             );
           border: 1px solid rgba(0, 210, 106, 0.18);
           box-shadow:
-            0 24px 70px rgba(0, 0, 0, 0.16),
-            0 8px 28px rgba(0, 210, 106, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            0 24px 70px rgba(0, 0, 0, 0.18),
+            0 8px 30px rgba(0, 210, 106, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           display: flex;
@@ -331,10 +354,11 @@ function Home({ navigate }) {
           pointer-events: none;
           transform:
             translateX(-50%)
-            translateY(120%);
+            translateY(140%);
           transition:
-            opacity 0.45s ease,
+            opacity 0.4s ease,
             transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+          overflow: hidden;
         }
 
         .home-scroll-card.visible {
@@ -349,18 +373,18 @@ function Home({ navigate }) {
           content: "";
           position: absolute;
           inset: 0;
-          border-radius: inherit;
           pointer-events: none;
+          border-radius: inherit;
           background:
             radial-gradient(
-              circle at 8% 0%,
-              rgba(0, 210, 106, 0.10),
-              transparent 34%
+              circle at 5% 0%,
+              rgba(0, 210, 106, 0.12),
+              transparent 32%
             ),
             radial-gradient(
               circle at 100% 100%,
-              rgba(0, 210, 106, 0.07),
-              transparent 28%
+              rgba(0, 210, 106, 0.08),
+              transparent 30%
             );
         }
 
@@ -516,9 +540,10 @@ function Home({ navigate }) {
           </h2>
 
           <p className="home-scroll-card-copy">
-            But that feels a little backwards. Dino is built to be used,
-            not explained to death on a landing page. Try it yourself and
-            see what your IB Language B study could actually feel like.
+            But that feels a little backwards. Dino is built to be
+            used, not explained to death on a landing page. Try it
+            yourself and see what your IB Language B study could
+            actually feel like.
           </p>
         </div>
 
