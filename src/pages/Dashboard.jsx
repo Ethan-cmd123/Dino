@@ -2403,12 +2403,14 @@ Target-language topic: ${selected.local}
 
         .dino-dashboard-heading {
           margin: 0;
-          color: #0a0a0a;
+          color: #00d26a;
           font-family: Inter, sans-serif;
           font-size: clamp(42px, 5vw, 64px);
           line-height: .93;
           font-weight: 600;
           letter-spacing: -.085em;
+          text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3); 
+
         }
 
         .dino-dashboard-heading span,
@@ -2659,7 +2661,7 @@ Target-language topic: ${selected.local}
             linear-gradient(
               145deg,
               rgba(255,255,255,.80),
-              rgba(255,255,255,.60)
+              rgba(16,103,0,.2)
             );
 
           box-shadow:

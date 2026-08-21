@@ -99,7 +99,7 @@ button:disabled {
 .logo {
   padding: 0;
   background: transparent;
-  color: #0a0a0a;
+  color: #00d26a;
   display: inline-flex;
   align-items: flex-start;
   font-family: 'Source Serif 4', Georgia, serif;
@@ -160,7 +160,7 @@ button:disabled {
   position: fixed;
   inset: 0;
   z-index: 900;
-  background: #fff;
+  background: #fbf1dd;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -685,7 +685,7 @@ button:disabled {
 
 .date-hint {
   margin-top: 10px;
-  color: #858585;
+  color: #000000;
   font-size: 11px;
 }
 
@@ -1356,7 +1356,7 @@ button:disabled {
   margin-top: 20px;
   padding: 0;
   background: transparent;
-  color: #858585;
+  color: #000000;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: -0.025em;
