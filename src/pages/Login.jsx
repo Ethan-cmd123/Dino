@@ -8,13 +8,10 @@ import {
 function Login({ navigate }) {
   const [email, setEmail] =
     useState('')
-
   const [password, setPassword] =
     useState('')
-
   const [loading, setLoading] =
     useState(false)
-
   const [error, setError] =
     useState('')
 
@@ -53,7 +50,6 @@ function Login({ navigate }) {
 
   async function handleLogin(event) {
     event.preventDefault()
-
     clearError()
 
     const cleanEmail =
@@ -118,11 +114,20 @@ function Login({ navigate }) {
             width: 100%;
             box-sizing: border-box;
             padding: 36px;
-            border: 1px solid rgba(0,0,0,.08);
-            border-radius: 22px;
-            background: rgba(255,255,255,.78);
-            backdrop-filter: blur(18px);
-            box-shadow: 0 22px 60px rgba(0,0,0,.055);
+            border: 1px solid rgba(255,255,255,.55);
+            border-radius: 24px;
+            background:
+              linear-gradient(
+                145deg,
+                rgba(255,255,255,.58),
+                rgba(255,255,255,.24)
+              );
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            box-shadow:
+              0 24px 70px rgba(0,0,0,.08),
+              inset 0 1px 0 rgba(255,255,255,.7),
+              inset 0 0 0 1px rgba(255,255,255,.16);
           }
 
           .dino-login-kicker {
@@ -190,10 +195,10 @@ function Login({ navigate }) {
             height: 54px;
             box-sizing: border-box;
             padding: 0 16px;
-            border: 1px solid rgba(0,0,0,.09);
+            border: 1px solid rgba(255,255,255,.6);
             border-radius: 14px;
             outline: none;
-            background: rgba(255,255,255,.96);
+            background: rgba(255,255,255,.38);
             color: #000000;
             -webkit-text-fill-color: #000000;
             font-family: Inter, sans-serif;
@@ -201,6 +206,9 @@ function Login({ navigate }) {
             font-weight: 500;
             line-height: 1;
             letter-spacing: -.015em;
+            box-shadow:
+              inset 0 1px 0 rgba(255,255,255,.65),
+              0 4px 16px rgba(0,0,0,.025);
             transition:
               border-color .16s ease,
               box-shadow .16s ease,
@@ -215,16 +223,20 @@ function Login({ navigate }) {
           }
 
           .dino-login-input:focus {
-            border-color: rgba(0,0,0,.24);
-            background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(0,0,0,.045);
+            border-color: rgba(0,0,0,.18);
+            background: rgba(255,255,255,.62);
+            box-shadow:
+              0 0 0 3px rgba(255,255,255,.28),
+              inset 0 1px 0 rgba(255,255,255,.75);
           }
 
           .dino-login-input:-webkit-autofill,
           .dino-login-input:-webkit-autofill:hover,
           .dino-login-input:-webkit-autofill:focus {
             -webkit-text-fill-color: #000000;
-            box-shadow: 0 0 0 1000px #ffffff inset;
+            box-shadow:
+              0 0 0 1000px rgba(255,255,255,.55) inset,
+              inset 0 1px 0 rgba(255,255,255,.7);
             font-family: Inter, sans-serif;
           }
 
@@ -237,6 +249,8 @@ function Login({ navigate }) {
             font-family: Inter, sans-serif;
             font-size: 10px;
             line-height: 1.5;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
           }
 
           .dino-login-submit {
@@ -245,20 +259,25 @@ function Login({ navigate }) {
             margin-top: 2px;
             border: 0;
             border-radius: 14px;
-            background: #0a0a0a;
+            background: rgba(10,10,10,.88);
             color: #ffffff;
             font-family: Inter, sans-serif;
             font-size: 11px;
             font-weight: 600;
             letter-spacing: -.01em;
             cursor: pointer;
+            box-shadow:
+              0 10px 24px rgba(0,0,0,.08),
+              inset 0 1px 0 rgba(255,255,255,.12);
             transition:
               transform .16s ease,
-              opacity .16s ease;
+              opacity .16s ease,
+              background .16s ease;
           }
 
           .dino-login-submit:hover:not(:disabled) {
             transform: translateY(-1px);
+            background: rgba(10,10,10,.94);
           }
 
           .dino-login-submit:active:not(:disabled) {
@@ -275,7 +294,7 @@ function Login({ navigate }) {
             margin-top: 22px;
             padding-top: 17px;
             border: 0;
-            border-top: 1px solid rgba(0,0,0,.07);
+            border-top: 1px solid rgba(255,255,255,.45);
             background: transparent;
             color: #888;
             font-family: Inter, sans-serif;
@@ -318,10 +337,7 @@ function Login({ navigate }) {
 
       <div className="onboarding-wrapper">
         <div className="onboarding-header">
-          
-
         </div>
-
 
         <div
           className="onboarding-content"
@@ -335,7 +351,6 @@ function Login({ navigate }) {
         >
           <div className="dino-login-page">
             <div className="dino-login-card">
-
               <span className="dino-login-kicker">
                 Welcome back
               </span>
@@ -452,7 +467,6 @@ function Login({ navigate }) {
               >
                 Back to home
               </button>
-
             </div>
           </div>
         </div>
