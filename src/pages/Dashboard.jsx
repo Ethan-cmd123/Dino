@@ -4,7 +4,6 @@ import React, {
   useState,
 } from 'react'
 import AnimatedBackground from '../components/AnimatedBackground'
-import Learn from '../components/Learn'
 import {
   getCurrentUser,
   getProfile,
@@ -4578,7 +4577,6 @@ Target-language topic: ${selected.local}
 
           <nav className="dino-tabs">
             {[
-              ['learn', 'Learn'],
               ['course', 'Course'],
               ['reading', 'Reading'],
               ['writing', 'Writing'],
@@ -4605,15 +4603,6 @@ Target-language topic: ${selected.local}
           </div>
 
           <main className="dino-main">
-
-            {activeTab === 'learn' && (
-              <Learn
-                user={user}
-                language={language}
-                allTopics={allTopics}
-                selectedTopics={selectedTopics}
-              />
-            )}
 
             {activeTab === 'course' && (
               <section className="dino-panel">
