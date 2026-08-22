@@ -2272,347 +2272,6 @@ Target-language topic: ${selected.local}
     }
   }
 
-
-  /* ------------------------------------------------------------------------ */
-  /* GOLD                                                                      */
-  /* ------------------------------------------------------------------------ */
-
-  const [isGold, setIsGold] = useState(false)
-
-  useEffect(() => {
-    let mounted = true
-
-    async function loadGoldStatus() {
-      if (!user?.id) return
-
-      try {
-        const gold = await getGoldMembership(user.id)
-        if (mounted) setIsGold(Boolean(gold))
-      } catch (error) {
-        console.error('Gold membership check failed:', error)
-      }
-    }
-
-    loadGoldStatus()
-
-    return () => {
-      mounted = false
-    }
-  }, [user?.id])
-
-  /* ------------------------------------------------------------------------ */
-  /* AI LEARNING PATH                                                          */
-  /* ------------------------------------------------------------------------ */
-
-  const LEARNING_SCHEMA = {
-    type: 'json_schema',
-    json_schema: {
-      name: 'dino_integrated_language_lesson',
-      strict: true,
-      schema: {
-        type: 'object',
-        properties: {
-          title: { type: 'string' },
-          intro: { type: 'string' },
-          words: {
-            type: 'array',
-            minItems: 3,
-            maxItems: 4,
-            items: {
-              type: 'object',
-              properties: {
-                term: { type: 'string' },
-                translation: { type: 'string' },
-                example: { type: 'string' },
-                note: { type: 'string' },
-              },
-              required: ['term', 'translation', 'example', 'note'],
-              additionalProperties: false,
-            },
-          },
-          reading: {
-            type: 'object',
-            properties: {
-              title: { type: 'string' },
-              text: { type: 'string' },
-              question: { type: 'string' },
-              answer: { type: 'string' },
-              explanation: { type: 'string' },
-            },
-            required: ['title', 'text', 'question', 'answer', 'explanation'],
-            additionalProperties: false,
-          },
-          writing: {
-            type: 'object',
-            properties: {
-              prompt: { type: 'string' },
-              suggestedLength: { type: 'string' },
-              successCriteria: {
-                type: 'array',
-                minItems: 3,
-                maxItems: 4,
-                items: { type: 'string' },
-              },
-            },
-            required: ['prompt', 'suggestedLength', 'successCriteria'],
-            additionalProperties: false,
-          },
-          takeaway: { type: 'string' },
-        },
-        required: ['title', 'intro', 'words', 'reading', 'writing', 'takeaway'],
-        additionalProperties: false,
-      },
-    },
-  }
-
-  const [learningTopic, setLearningTopic] = useState('')
-  const [learningDifficulty, setLearningDifficulty] = useState('Intermediate')
-  const [learningLesson, setLearningLesson] = useState(null)
-  const [learningStep, setLearningStep] = useState(0)
-  const [learningAnswers, setLearningAnswers] = useState({ reading: '', writing: '' })
-  const [learningReadingGrade, setLearningReadingGrade] = useState(null)
-  const [learningWritingGrade, setLearningWritingGrade] = useState(null)
-  const [learningGenerating, setLearningGenerating] = useState(false)
-  const [learningGrading, setLearningGrading] = useState(false)
-  const [learningError, setLearningError] = useState('')
-
-  const selectedLearningTopic = useMemo(
-    () => allTopics.find((item) => item.topic === learningTopic) || null,
-    [allTopics, learningTopic],
-  )
-
-  const learningThemeIndex = useMemo(() => {
-    const selectedIndex = course.themes.findIndex((theme) =>
-      theme.topics.some(([topic]) => topic === learningTopic),
-    )
-    return selectedIndex < 0 ? 0 : selectedIndex
-  }, [course, learningTopic])
-
-  const generateLearningLesson = async () => {
-    if (!user || !selectedLearningTopic || learningGenerating) return
-
-    setLearningError('')
-
-    try {
-      const syncedPoints = await syncUserCredits(user.id)
-      setDinoPoints(syncedPoints)
-
-      if (syncedPoints < 1) {
-        setLearningError(
-          'You need 1 Dino point to build an AI lesson. Come back in 24 hours for 5 more.',
-        )
-        return
-      }
-
-      const nextPointTotal = await spendUserCredits(user.id, 1)
-      setDinoPoints(nextPointTotal)
-    } catch (error) {
-      setLearningError(
-        error instanceof Error
-          ? error.message
-          : 'Something went wrong while checking Dino points.',
-      )
-      return
-    }
-
-    setLearningGenerating(true)
-    setLearningLesson(null)
-    setLearningStep(0)
-    setLearningAnswers({ reading: '', writing: '' })
-    setLearningReadingGrade(null)
-    setLearningWritingGrade(null)
-
-    try {
-      const raw = await callGroq({
-        system: `
-You are an expert IB Language B learning designer.
-
-Create one original, cohesive micro-lesson that deliberately combines vocabulary, reading comprehension and writing practice around the same course topic.
-
-Rules:
-- Never use emojis.
-- Never reproduce copyrighted material.
-- Use original target-language content appropriate for the student's Language B.
-- Keep the lesson useful for IB exam preparation.
-- Vocabulary must be practical and reusable.
-- The reading must be original and answerable from the supplied text.
-- The writing prompt must encourage use of the new vocabulary and ideas from the reading.
-- Keep explanations concise but academically useful.
-- Return only the required structured data.
-        `.trim(),
-        user: `
-Language: ${language}
-Difficulty: ${learningDifficulty}
-IB theme: ${selectedLearningTopic.theme}
-Course topic: ${selectedLearningTopic.topic}
-Target-language topic: ${selectedLearningTopic.local}
-
-Create a 5-part lesson flow:
-1. Learn 3-4 vocabulary items.
-2. Read a short original text.
-3. Answer one comprehension question about the text.
-4. Write a short response using the vocabulary and topic ideas.
-5. Finish with one practical takeaway.
-        `.trim(),
-        responseFormat: LEARNING_SCHEMA,
-        temperature: 0.35,
-        maxTokens: 2600,
-      })
-
-      const parsed = cleanModelJSON(raw)
-
-      if (!parsed || !parsed.words || !parsed.reading || !parsed.writing) {
-        throw new Error('Groq returned an invalid integrated lesson.')
-      }
-
-      setLearningLesson(parsed)
-    } catch (error) {
-      setLearningError(
-        error instanceof Error
-          ? error.message
-          : 'Something went wrong while creating the lesson.',
-      )
-    } finally {
-      setLearningGenerating(false)
-    }
-  }
-
-  const gradeLearningStep = async (type) => {
-    if (!learningLesson || learningGrading) return
-
-    const answer = String(
-      learningAnswers[type] || '',
-    ).trim()
-
-    if (!answer) {
-      setLearningError(
-        type === 'reading'
-          ? 'Write an answer before asking Dino to mark the reading step.'
-          : 'Write a response before asking Dino for writing feedback.',
-      )
-      return
-    }
-
-    setLearningError('')
-    setLearningGrading(true)
-
-    try {
-      const responseFormat = {
-        type: 'json_schema',
-        json_schema: {
-          name: `dino_learning_${type}_grade`,
-          strict: true,
-          schema:
-            type === 'reading'
-              ? {
-                  type: 'object',
-                  properties: {
-                    score: { type: 'integer' },
-                    feedback: { type: 'string' },
-                    nextStep: { type: 'string' },
-                  },
-                  required: ['score', 'feedback', 'nextStep'],
-                  additionalProperties: false,
-                }
-              : {
-                  type: 'object',
-                  properties: {
-                    feedback: { type: 'string' },
-                    strengths: {
-                      type: 'array',
-                      minItems: 1,
-                      maxItems: 4,
-                      items: { type: 'string' },
-                    },
-                    improvements: {
-                      type: 'array',
-                      minItems: 1,
-                      maxItems: 4,
-                      items: { type: 'string' },
-                    },
-                    nextStep: { type: 'string' },
-                  },
-                  required: ['feedback', 'strengths', 'improvements', 'nextStep'],
-                  additionalProperties: false,
-                },
-        },
-      }
-
-      const raw = await callGroq({
-        system: `
-You are an expert IB Language B coach.
-Grade only the student's supplied response.
-Be honest, concise, specific and encouraging.
-Do not use emojis.
-Return only structured JSON.
-        `.trim(),
-        user:
-          type === 'reading'
-            ? `
-Language: ${language}
-Difficulty: ${learningDifficulty}
-Topic: ${selectedLearningTopic?.topic || learningTopic}
-Question: ${learningLesson.reading.question}
-Original answer: ${learningLesson.reading.answer}
-Marking explanation: ${learningLesson.reading.explanation}
-Student answer: ${answer}
-Award 0-5 marks based on meaning and evidence from the text.
-            `.trim()
-            : `
-Language: ${language}
-Difficulty: ${learningDifficulty}
-Topic: ${selectedLearningTopic?.topic || learningTopic}
-Writing prompt: ${learningLesson.writing.prompt}
-Suggested length: ${learningLesson.writing.suggestedLength}
-Success criteria: ${learningLesson.writing.successCriteria.join('; ')}
-Student response: ${answer}
-Give practical IB-style feedback. Do not rewrite the whole response.
-            `.trim(),
-        responseFormat,
-        temperature: 0.1,
-        maxTokens: type === 'reading' ? 900 : 1200,
-      })
-
-      const parsed = cleanModelJSON(raw)
-
-      if (!parsed) {
-        throw new Error('Groq returned an invalid lesson grade.')
-      }
-
-      if (type === 'reading') {
-        setLearningReadingGrade({
-          ...parsed,
-          score: Math.min(5, Math.max(0, Number(parsed.score) || 0)),
-        })
-      } else {
-        setLearningWritingGrade(parsed)
-      }
-    } catch (error) {
-      setLearningError(
-        error instanceof Error
-          ? error.message
-          : 'Something went wrong while grading this lesson.',
-      )
-    } finally {
-      setLearningGrading(false)
-    }
-  }
-
-  const finishLearningLesson = async () => {
-    if (!selectedLearningTopic || !user) return
-
-    const topicId = `${language}::${selectedLearningTopic.theme}::${selectedLearningTopic.topic}`
-
-    if (!selectedTopics.includes(topicId)) {
-      await toggleTopic(
-        selectedLearningTopic.theme,
-        selectedLearningTopic.topic,
-      )
-    }
-
-    setLearningStep(4)
-  }
-
   /* ------------------------------------------------------------------------ */
   /* LOGOUT                                                                    */
   /* ------------------------------------------------------------------------ */
@@ -2629,15 +2288,28 @@ Give practical IB-style feedback. Do not rewrite the whole response.
     }
   }
 
-
-  if (authLoading || profileLoading) {
+  if (
+    authLoading ||
+    profileLoading
+  ) {
     return (
       <AnimatedBackground className="onboarding-page">
-        <div className="dino-loading-shell">
-          <div className="dino-loading-orbit" />
-          <div>
-            <strong>Loading Dino</strong>
-            <span>Preparing your learning space…</span>
+        <div
+          style={{
+            width: '100%',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              color: '#222',
+              fontSize: '12px',
+            }}
+          >
+            Loading your workspace…
           </div>
         </div>
       </AnimatedBackground>
@@ -2649,805 +2321,3350 @@ Give practical IB-style feedback. Do not rewrite the whole response.
   return (
     <>
       <style>{`
-        :root {
-          --dino-ink: #0b0d0c;
-          --dino-muted: #6d756f;
-          --dino-line: rgba(16, 25, 19, 0.09);
-          --dino-accent: #20d67b;
-          --dino-accent-dark: #0f7a46;
-          --dino-soft: rgba(255,255,255,.76);
-          --dino-shadow: 0 24px 70px rgba(15,35,22,.09);
-        }
-
         body[data-page="dashboard"] {
           overflow-x: hidden !important;
           overflow-y: auto !important;
-          background: #f2f5f0 !important;
         }
 
-        body[data-page="dashboard"] .navbar { display: none !important; }
-        body[data-page="dashboard"] * { box-sizing: border-box; }
+        /* Completely hide the site's normal navbar on the dashboard */
+        body[data-page="dashboard"] .navbar {
+          display: none !important;
+        }
+
+        /* =========================================================
+          DASHBOARD BASE
+          ========================================================= */
 
         .dino-dashboard {
+          position: relative;
+          width: 100%;
           min-height: 100dvh;
-          padding: 24px 28px 56px;
-          color: var(--dino-ink);
-        }
-
-        .dino-dashboard::before {
-          content: "";
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          background:
-            radial-gradient(circle at 15% 10%, rgba(32,214,123,.13), transparent 28%),
-            radial-gradient(circle at 85% 12%, rgba(255,255,255,.72), transparent 25%),
-            radial-gradient(circle at 50% 100%, rgba(32,214,123,.07), transparent 35%);
-          z-index: 0;
+          padding: 28px 34px 40px;
+          overflow: visible;
         }
 
         .dino-dashboard-shell {
           position: relative;
           z-index: 1;
-          width: min(1380px, 100%);
+          width: min(1260px, 100%);
+          min-height: 100%;
           margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
         }
 
+        /* =========================================================
+          DASHBOARD STICKY HEADER
+          This is now the ONLY top navigation on the dashboard.
+          ========================================================= */
+
         .dino-dashboard-sticky {
-          position: sticky;
-          top: 10px;
-          z-index: 100;
-          padding: 14px;
-          border: 1px solid rgba(255,255,255,.88);
-          border-radius: 24px;
-          background: rgba(247,250,246,.78);
-          box-shadow: 0 14px 50px rgba(13,28,18,.09);
-          backdrop-filter: blur(26px) saturate(135%);
-          -webkit-backdrop-filter: blur(26px) saturate(135%);
+          position: sticky !important;
+          top: 0 !important;
+          z-index: 100 !important;
+
+          width: 100%;
+
+          margin: -28px 0 0 !important;
+          padding: 28px 0 12px !important;
+
+          background:
+            linear-gradient(
+              to bottom,
+              rgba(255, 255, 255, 0) 0%,
+              rgba(255,255,255, 0) 62%,
+              rgba(255,255,255, 0) 82%,
+              rgba(255,255,255,0) 100%
+            ) !important;
+
+          border: 0 !important;
+          box-shadow: none !important;
         }
 
         .dino-dashboard-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 30px;
+          flex: 0 0 auto;
+        }
+
+        .dino-kicker {
+          display: block;
+          margin-bottom: 8px;
+          color: #878787;
+          font-size: 10px;
+          line-height: 1;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: .03em;
+        }
+
+        .dino-dashboard-heading {
+          margin: 0;
+          color: #f9f9f9;
+          font-family: Inter, sans-serif;
+          font-size: clamp(42px, 5vw, 64px);
+          line-height: .93;
+          font-weight: 600;
+          letter-spacing: -.085em;
+          text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3); 
+
+        }
+
+        .dino-dashboard-heading span,
+        .dino-panel-title span {
+          font-style: italic;
+        }
+
+        /* =========================================================
+          HEADER ACTIONS
+          ========================================================= */
+
+        .dino-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          min-width: 0;
+        }
+
+        .dino-user-email {
+          max-width: 180px;
+          overflow: hidden;
+          color: #888;
+          font-size: 9px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .dino-points-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+
+          padding: 7px 10px;
+
+          border: 1px solid color-mix(
+            in srgb,
+            var(--accent) 40%,
+            rgba(0,0,0,.08)
+          );
+
+          border-radius: 999px;
+
+          background: rgba(255,255,255,.72);
+
+          color: #111;
+          font-size: 9px;
+          line-height: 1;
+
+          box-shadow:
+            0 6px 18px rgba(0,0,0,.025),
+            inset 0 1px 0 rgba(255,255,255,.85);
+
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+
+        .dino-points-coin {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          width: 14px;
+          height: 14px;
+
+          border-radius: 50%;
+
+          font-size: 10px;
+          line-height: 1;
+        }
+
+        .dino-logout-button {
+          height: 31px;
+          padding: 0 11px;
+
+          border: 1px solid rgba(0,0,0,.07);
+          border-radius: 9px;
+
+          background: rgba(255,255,255,.68);
+
+          color: #666;
+          font-size: 8px;
+
+          cursor: pointer;
+
+          box-shadow:
+            0 5px 14px rgba(0,0,0,.02),
+            inset 0 1px 0 rgba(255,255,255,.82);
+
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+
+          transition:
+            background .15s ease,
+            color .15s ease,
+            transform .15s ease,
+            border-color .15s ease;
+        }
+
+        .dino-logout-button:hover {
+          background: rgba(255,255,255,.88);
+          color: #222;
+          border-color: rgba(0,0,0,.1);
+          transform: translateY(-1px);
+        }
+
+        /* =========================================================
+          PROGRESS
+          ========================================================= */
+
+        .dino-progress {
+          width: 210px;
+          flex: 0 0 210px;
+        }
+
+        .dino-progress-meta {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 7px;
+          color: #858585;
+          font-size: 9px;
+        }
+
+        .dino-progress-meta strong {
+          color: #0a0a0a;
+          font-size: 10px;
+        }
+
+        .dino-progress-track {
+          height: 4px;
+          overflow: hidden;
+          border-radius: 99px;
+          background: rgba(0,0,0,.065);
+        }
+
+        .dino-progress-fill {
+          height: 100%;
+          border-radius: inherit;
+          background: var(--accent);
+          transition: width .3s ease;
+        }
+
+        /* =========================================================
+          TABS
+          ========================================================= */
+
+        .dino-tabs {
+          width: 100%;
+          margin-top: 20px;
+          padding: 4px;
+
+          display: flex;
+          gap: 3px;
+
+          overflow-x: auto;
+          scrollbar-width: none;
+
+          border: 1px solid rgba(255,255,255,.74);
+          border-radius: 13px;
+
+          background: rgba(255,255,255,.58);
+
+          box-shadow:
+            0 8px 24px rgba(0,0,0,.035),
+            inset 0 1px 0 rgba(255,255,255,.9);
+
+          backdrop-filter: blur(16px) saturate(115%);
+          -webkit-backdrop-filter: blur(16px) saturate(115%);
+
+          flex: 0 0 auto;
+        }
+
+        .dino-tabs::-webkit-scrollbar {
+          display: none;
+        }
+
+        .dino-tab {
+          flex: 1 0 auto;
+
+          min-height: 38px;
+          padding: 8px 14px;
+
+          border-radius: 10px;
+          border: 0;
+
+          background: transparent;
+
+          color: #767676;
+
+          font-family: Inter, sans-serif;
+          font-size: 10px;
+          font-weight: 500;
+          letter-spacing: -.025em;
+
+          white-space: nowrap;
+
+          cursor: pointer;
+
+          transition:
+            background .18s ease,
+            color .18s ease,
+            transform .18s ease;
+        }
+
+        .dino-tab:hover {
+          color: #0a0a0a;
+        }
+
+        .dino-tab.active {
+          background: var(--accent);
+          color: #062515;
+          box-shadow:
+            0 3px 10px color-mix(
+              in srgb,
+              var(--accent) 28%,
+              transparent
+            );
+        }
+
+        /* =========================================================
+          MAIN
+          ========================================================= */
+
+        .dino-main {
+          min-height: 0;
+          margin-top: 18px;
+          padding-top: 0;
+        }
+
+        /* =========================================================
+          MAIN GLASS PANEL
+          ========================================================= */
+
+        .dino-panel {
+          position: relative;
+
+          width: 100%;
+          height: auto;
+          min-height: 0;
+
+          padding: 22px;
+
+          overflow: visible;
+
+          border: 1px solid rgba(255,255,255,.76);
+          border-radius: 20px;
+
+          background:
+            linear-gradient(
+              145deg,
+              rgba(255,255,255,.80),
+              rgba(16,103,0,.2)
+            );
+
+          box-shadow:
+            0 18px 45px rgba(0,0,0,.045),
+            0 2px 10px rgba(0,0,0,.025),
+            inset 0 1px 0 rgba(255,255,255,.92),
+            inset 0 -1px 0 rgba(255,255,255,.35);
+
+          backdrop-filter: blur(18px) saturate(120%);
+          -webkit-backdrop-filter: blur(18px) saturate(120%);
+        }
+
+        .dino-panel::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+
+          border-radius: inherit;
+
+          background:
+            linear-gradient(
+              135deg,
+              rgba(255,255,255,.30),
+              transparent 30%
+            );
+
+          pointer-events: none;
+        }
+
+        .dino-panel-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 20px;
+          margin-bottom: 18px;
+        }
+
+        .dino-panel-title {
+          margin: 0;
+          color: #0a0a0a;
+          font-size: 25px;
+          line-height: 1;
+          letter-spacing: -.06em;
+          font-weight: 600;
+        }
+
+        .dino-panel-description {
+          max-width: 600px;
+          margin: 7px 0 0;
+          color: #818181;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        /* =========================================================
+          THEMES
+          ========================================================= */
+
+        .dino-theme-grid {
+          min-height: 0;
+
           display: grid;
-          grid-template-columns: minmax(0,1fr) auto auto;
-          gap: 18px;
+          grid-template-columns: repeat(5, minmax(0,1fr));
+          gap: 10px;
+
+          overflow: visible;
+        }
+
+        .dino-theme {
+          min-width: 0;
+          height: 100%;
+          min-height: 340px;
+          padding: 14px;
+
+          border: 1px solid rgba(255,255,255,.72);
+          border-radius: 16px;
+
+          background: rgba(255,255,255,.48);
+
+          box-shadow:
+            0 8px 22px rgba(0,0,0,.025),
+            inset 0 1px 0 rgba(255,255,255,.86);
+
+          backdrop-filter: blur(14px) saturate(115%);
+          -webkit-backdrop-filter: blur(14px) saturate(115%);
+
+          transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            background .18s ease;
+        }
+
+        .dino-theme:hover {
+          transform: translateY(-2px);
+
+          background: rgba(255,255,255,.60);
+
+          box-shadow:
+            0 14px 28px rgba(0,0,0,.04),
+            inset 0 1px 0 rgba(255,255,255,.92);
+        }
+
+        .dino-theme-top {
+          display: flex;
+          justify-content: space-between;
           align-items: center;
         }
 
-        .dino-brand-row { display:flex; align-items:center; gap:11px; }
-        .dino-logo-mark {
-          width: 42px; height: 42px; display:grid; place-items:center;
-          border-radius: 13px; background: #111; color:#fff;
-          font-size: 19px; box-shadow: 0 8px 18px rgba(0,0,0,.14);
+        .dino-theme-number,
+        .dino-theme-count {
+          color: #9b9b9b;
+          font-size: 8px;
         }
-        .dino-brand-copy { min-width:0; }
-        .dino-kicker {
-          display:block; margin-bottom:5px; color:#7b847e; font-size:9px;
-          font-weight:800; text-transform:uppercase; letter-spacing:.13em;
-        }
-        .dino-dashboard-heading {
-          margin:0; font-size: clamp(29px,4vw,47px); line-height:.92;
-          font-weight:760; letter-spacing:-.065em;
-        }
-        .dino-dashboard-subheading { margin:6px 0 0; color:var(--dino-muted); font-size:11px; }
 
-        .dino-top-stat-row { display:flex; align-items:center; gap:8px; }
-        .dino-stat-pill {
-          min-width:88px; padding:9px 11px; border:1px solid var(--dino-line);
-          border-radius:14px; background:rgba(255,255,255,.72);
+        .dino-theme-title {
+          margin: 20px 0 2px;
+          color: #111;
+          font-size: 15px;
+          line-height: 1;
+          letter-spacing: -.04em;
         }
-        .dino-stat-pill span { display:block; color:#879088; font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
-        .dino-stat-pill strong { display:block; margin-top:4px; font-size:13px; }
-        .dino-points-pill strong { color:var(--dino-accent-dark); }
 
-        .dino-header-actions { display:flex; align-items:center; gap:8px; }
-        .dino-user-email { max-width:190px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#7f8781; font-size:9px; }
-
-        .dino-button, .dino-small-button, .dino-logout-button, .dino-upgrade-button,
-        .dino-generate, .dino-mark-button, .dino-tab { font:inherit; cursor:pointer; }
-        .dino-button { min-height:39px; padding:0 14px; border:0; border-radius:12px; background:#111; color:#fff; font-size:10px; font-weight:750; }
-        .dino-button:hover { transform:translateY(-1px); }
-        .dino-small-button, .dino-logout-button {
-          min-height:34px; padding:0 11px; border:1px solid var(--dino-line); border-radius:10px;
-          background:rgba(255,255,255,.82); color:#4e564f; font-size:9px;
+        .dino-theme-local {
+          color: #9a9a9a;
+          font-size: 9px;
         }
+
+        .dino-topic-list {
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+          margin-top: 15px;
+        }
+
+        .dino-topic {
+          position: relative;
+
+          display: grid;
+          grid-template-columns: 15px minmax(0,1fr);
+          gap: 9px;
+          align-items: center;
+
+          padding: 8px;
+
+          border: 1px solid rgba(255,255,255,.66);
+          border-radius: 10px;
+
+          background: rgba(255,255,255,.48);
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.75);
+
+          cursor: pointer;
+
+          transition:
+            transform .15s ease,
+            background .15s ease,
+            border-color .15s ease;
+        }
+
+        .dino-topic:hover {
+          transform: translateY(-1px);
+          background: rgba(255,255,255,.66);
+          border-color: rgba(255,255,255,.9);
+        }
+
+        .dino-topic input {
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .dino-check {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          width: 15px;
+          height: 15px;
+
+          border: 1px solid rgba(0,0,0,.14);
+          border-radius: 4px;
+
+          color: #fff;
+          font-size: 8px;
+
+          background: rgba(255,255,255,.82);
+        }
+
+        .dino-topic.completed .dino-check {
+          border-color: var(--accent);
+          background: var(--accent);
+        }
+
+        .dino-topic-copy {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .dino-topic-copy strong {
+          color: #272727;
+          font-size: 9px;
+          font-weight: 500;
+        }
+
+        .dino-topic-copy small {
+          margin-top: 2px;
+          overflow: hidden;
+
+          color: #999;
+          font-size: 7px;
+
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        /* =========================================================
+          READING
+          ========================================================= */
+
+        .dino-reading-panel {
+          overflow: visible;
+        }
+
+        .dino-reading-workspace {
+          min-height: 0;
+        }
+
+        .dino-reading-card {
+          min-width: 0;
+          height: 650px;
+          min-height: 650px;
+          max-height: 650px;
+
+          border: 1px solid rgba(255,255,255,.70);
+          border-radius: 16px;
+
+          background: rgba(255,255,255,.48);
+
+          backdrop-filter: blur(14px) saturate(115%);
+          -webkit-backdrop-filter: blur(14px) saturate(115%);
+
+          box-shadow:
+            0 10px 26px rgba(0,0,0,.03),
+            inset 0 1px 0 rgba(255,255,255,.84);
+        }
+
+        .dino-expand-button {
+          width: 28px;
+          height: 28px;
+          flex: 0 0 28px;
+
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          padding: 0;
+
+          border: 1px solid rgba(0,0,0,.07);
+          border-radius: 8px;
+
+          background: rgba(255,255,255,.76);
+
+          color: #5f5f5f;
+          font-size: 13px;
+          line-height: 1;
+
+          cursor: pointer;
+
+          transition:
+            background .15s ease,
+            color .15s ease,
+            transform .15s ease;
+        }
+
+        .dino-expand-button:hover {
+          background: #fff;
+          color: #111;
+          transform: translateY(-1px);
+        }
+
+        .dino-expand-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 80;
+
+          background: rgba(0,0,0,.28);
+
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
+        }
+
+        .dino-card-expanded {
+          position: fixed !important;
+          inset: 28px;
+
+          z-index: 81;
+
+          width: auto !important;
+          height: auto !important;
+
+          min-width: 0;
+          min-height: 0;
+
+          border-radius: 22px;
+
+          box-shadow: 0 30px 90px rgba(0,0,0,.16);
+        }
+
+        .dino-card-expanded .dino-generator-body,
+        .dino-card-expanded .dino-chat-area {
+          min-height: 0;
+        }
+
+        .dino-reading-generator {
+          height: 500px;
+          min-height: 500px;
+          max-height: 500px;
+
+          display: flex;
+          flex-direction: column;
+
+          overflow: hidden;
+        }
+
+        .dino-card-topbar {
+          min-height: 51px;
+          padding: 0 17px;
+
+          border-bottom: 1px solid rgba(0,0,0,.06);
+
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          flex: 0 0 51px;
+        }
+
+        .dino-card-topbar-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .dino-card-label {
+          color: #777;
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: .05em;
+        }
+
+        .dino-card-status {
+          color: #8f8f8f;
+          font-size: 8px;
+        }
+
+        .dino-generator-body {
+          min-height: 0;
+          flex: 1;
+          padding: 21px;
+          overflow-y: auto;
+        }
+
+        .dino-generator-title {
+          margin: 0;
+          color: #111;
+          font-size: 17px;
+          line-height: 1.1;
+          letter-spacing: -.045em;
+        }
+
+        .dino-generator-description {
+          margin: 6px 0 0;
+          color: #8b8b8b;
+          font-size: 9px;
+          line-height: 1.45;
+        }
+
+        .dino-generator-fields {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0,1fr));
+          gap: 10px;
+          margin-top: 17px;
+        }
+
+        .dino-field {
+          min-width: 0;
+        }
+
+        .dino-field-full {
+          grid-column: 1 / -1;
+        }
+
+        .dino-field-label {
+          display: block;
+          margin-bottom: 6px;
+          color: #7d7d7d;
+          font-size: 8px;
+          line-height: 1;
+          text-transform: uppercase;
+          letter-spacing: .04em;
+          font-weight: 600;
+        }
+
+        .dino-select {
+          width: 100%;
+          min-height: 42px;
+
+          padding: 0 11px;
+
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 11px;
+          outline: none;
+
+          background: rgba(255,255,255,.84);
+          color: #272727;
+
+          font-family: inherit;
+          font-size: 10px;
+        }
+
+        .dino-select:focus,
+        .dino-answer-box:focus,
+        .dino-writing-textarea:focus {
+          border-color: var(--accent);
+
+          box-shadow:
+            0 0 0 3px color-mix(
+              in srgb,
+              var(--accent) 16%,
+              transparent
+            );
+        }
+
+        .dino-generate {
+          width: 100%;
+          min-height: 42px;
+
+          margin-top: 13px;
+
+          border: 0;
+          border-radius: 11px;
+
+          background: var(--accent);
+          color: #062515;
+
+          font-size: 9px;
+          font-weight: 600;
+
+          cursor: pointer;
+        }
+
+        .dino-generate:disabled {
+          cursor: not-allowed;
+          opacity: .45;
+        }
+
+        .dino-generating {
+          margin-top: 12px;
+          color: #777;
+          font-size: 9px;
+        }
+
+        .dino-error {
+          margin-top: 10px;
+          padding: 9px 10px;
+
+          border: 1px solid rgba(150,0,0,.08);
+          border-radius: 10px;
+
+          background: rgba(255,245,245,.9);
+          color: #8c4545;
+
+          font-size: 9px;
+          line-height: 1.4;
+        }
+
+        .dino-question-list {
+          display: flex;
+          flex-direction: column;
+          gap: 11px;
+          margin-top: 17px;
+        }
+
+        .dino-generated-question {
+          padding: 14px;
+
+          border: 1px solid rgba(0,0,0,.06);
+          border-radius: 14px;
+
+          background: rgba(255,255,255,.48);
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.72);
+        }
+
+        .dino-question-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .dino-question-number {
+          color: #111;
+          font-size: 10px;
+          font-weight: 600;
+        }
+
+        .dino-question-marks {
+          color: #858585;
+          font-size: 8px;
+        }
+
+        .dino-reading-context {
+          margin-top: 11px;
+          padding: 12px;
+
+          border-radius: 11px;
+
+          background: rgba(255,255,255,.68);
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.72);
+        }
+
+        .dino-reading-context-label {
+          color: #8b8b8b;
+          font-size: 7px;
+          text-transform: uppercase;
+          letter-spacing: .05em;
+          font-weight: 600;
+        }
+
+        .dino-reading-context-copy {
+          margin-top: 7px;
+          color: #353535;
+          font-size: 10px;
+          line-height: 1.55;
+        }
+
+        .dino-question-text {
+          margin-top: 12px;
+          color: #252525;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .dino-answer-box {
+          width: 100%;
+          min-height: 90px;
+
+          margin-top: 11px;
+          padding: 10px;
+
+          resize: vertical;
+
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 11px;
+          outline: none;
+
+          background: rgba(255,255,255,.88);
+          color: #222;
+
+          font: inherit;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .dino-answer-box:focus {
+          border-color: rgba(0,0,0,.16);
+        }
+
+        .dino-question-actions {
+          margin-top: 9px;
+
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .dino-grade-pill {
+          color: #878787;
+          font-size: 8px;
+        }
+
+        .dino-mark-button {
+          min-height: 32px;
+          padding: 0 12px;
+
+          border: 0;
+          border-radius: 9px;
+
+          background: var(--accent);
+          color: #062515;
+
+          font-size: 8px;
+          font-weight: 600;
+
+          cursor: pointer;
+        }
+
+        .dino-mark-button:disabled {
+          opacity: .35;
+          cursor: not-allowed;
+        }
+
+        .dino-feedback {
+          margin-top: 10px;
+          padding: 11px;
+
+          border-radius: 11px;
+
+          background: rgba(244,244,244,.9);
+        }
+
+        .dino-feedback-score {
+          color: #007b3f;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .dino-total-score {
+          margin-top: 14px;
+          padding: 12px;
+
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          border: 1px solid rgba(0,0,0,.06);
+          border-radius: 11px;
+
+          background: rgba(255,255,255,.65);
+        }
+
+        .dino-total-score span {
+          color: #858585;
+          font-size: 8px;
+        }
+
+        .dino-total-score strong {
+          color: #111;
+          font-size: 11px;
+        }
+
+        .dino-small-button {
+          min-height: 32px;
+          margin-top: 10px;
+          padding: 0 12px;
+
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 9px;
+
+          background: rgba(255,255,255,.78);
+          color: #353535;
+
+          font-size: 8px;
+          cursor: pointer;
+        }
+
+        /* =========================================================
+          TUTOR
+          ========================================================= */
+
+        .dino-tutor-card {
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+
+          border-radius: 15px;
+        }
+
+        .dino-tutor-head {
+          min-height: 62px;
+          padding: 0 16px;
+
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          border-bottom: 1px solid rgba(0,0,0,.06);
+        }
+
+        .dino-tutor-identity {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+        }
+
+        .dino-tutor-avatar {
+          width: 30px;
+          height: 30px;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          border-radius: 9px;
+
+          background: #111;
+          color: #fff;
+
+          font-size: 10px;
+          font-weight: 600;
+        }
+
+        .dino-tutor-name {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .dino-tutor-name strong {
+          color: #151515;
+          font-size: 9px;
+        }
+
+        .dino-tutor-name span {
+          margin-top: 2px;
+          color: #969696;
+          font-size: 7px;
+        }
+
+        .dino-tutor-online {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+
+          color: #7f7f7f;
+          font-size: 7px;
+        }
+
+        .dino-tutor-online-dot {
+          width: 6px;
+          height: 6px;
+
+          border-radius: 50%;
+
+          background: #7b9b77;
+        }
+
+        .dino-chat-area {
+          min-height: 0;
+          flex: 1;
+
+          padding: 13px;
+
+          overflow-y: auto;
+
+          display: flex;
+          flex-direction: column;
+          gap: 9px;
+        }
+
+        .dino-chat-message {
+          max-width: 94%;
+
+          padding: 9px 10px;
+
+          border-radius: 11px;
+
+          font-size: 9px;
+          line-height: 1.45;
+        }
+
+        .dino-chat-message.tutor {
+          align-self: flex-start;
+          background: rgba(244,244,244,.86);
+          color: #343434;
+        }
+
+        .dino-chat-message.user {
+          align-self: flex-end;
+          background: #111;
+          color: #fff;
+        }
+
+        .dino-chat-bottom {
+          padding: 11px;
+          border-top: 1px solid rgba(0,0,0,.06);
+        }
+
+        .dino-chat-input {
+          width: 100%;
+          min-height: 55px;
+
+          padding: 9px;
+
+          resize: vertical;
+
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 10px;
+          outline: none;
+
+          background: rgba(255,255,255,.88);
+          color: #222;
+
+          font-family: inherit;
+          font-size: 9px;
+          line-height: 1.45;
+        }
+
+        .dino-chat-send {
+          width: 100%;
+          min-height: 32px;
+
+          margin-top: 7px;
+
+          border: 0;
+          border-radius: 9px;
+
+          background: #111;
+          color: #fff;
+
+          font-size: 8px;
+          font-weight: 600;
+
+          cursor: pointer;
+        }
+
+        .dino-typing {
+          display: inline-flex;
+          gap: 4px;
+          align-items: center;
+          padding: 7px 9px;
+        }
+
+        .dino-typing-dot {
+          width: 5px;
+          height: 5px;
+
+          border-radius: 50%;
+
+          background: #999;
+
+          animation: dinoTyping 1s infinite ease-in-out;
+        }
+
+        .dino-typing-dot:nth-child(2) {
+          animation-delay: .12s;
+        }
+
+        .dino-typing-dot:nth-child(3) {
+          animation-delay: .24s;
+        }
+
+        @keyframes dinoTyping {
+          0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: .45;
+          }
+
+          30% {
+            transform: translateY(-2px);
+            opacity: 1;
+          }
+        }
+
+        /* =========================================================
+          WRITING
+          ========================================================= */
+
+        .dino-writing-workspace {
+          min-height: 0;
+          height: auto;
+
+          display: grid;
+          grid-template-columns: 340px minmax(0,1fr);
+          gap: 14px;
+        }
+
+        .dino-writing-card {
+          min-height: 0;
+
+          border: 1px solid rgba(255,255,255,.70);
+          border-radius: 16px;
+
+          background: rgba(255,255,255,.48);
+
+          backdrop-filter: blur(14px) saturate(115%);
+          -webkit-backdrop-filter: blur(14px) saturate(115%);
+
+          box-shadow:
+            0 10px 26px rgba(0,0,0,.03),
+            inset 0 1px 0 rgba(255,255,255,.84);
+
+          overflow: visible;
+        }
+
+        .dino-writing-controls {
+          padding: 20px;
+          overflow: visible;
+
+          display: flex;
+          flex-direction: column;
+        }
+
+        .dino-writing-controls .dino-select {
+          margin-bottom: 17px;
+        }
+
+        .dino-writing-editor {
+          height: 500px;
+          min-height: 500px;
+          max-height: 500px;
+
+          padding: 0;
+
+          display: flex;
+          flex-direction: column;
+
+          overflow: hidden;
+        }
+        
+
+        .dino-writing-editor-topbar {
+          min-height: 51px;
+          padding: 0 17px;
+
+          border-bottom: 1px solid rgba(0,0,0,.06);
+
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+
+          flex: 0 0 51px;
+        }
+
+        .dino-writing-editor-content {
+          min-height: 0;
+          flex: 1;
+
+          padding: 22px;
+
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+
+        .dino-writing-editor.dino-card-expanded {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .dino-writing-editor.dino-card-expanded .dino-writing-editor-content {
+          min-height: 0;
+          overflow-y: auto;
+        }
+
+        .dino-prompt-empty {
+          height: 100%;
+          min-height: 420px;
+
+          max-width: 520px;
+          margin: 0 auto;
+
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+
+          text-align: center;
+        }
+
+        .dino-prompt-icon {
+          width: 44px;
+          height: 44px;
+
+          margin: 0 auto 13px;
+
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 13px;
+
+          background: rgba(255,255,255,.75);
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          color: #777;
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .dino-prompt-empty h3 {
+          margin: 0;
+          font-size: 18px;
+          letter-spacing: -.05em;
+        }
+
+        .dino-prompt-empty p {
+          margin: 8px 0 0;
+          color: #858585;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .dino-writing-task {
+          padding: 16px;
+
+          border: 1px solid rgba(0,0,0,.06);
+          border-radius: 14px;
+
+          background: rgba(255,255,255,.48);
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.72);
+        }
+
+        .dino-writing-task h3 {
+          margin: 7px 0 0;
+          color: #111;
+          font-size: 18px;
+          line-height: 1.1;
+          letter-spacing: -.045em;
+        }
+
+        .dino-writing-task-prompt {
+          margin-top: 13px;
+          color: #333;
+          font-size: 10px;
+          line-height: 1.55;
+        }
+
+        .dino-writing-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin-top: 10px;
+        }
+
+        .dino-writing-meta span {
+          padding: 5px 7px;
+
+          border-radius: 999px;
+          background: rgba(255,255,255,.78);
+
+          color: #858585;
+          font-size: 7px;
+
+          border: 1px solid rgba(0,0,0,.05);
+        }
+
+        .dino-writing-answer-label {
+          margin-top: 15px;
+
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .dino-writing-answer-label strong {
+          color: #222;
+          font-size: 9px;
+        }
+
+        .dino-writing-answer-label span {
+          color: #8c8c8c;
+          font-size: 7px;
+        }
+
+        .dino-writing-textarea {
+          width: 100%;
+          min-height: 270px;
+
+          margin-top: 8px;
+          padding: 12px;
+
+          resize: vertical;
+
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 12px;
+          outline: none;
+
+          background: rgba(255,255,255,.88);
+          color: #222;
+
+          font-family: inherit;
+          font-size: 10px;
+          line-height: 1.55;
+        }
+
+        .dino-writing-textarea:focus {
+          border-color: rgba(0,0,0,.16);
+        }
+
+        .dino-writing-grade {
+          margin-top: 15px;
+          padding: 15px;
+
+          border: 1px solid rgba(0,0,0,.07);
+          border-radius: 14px;
+
+          background: rgba(248,248,248,.72);
+        }
+
+        .dino-writing-grade-score {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+
+        .dino-writing-grade-score strong {
+          color: #111;
+          font-size: 26px;
+          line-height: .9;
+          letter-spacing: -.05em;
+        }
+
+        .dino-criterion-scores {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin: 0 0 12px;
+        }
+
+        .dino-criterion-scores span,
+        .dino-vocabulary-count {
+          padding: 5px 7px;
+
+          border: 1px solid rgba(0,0,0,.06);
+          border-radius: 999px;
+
+          background: rgba(255,255,255,.7);
+
+          color: #666;
+          font-size: 8px;
+        }
+
+        .dino-writing-grade-section {
+          margin-top: 13px;
+        }
+
+        .dino-writing-grade-section strong {
+          color: #222;
+          font-size: 9px;
+        }
+
+        .dino-writing-grade-section ul {
+          margin: 6px 0 0;
+          padding-left: 16px;
+        }
+
+        .dino-writing-grade-section li {
+          margin-bottom: 3px;
+          color: #5b5b5b;
+          font-size: 9px;
+          line-height: 1.45;
+        }
+
+        .dino-criteria {
+          margin: 8px 0 0;
+          padding-left: 17px;
+        }
+
+        .dino-criteria li {
+          margin-bottom: 5px;
+          color: #595959;
+          font-size: 9px;
+          line-height: 1.45;
+        }
+
+        .dino-prompt-label {
+          color: #8b8b8b;
+          font-size: 7px;
+          text-transform: uppercase;
+          letter-spacing: .05em;
+          font-weight: 600;
+        }
+
+        /* =========================================================
+          VOCABULARY
+          ========================================================= */
+
+        .dino-vocabulary-workspace {
+          display: grid;
+          grid-template-columns: 300px minmax(0, 1fr);
+          gap: 28px;
+        }
+
+        .dino-vocabulary-controls {
+          padding: 20px 0;
+        }
+
+        .dino-vocabulary-controls .dino-select {
+          margin-bottom: 8px;
+        }
+
+        .dino-vocabulary-trainer {
+          min-height: 460px;
+          padding: 20px 0;
+        }
+
+        .dino-vocabulary-topline {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .dino-vocabulary-topline h3 {
+          margin: 6px 0 0;
+          color: #111;
+          font-size: 20px;
+          letter-spacing: -.05em;
+        }
+
+        .dino-vocabulary-card {
+          width: 100%;
+          min-height: 280px;
+
+          margin-top: 20px;
+          padding: 0;
+
+          border: 0;
+          border-radius: 18px;
+
+          background: transparent;
+          color: inherit;
+
+          text-align: left;
+
+          perspective: 1200px;
+          cursor: pointer;
+        }
+
+        .dino-flashcard-inner {
+          position: relative;
+          display: block;
+
+          width: 100%;
+          min-height: 280px;
+
+          transform-style: preserve-3d;
+
+          transition:
+            transform .55s cubic-bezier(.2,.75,.2,1);
+        }
+
+        .dino-vocabulary-card.is-flipped .dino-flashcard-inner {
+          transform: rotateY(180deg);
+        }
+
+        .dino-flashcard-face {
+          position: absolute;
+          inset: 0;
+
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+
+          padding: 28px;
+
+          border: 1px solid rgba(255,255,255,.74);
+          border-radius: 18px;
+
+          background: rgba(255,255,255,.62);
+
+          box-shadow:
+            0 12px 28px rgba(0,0,0,.035),
+            inset 0 1px 0 rgba(255,255,255,.88);
+
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+
+        .dino-flashcard-back {
+          transform: rotateY(180deg);
+
+          background:
+            color-mix(
+              in srgb,
+              var(--accent) 13%,
+              rgba(255,255,255,.78)
+            );
+        }
+
+        .dino-flashcard-hint {
+          margin-top: 12px;
+          color: #777;
+          font-size: 9px;
+        }
+
+        .dino-flashcard-back strong {
+          color: #062515;
+          font-size: clamp(24px, 4vw, 38px);
+          letter-spacing: -.055em;
+        }
+
+        .dino-flashcard-example {
+          margin-top: 16px;
+          color: #244636;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .dino-flashcard-note {
+          margin-top: 8px;
+          color: #527161;
+          font-size: 10px;
+          line-height: 1.45;
+        }
+
+        .dino-vocabulary-card:focus-visible {
+          outline:
+            3px solid
+            color-mix(
+              in srgb,
+              var(--accent) 45%,
+              transparent
+            );
+
+          outline-offset: 4px;
+        }
+
+        .dino-vocabulary-card:hover .dino-flashcard-face {
+          border-color:
+            color-mix(
+              in srgb,
+              var(--accent) 38%,
+              rgba(0,0,0,.07)
+            );
+        }
+
+        .dino-vocabulary-card .dino-flashcard-front > strong {
+          margin-top: 10px;
+          color: #111;
+          font-size: clamp(30px, 5vw, 52px);
+          letter-spacing: -.07em;
+        }
+
+        .dino-vocabulary-actions {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          gap: 8px;
+        }
+
+        /* =========================================================
+          COMING SOON
+          ========================================================= */
+
+        .dino-coming-page {
+          height: 100%;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          text-align: center;
+        }
+
+        .dino-coming-content {
+          max-width: 520px;
+        }
+
+        .dino-coming-icon {
+          width: 50px;
+          height: 50px;
+
+          margin: 0 auto;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 15px;
+
+          background: rgba(255,255,255,.76);
+
+          font-size: 17px;
+
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .dino-coming-content h2 {
+          margin: 18px 0 0;
+
+          color: #111;
+
+          font-size: clamp(48px,7vw,82px);
+          line-height: .9;
+
+          font-weight: 600;
+          letter-spacing: -.09em;
+        }
+
+        .dino-coming-content p {
+          max-width: 430px;
+          margin: 17px auto 0;
+
+          color: #808080;
+
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        /* =========================================================
+          GOLD BUTTON
+          ========================================================= */
+
         .dino-upgrade-button {
-          position:relative; min-height:37px; padding:0 13px; border:1px solid rgba(255,210,70,.62);
-          border-radius:11px; background:linear-gradient(135deg,#fff0a1,#dfb336,#fff0a1);
-          color:#5e4200; font-size:10px; font-weight:850; overflow:hidden;
-          box-shadow:0 7px 18px rgba(221,176,54,.22);
+          position: relative;
+
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          gap: 7px;
+
+          padding: 10px 16px;
+
+          border: 1px solid rgba(255, 215, 90, 0.65);
+          border-radius: 10px;
+
+          background:
+            linear-gradient(
+              135deg,
+              #fff4b0 0%,
+              #f7d65a 25%,
+              #d9a928 50%,
+              #f6d96a 75%,
+              #fff1a3 100%
+            );
+
+          color: #5a3b00;
+
+          font-weight: 800;
+          font-size: 13px;
+          letter-spacing: -0.2px;
+
+          cursor: pointer;
+
+          box-shadow:
+            0 0 0 1px rgba(255,215,90,0.15),
+            0 4px 14px rgba(218,168,37,0.28),
+            inset 0 1px 0 rgba(255,255,255,0.75);
+
+          overflow: hidden;
+
+          transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            filter .18s ease;
         }
-        .dino-upgrade-button::after { content:"✦"; position:absolute; top:4px; right:6px; font-size:8px; opacity:.72; }
 
-        .dino-progress { margin-top:13px; }
-        .dino-progress-meta { display:flex; justify-content:space-between; color:#808981; font-size:8px; margin-bottom:6px; }
-        .dino-progress-meta strong { color:#1d251f; }
-        .dino-progress-track { height:7px; overflow:hidden; border-radius:99px; background:rgba(12,31,18,.08); }
-        .dino-progress-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,#15bf69,#39e895); transition:width .4s ease; }
+        .dino-upgrade-button::before {
+          content: "";
 
-        .dino-tabs {
-          display:flex; gap:5px; overflow-x:auto; scrollbar-width:none; margin-top:13px;
-          padding:4px; border:1px solid rgba(255,255,255,.85); border-radius:15px;
-          background:rgba(255,255,255,.57);
+          position: absolute;
+
+          top: -40%;
+          left: -90%;
+
+          width: 55%;
+          height: 180%;
+
+          background:
+            linear-gradient(
+              90deg,
+              transparent,
+              rgba(255,255,255,.75),
+              transparent
+            );
+
+          transform: rotate(20deg);
+
+          animation:
+            dino-gold-shine 2.8s ease-in-out infinite;
+
+          pointer-events: none;
         }
-        .dino-tabs::-webkit-scrollbar { display:none; }
-        .dino-tab {
-          flex:1 0 auto; min-height:41px; padding:0 15px; border:0; border-radius:11px;
-          background:transparent; color:#7d857f; font-size:9px; font-weight:750; white-space:nowrap;
-          transition:all .18s ease;
+
+        .dino-upgrade-button::after {
+          content: "✦";
+
+          position: absolute;
+
+          top: 2px;
+          right: 7px;
+
+          font-size: 9px;
+          color: rgba(255,255,255,.9);
+
+          animation:
+            dino-gold-sparkle 1.5s ease-in-out infinite;
+
+          pointer-events: none;
         }
-        .dino-tab:hover { color:#111; background:rgba(255,255,255,.72); }
-        .dino-tab.active { background:#111; color:#fff; box-shadow:0 7px 16px rgba(0,0,0,.12); }
-        .dino-tab.learning-tab.active { background:linear-gradient(135deg,#102118,#183b27); color:#8affbc; }
 
-        .dino-main { margin-top:18px; }
-        .dino-panel {
-          border:1px solid rgba(255,255,255,.9); border-radius:26px; padding:24px;
-          background:rgba(248,250,247,.73); box-shadow:var(--dino-shadow);
-          backdrop-filter:blur(22px) saturate(125%); -webkit-backdrop-filter:blur(22px) saturate(125%);
+        .dino-upgrade-button:hover {
+          transform: translateY(-1px);
+
+          filter: brightness(1.06);
+
+          box-shadow:
+            0 0 0 1px rgba(255,215,90,0.25),
+            0 7px 20px rgba(218,168,37,0.4),
+            0 0 18px rgba(255,215,90,0.18),
+            inset 0 1px 0 rgba(255,255,255,0.8);
         }
-        .dino-panel-heading { display:flex; justify-content:space-between; gap:20px; margin-bottom:21px; }
-        .dino-panel-title { margin:0; font-size:clamp(26px,3vw,38px); letter-spacing:-.065em; line-height:.95; }
-        .dino-panel-title span { color:var(--dino-accent-dark); font-style:italic; }
-        .dino-panel-description { max-width:680px; margin:8px 0 0; color:#737d76; font-size:11px; line-height:1.55; }
 
-        .dino-hero-card {
-          display:grid; grid-template-columns:minmax(0,1.4fr) minmax(280px,.7fr); gap:16px;
-          padding:19px; border:1px solid rgba(255,255,255,.88); border-radius:20px;
-          background:linear-gradient(135deg,rgba(12,35,22,.96),rgba(22,65,40,.94)); color:#fff;
-          box-shadow:0 18px 45px rgba(11,38,22,.18); margin-bottom:18px;
+        .dino-upgrade-button:active {
+          transform: translateY(0);
         }
-        .dino-hero-card h3 { margin:4px 0 0; font-size:25px; letter-spacing:-.06em; }
-        .dino-hero-card p { margin:7px 0 0; color:#b5c7bb; font-size:10px; line-height:1.55; }
-        .dino-hero-actions { display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:wrap; }
-        .dino-hero-actions .dino-button { background:var(--dino-accent); color:#07170e; }
-        .dino-hero-metric { padding:13px; border:1px solid rgba(255,255,255,.12); border-radius:15px; background:rgba(255,255,255,.06); }
-        .dino-hero-metric span { display:block; color:#8fa99b; font-size:8px; text-transform:uppercase; letter-spacing:.08em; }
-        .dino-hero-metric strong { display:block; margin-top:5px; font-size:17px; }
 
-        .dino-theme-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
-        .dino-theme-card {
-          position:relative; min-height:338px; padding:15px; border:1px solid rgba(255,255,255,.88); border-radius:19px;
-          background:rgba(255,255,255,.61); box-shadow:0 10px 30px rgba(10,31,16,.035); overflow:hidden;
-          transition:transform .18s ease, box-shadow .18s ease;
+        @keyframes dino-gold-shine {
+          0% {
+            left: -90%;
+          }
+
+          45%,
+          100% {
+            left: 140%;
+          }
         }
-        .dino-theme-card:hover { transform:translateY(-3px); box-shadow:0 18px 38px rgba(10,31,16,.07); }
-        .dino-theme-card::after { content:""; position:absolute; top:-60px; right:-40px; width:120px; height:120px; border-radius:50%; background:rgba(32,214,123,.09); }
-        .dino-theme-top { display:flex; justify-content:space-between; color:#929b95; font-size:8px; }
-        .dino-theme-title { margin:22px 0 3px; font-size:15px; letter-spacing:-.04em; }
-        .dino-theme-local { color:#939b96; font-size:9px; }
-        .dino-topic-list { display:flex; flex-direction:column; gap:7px; margin-top:15px; }
-        .dino-topic { display:grid; grid-template-columns:21px minmax(0,1fr); align-items:center; gap:8px; padding:8px; border:1px solid rgba(11,27,17,.06); border-radius:11px; background:rgba(255,255,255,.69); cursor:pointer; transition:all .15s ease; }
-        .dino-topic:hover { transform:translateX(2px); border-color:rgba(32,214,123,.22); }
-        .dino-check { width:18px; height:18px; display:grid; place-items:center; border:1px solid rgba(12,24,16,.13); border-radius:6px; background:#fff; font-size:9px; }
-        .dino-topic.completed { background:rgba(32,214,123,.09); border-color:rgba(32,214,123,.23); }
-        .dino-topic.completed .dino-check { background:var(--dino-accent); border-color:var(--dino-accent); color:#082112; }
-        .dino-topic-copy { min-width:0; display:flex; flex-direction:column; }
-        .dino-topic-copy strong { font-size:9px; font-weight:700; }
-        .dino-topic-copy small { margin-top:2px; overflow:hidden; color:#969e99; font-size:7px; text-overflow:ellipsis; white-space:nowrap; }
 
-        .dino-reading-workspace { display:grid; grid-template-columns:minmax(0,1.25fr) 330px; gap:16px; }
-        .dino-reading-card, .dino-writing-card { border:1px solid rgba(255,255,255,.88); border-radius:20px; background:rgba(255,255,255,.63); box-shadow:0 14px 34px rgba(10,31,16,.045); overflow:hidden; }
-        .dino-reading-generator { height:690px; max-height:690px; display:flex; flex-direction:column; }
-        .dino-card-topbar, .dino-writing-editor-topbar { min-height:55px; padding:0 17px; border-bottom:1px solid rgba(10,25,14,.06); display:flex; align-items:center; justify-content:space-between; }
-        .dino-card-topbar-actions { display:flex; align-items:center; gap:7px; }
-        .dino-card-label, .dino-prompt-label { color:#89938c; font-size:8px; text-transform:uppercase; letter-spacing:.08em; font-weight:800; }
-        .dino-card-status { color:#78817a; font-size:8px; }
-        .dino-expand-button { width:31px; height:31px; border:1px solid var(--dino-line); border-radius:9px; background:#fff; color:#59615b; cursor:pointer; }
-        .dino-expand-backdrop { position:fixed; inset:0; z-index:999; background:rgba(3,10,5,.28); backdrop-filter:blur(8px); }
-        .dino-card-expanded { position:fixed !important; inset:24px; z-index:1000; width:auto !important; height:auto !important; max-height:none !important; box-shadow:0 35px 110px rgba(0,0,0,.2); }
-        .dino-generator-body, .dino-writing-editor-content { flex:1; min-height:0; overflow:auto; padding:21px; }
-        .dino-generator-title { margin:0; font-size:18px; letter-spacing:-.04em; }
-        .dino-generator-description { margin:7px 0 0; color:#7d867f; font-size:9px; line-height:1.5; }
-        .dino-generator-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:17px; }
-        .dino-field-full { grid-column:1/-1; }
-        .dino-field-label { display:block; margin-bottom:6px; color:#7e8881; font-size:8px; text-transform:uppercase; letter-spacing:.08em; font-weight:800; }
-        .dino-select, .dino-answer-box, .dino-writing-textarea, .dino-chat-input { width:100%; border:1px solid rgba(10,27,14,.09); border-radius:11px; outline:none; background:rgba(255,255,255,.9); color:#222; font:inherit; }
-        .dino-select { min-height:42px; padding:0 11px; font-size:9px; }
-        .dino-select:focus, .dino-answer-box:focus, .dino-writing-textarea:focus, .dino-chat-input:focus { border-color:rgba(32,214,123,.55); box-shadow:0 0 0 3px rgba(32,214,123,.11); }
-        .dino-generate, .dino-mark-button { width:100%; min-height:42px; margin-top:13px; border:0; border-radius:11px; background:linear-gradient(135deg,#18c96f,#34e58b); color:#07180d; font-size:9px; font-weight:850; }
-        .dino-generate:disabled, .dino-mark-button:disabled { opacity:.42; cursor:not-allowed; }
-        .dino-generating { margin-top:10px; padding:9px 11px; border-radius:10px; background:rgba(32,214,123,.09); color:#4d6757; font-size:8px; }
-        .dino-error { margin-top:10px; padding:10px 11px; border:1px solid rgba(176,40,40,.1); border-radius:11px; background:#fff6f6; color:#8d4a4a; font-size:8px; line-height:1.45; }
-        .dino-question-list { display:flex; flex-direction:column; gap:12px; margin-top:17px; }
-        .dino-generated-question, .dino-writing-task, .dino-feedback, .dino-writing-grade { padding:15px; border:1px solid rgba(10,25,14,.065); border-radius:15px; background:rgba(255,255,255,.72); }
-        .dino-question-header { display:flex; justify-content:space-between; gap:12px; }
-        .dino-question-number { font-size:10px; font-weight:800; }
-        .dino-question-marks { color:#7d857f; font-size:8px; }
-        .dino-reading-context { margin-top:11px; padding:12px; border-radius:12px; background:#f4f6f3; }
-        .dino-reading-context-copy { margin-top:7px; color:#303832; font-size:10px; line-height:1.55; }
-        .dino-question-text { margin-top:12px; color:#292f2b; font-size:10px; line-height:1.5; }
-        .dino-answer-box { min-height:90px; margin-top:10px; padding:10px; resize:vertical; font-size:9px; line-height:1.5; }
-        .dino-question-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:9px; }
-        .dino-grade-pill { color:#7f8881; font-size:8px; }
-        .dino-mark-button { width:auto; min-width:105px; min-height:33px; margin-top:0; padding:0 12px; }
-        .dino-feedback-score { color:#06733c; font-size:11px; font-weight:850; }
-        .dino-total-score { display:flex; justify-content:space-between; margin-top:14px; padding:12px 13px; border-radius:12px; background:#eef7f1; }
-        .dino-total-score span { color:#6f796f; font-size:8px; }
-        .dino-total-score strong { font-size:11px; }
+        @keyframes dino-gold-sparkle {
+          0%,
+          100% {
+            opacity: .35;
+            transform: scale(.85) rotate(0deg);
+          }
 
-        .dino-writing-workspace { display:grid; grid-template-columns:300px minmax(0,1fr); gap:16px; }
-        .dino-writing-controls { padding:19px; overflow:visible; }
-        .dino-writing-editor { height:670px; max-height:670px; display:flex; flex-direction:column; }
-        .dino-writing-editor-content { overflow:auto; }
-        .dino-prompt-empty, .dino-empty-center { min-height:420px; display:grid; place-items:center; text-align:center; align-content:center; padding:30px; }
-        .dino-prompt-icon { width:50px; height:50px; margin:0 auto 13px; display:grid; place-items:center; border-radius:15px; background:#111; color:#fff; box-shadow:0 12px 28px rgba(0,0,0,.12); }
-        .dino-prompt-empty h3, .dino-empty-center h3 { margin:0; font-size:19px; letter-spacing:-.04em; }
-        .dino-prompt-empty p, .dino-empty-center p { max-width:450px; margin:8px auto 0; color:#7a837c; font-size:10px; line-height:1.55; }
-        .dino-writing-task h3 { margin:7px 0 0; font-size:19px; letter-spacing:-.05em; }
-        .dino-writing-meta { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-        .dino-writing-meta span, .dino-criterion-scores span, .dino-vocabulary-count { padding:5px 7px; border:1px solid var(--dino-line); border-radius:999px; background:#f4f6f3; color:#69716b; font-size:7px; }
-        .dino-writing-task-prompt { margin-top:13px; color:#303731; font-size:10px; line-height:1.55; }
-        .dino-writing-answer-label { display:flex; justify-content:space-between; margin-top:15px; }
-        .dino-writing-answer-label strong { font-size:9px; }
-        .dino-writing-answer-label span { color:#8a928b; font-size:7px; }
-        .dino-writing-textarea { min-height:280px; margin-top:8px; padding:12px; resize:vertical; font-size:10px; line-height:1.55; }
-        .dino-writing-grade { margin-top:15px; }
-        .dino-writing-grade-score { display:flex; align-items:end; justify-content:space-between; }
-        .dino-writing-grade-score strong { font-size:30px; letter-spacing:-.06em; }
-        .dino-criterion-scores { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
-        .dino-writing-grade-section { margin-top:13px; }
-        .dino-writing-grade-section strong { font-size:9px; }
-        .dino-writing-grade-section ul { margin:7px 0 0; padding-left:17px; }
-        .dino-writing-grade-section li { margin-bottom:4px; color:#5d665f; font-size:9px; line-height:1.45; }
-        .dino-criteria { margin:8px 0 0; padding-left:17px; }
-        .dino-criteria li { margin-bottom:5px; color:#5d665f; font-size:9px; line-height:1.45; }
-
-        .dino-vocabulary-workspace { display:grid; grid-template-columns:280px minmax(0,1fr); gap:25px; }
-        .dino-vocabulary-controls { padding:12px 0; }
-        .dino-vocabulary-trainer { padding:11px 0; }
-        .dino-vocabulary-topline { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
-        .dino-vocabulary-topline h3 { margin:6px 0 0; font-size:21px; letter-spacing:-.05em; }
-        .dino-vocabulary-card { width:100%; min-height:325px; margin-top:19px; padding:0; border:0; background:transparent; perspective:1200px; cursor:pointer; }
-        .dino-flashcard-inner { position:relative; display:block; width:100%; min-height:325px; transform-style:preserve-3d; transition:transform .55s cubic-bezier(.2,.75,.2,1); }
-        .dino-vocabulary-card.is-flipped .dino-flashcard-inner { transform:rotateY(180deg); }
-        .dino-flashcard-face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:32px; border:1px solid rgba(255,255,255,.88); border-radius:22px; background:rgba(255,255,255,.7); box-shadow:0 18px 40px rgba(11,31,17,.06); backface-visibility:hidden; -webkit-backface-visibility:hidden; }
-        .dino-flashcard-front > strong { margin-top:11px; color:#111; font-size:clamp(34px,5vw,58px); letter-spacing:-.075em; }
-        .dino-flashcard-hint { margin-top:11px; color:#7c857f; font-size:9px; }
-        .dino-flashcard-back { transform:rotateY(180deg); background:linear-gradient(145deg,rgba(32,214,123,.15),rgba(255,255,255,.83)); }
-        .dino-flashcard-back strong { color:#0b5b36; font-size:clamp(27px,4vw,42px); letter-spacing:-.06em; }
-        .dino-flashcard-example { margin-top:15px; color:#2d5540; font-size:11px; line-height:1.55; }
-        .dino-flashcard-note { margin-top:8px; color:#5d8069; font-size:9px; line-height:1.45; }
-        .dino-vocabulary-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:10px; }
-
-        /* LEARNING PATH */
-        .dino-learning-shell { display:grid; grid-template-columns:minmax(0,1fr) 390px; gap:18px; align-items:start; }
-        .dino-learning-path { padding:20px; border:1px solid rgba(255,255,255,.86); border-radius:22px; background:rgba(255,255,255,.57); }
-        .dino-learning-path-header { display:flex; align-items:flex-start; justify-content:space-between; gap:15px; margin-bottom:16px; }
-        .dino-learning-path-header h3 { margin:4px 0 0; font-size:24px; letter-spacing:-.05em; }
-        .dino-learning-path-header p { margin:7px 0 0; color:#7b847d; font-size:9px; line-height:1.5; }
-        .dino-learning-streak { min-width:95px; padding:10px 12px; border-radius:14px; background:#111; color:#fff; text-align:right; }
-        .dino-learning-streak span { display:block; color:#97a69c; font-size:7px; text-transform:uppercase; letter-spacing:.1em; }
-        .dino-learning-streak strong { display:block; margin-top:3px; font-size:15px; }
-        .dino-learning-theme { position:relative; padding:13px 0 5px; }
-        .dino-learning-theme + .dino-learning-theme { border-top:1px solid rgba(10,27,14,.06); }
-        .dino-learning-theme-title { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-        .dino-learning-theme-title strong { font-size:11px; letter-spacing:-.02em; }
-        .dino-learning-theme-title span { color:#8c958e; font-size:8px; }
-        .dino-learning-nodes { position:relative; display:flex; flex-direction:column; align-items:center; gap:10px; padding:4px 10px 13px; }
-        .dino-learning-nodes::before { content:""; position:absolute; top:31px; bottom:31px; width:4px; border-radius:99px; background:linear-gradient(#cfe8d8,#d9eadf); }
-        .dino-learning-node { position:relative; z-index:1; display:grid; grid-template-columns:58px minmax(0,1fr) auto; gap:12px; align-items:center; width:min(620px,100%); padding:10px; border:1px solid rgba(10,27,14,.07); border-radius:16px; background:rgba(255,255,255,.84); box-shadow:0 8px 20px rgba(10,31,16,.035); transition:all .17s ease; }
-        .dino-learning-node:hover { transform:translateY(-2px); box-shadow:0 14px 28px rgba(10,31,16,.07); }
-        .dino-learning-node.complete { border-color:rgba(32,214,123,.27); background:rgba(235,251,242,.86); }
-        .dino-learning-node.active { border-color:rgba(32,214,123,.34); box-shadow:0 0 0 3px rgba(32,214,123,.08),0 14px 28px rgba(10,31,16,.06); }
-        .dino-learning-node.is-selected { background:#111; color:#fff; border-color:#111; }
-        .dino-learning-node.is-selected .dino-learning-node-meta, .dino-learning-node.is-selected .dino-learning-node-copy small { color:#9ca8a1; }
-        .dino-learning-node-bubble { width:54px; height:54px; display:grid; place-items:center; border-radius:16px; background:#eef4ef; font-size:19px; box-shadow:inset 0 1px 0 rgba(255,255,255,.9); }
-        .dino-learning-node.complete .dino-learning-node-bubble { background:var(--dino-accent); }
-        .dino-learning-node.is-selected .dino-learning-node-bubble { background:rgba(255,255,255,.11); }
-        .dino-learning-node-copy { min-width:0; }
-        .dino-learning-node-copy strong { display:block; font-size:10px; }
-        .dino-learning-node-copy small { display:block; margin-top:3px; color:#8b948d; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:7px; }
-        .dino-learning-node-meta { color:#87918a; font-size:7px; text-align:right; }
-        .dino-learning-start { min-height:31px; padding:0 10px; border:0; border-radius:9px; background:var(--dino-accent); color:#082112; font-size:8px; font-weight:850; cursor:pointer; }
-
-        .dino-lesson-card { position:sticky; top:170px; min-height:590px; padding:20px; border:1px solid rgba(255,255,255,.88); border-radius:22px; background:rgba(255,255,255,.73); box-shadow:0 18px 45px rgba(10,31,16,.07); backdrop-filter:blur(18px); }
-        .dino-lesson-head { display:flex; justify-content:space-between; gap:12px; }
-        .dino-lesson-head h3 { margin:4px 0 0; font-size:24px; line-height:.97; letter-spacing:-.055em; }
-        .dino-lesson-step { color:#738078; font-size:8px; font-weight:800; }
-        .dino-lesson-progress { height:5px; margin:13px 0 18px; border-radius:99px; background:#e7ece8; overflow:hidden; }
-        .dino-lesson-progress span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#19c66e,#44e99a); transition:width .3s ease; }
-        .dino-lesson-intro { margin:0; color:#68736c; font-size:9px; line-height:1.55; }
-        .dino-lesson-step-title { margin:21px 0 8px; font-size:16px; letter-spacing:-.04em; }
-        .dino-lesson-word-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-        .dino-lesson-word { padding:11px; border-radius:13px; background:#f5f8f5; border:1px solid rgba(10,25,14,.055); }
-        .dino-lesson-word strong { display:block; font-size:13px; }
-        .dino-lesson-word span { display:block; margin-top:3px; color:#2e6b49; font-size:8px; }
-        .dino-lesson-word p { margin:7px 0 0; color:#667068; font-size:8px; line-height:1.45; }
-        .dino-lesson-reading { padding:13px; border-radius:15px; background:#f5f7f5; border:1px solid rgba(10,25,14,.055); }
-        .dino-lesson-reading h4 { margin:0; font-size:11px; }
-        .dino-lesson-reading p { margin:7px 0 0; color:#4d554f; font-size:9px; line-height:1.55; }
-        .dino-lesson-textarea { width:100%; min-height:100px; margin-top:10px; padding:10px; resize:vertical; border:1px solid rgba(10,25,14,.09); border-radius:11px; outline:none; background:#fff; font:inherit; font-size:9px; }
-        .dino-lesson-feedback { margin-top:9px; padding:10px; border-radius:11px; background:#eef8f1; color:#446050; font-size:8px; line-height:1.5; }
-        .dino-lesson-writing { padding:13px; border-radius:15px; background:#f5f7f5; border:1px solid rgba(10,25,14,.055); }
-        .dino-lesson-writing p { margin:0; color:#343b36; font-size:9px; line-height:1.55; }
-        .dino-success-list { margin:9px 0 0; padding-left:15px; }
-        .dino-success-list li { margin-bottom:3px; color:#647068; font-size:8px; }
-        .dino-lesson-actions { display:flex; justify-content:space-between; gap:8px; margin-top:16px; }
-        .dino-lesson-actions .dino-button { flex:1; }
-        .dino-lesson-complete { padding:26px 12px; text-align:center; }
-        .dino-lesson-complete .dino-complete-icon { width:64px; height:64px; display:grid; place-items:center; margin:0 auto 14px; border-radius:21px; background:var(--dino-accent); font-size:25px; }
-        .dino-lesson-complete h3 { margin:0; font-size:25px; letter-spacing:-.05em; }
-        .dino-lesson-complete p { margin:8px auto 0; max-width:290px; color:#758078; font-size:9px; line-height:1.55; }
-
-        .dino-loading-shell { min-height:100dvh; display:flex; align-items:center; justify-content:center; gap:13px; color:#1b241e; }
-        .dino-loading-orbit { width:28px; height:28px; border:3px solid rgba(32,214,123,.2); border-top-color:var(--dino-accent); border-radius:50%; animation:dinoSpin .8s linear infinite; }
-        .dino-loading-shell strong { display:block; font-size:13px; }
-        .dino-loading-shell span { display:block; margin-top:3px; color:#7a847c; font-size:9px; }
-        @keyframes dinoSpin { to { transform:rotate(360deg); } }
-
-        @media (max-width:1100px) {
-          .dino-dashboard-header { grid-template-columns:1fr auto; }
-          .dino-header-actions { grid-column:1/-1; }
-          .dino-theme-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
-          .dino-learning-shell { grid-template-columns:1fr; }
-          .dino-lesson-card { position:relative; top:auto; }
+          50% {
+            opacity: 1;
+            transform: scale(1.15) rotate(20deg);
+          }
         }
-        @media (max-width:820px) {
-          .dino-dashboard { padding:14px 12px 36px; }
-          .dino-dashboard-header { grid-template-columns:1fr; }
-          .dino-top-stat-row { width:100%; }
-          .dino-header-actions { flex-wrap:wrap; }
-          .dino-user-email { max-width:100%; width:100%; }
-          .dino-theme-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-          .dino-reading-workspace, .dino-writing-workspace, .dino-vocabulary-workspace { grid-template-columns:1fr; }
-          .dino-reading-generator { height:auto; max-height:none; min-height:650px; }
-          .dino-writing-editor { height:760px; max-height:760px; }
-          .dino-hero-card { grid-template-columns:1fr; }
-          .dino-hero-actions { justify-content:flex-start; }
+
+        /* =========================================================
+          RESPONSIVE
+          ========================================================= */
+
+        @media (max-width: 1050px) {
+          .dino-theme-grid {
+            grid-template-columns: repeat(3,minmax(0,1fr));
+            overflow-y: auto;
+          }
+
+          .dino-theme {
+            height: auto;
+            min-height: 290px;
+          }
+
+          .dino-reading-workspace {
+            grid-template-columns: minmax(0,1fr) 315px;
+          }
+
+          .dino-writing-workspace {
+            grid-template-columns: 300px minmax(0,1fr);
+          }
+
+          .dino-vocabulary-workspace {
+            grid-template-columns: 260px minmax(0,1fr);
+          }
         }
-        @media (max-width:560px) {
-          .dino-theme-grid { grid-template-columns:1fr; }
-          .dino-panel { padding:15px; border-radius:20px; }
-          .dino-generator-fields { grid-template-columns:1fr; }
-          .dino-field-full { grid-column:auto; }
-          .dino-learning-node { grid-template-columns:48px minmax(0,1fr); }
-          .dino-learning-node-meta { grid-column:2; text-align:left; }
-          .dino-lesson-card { padding:15px; }
+
+        @media (max-width: 820px) {
+          .dino-dashboard {
+            padding: 18px 18px 30px;
+          }
+
+          .dino-dashboard-sticky {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 100 !important;
+
+            width: 100%;
+
+            margin: -28px 0 0 !important;
+            padding: 28px 0 12px !important;
+
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+
+            overflow: visible !important;
+          }
+          .dino-dashboard-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 18px;
+          }
+
+          .dino-header-actions {
+            width: 100%;
+            flex-wrap: wrap;
+          }
+
+          .dino-progress {
+            width: 100%;
+            flex: none;
+          }
+
+          .dino-panel {
+            padding: 16px;
+            border-radius: 18px;
+          }
+
+          .dino-theme-grid {
+            height: auto;
+            grid-template-columns: repeat(2,minmax(0,1fr));
+          }
+
+          .dino-reading-panel {
+            overflow: visible;
+          }
+
+          .dino-reading-workspace {
+            height: auto;
+            grid-template-columns: 1fr;
+          }
+
+          .dino-reading-generator {
+            overflow: visible;
+          }
+
+          .dino-tutor-card {
+            min-height: 620px;
+          }
+
+          .dino-generator-fields {
+            grid-template-columns: 1fr;
+          }
+
+          .dino-field-full {
+            grid-column: auto;
+          }
+
+          .dino-writing-workspace {
+            height: auto;
+            grid-template-columns: 1fr;
+          }
+
+          .dino-vocabulary-workspace {
+            grid-template-columns: 1fr;
+            gap: 0;
+          }
+
+          .dino-vocabulary-trainer {
+            min-height: 400px;
+            padding-top: 0;
+          }
+
+          .dino-writing-editor {
+            min-height: 700px;
+          }
+
+          .dino-coming-page {
+            height: 450px;
+          }
+
+          .dino-card-expanded {
+            inset: 14px;
+            border-radius: 17px;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .dino-theme-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .dino-dashboard-heading {
+            font-size: 43px;
+          }
+
+          .dino-panel-title {
+            font-size: 22px;
+          }
+
+          .dino-dashboard-sticky {
+            padding-bottom: 10px !important;
+          }
         }
       `}</style>
 
       <AnimatedBackground className="dino-dashboard">
         <div className="dino-dashboard-shell">
+
           <div className="dino-dashboard-sticky">
-            <header className="dino-dashboard-header">
-              <div className="dino-brand-row">
-                <div className="dino-logo-mark">🦖</div>
-                <div className="dino-brand-copy">
-                  <span className="dino-kicker">Dino · IB Language B</span>
-                  <h1 className="dino-dashboard-heading">Learn with momentum.</h1>
-                  <p className="dino-dashboard-subheading">{language} · AI practice built around your course.</p>
-                </div>
-              </div>
+          <header className="dino-dashboard-header">
+            <div>
+              <span className="dino-kicker">
+                Dino
+              </span>
 
-              <div className="dino-top-stat-row">
-                <div className="dino-stat-pill">
-                  <span>Points</span>
-                  <strong>🦖 {dinoPoints}</strong>
-                </div>
-                <div className="dino-stat-pill">
-                  <span>Course</span>
-                  <strong>{courseProgress}%</strong>
-                </div>
-              </div>
-
-              <div className="dino-header-actions">
-                <div className="dino-user-email">{user.email}</div>
-                {!isGold && (
-                  <button type="button" className="dino-upgrade-button" onClick={() => { window.location.href = '/upgrade' }}>
-                    ✦ Gold
-                  </button>
-                )}
-                <button type="button" className="dino-logout-button" onClick={handleLogout}>Log out</button>
-              </div>
-            </header>
-
-            <div className="dino-progress">
-              <div className="dino-progress-meta"><span>Course progress</span><strong>{courseProgress}%</strong></div>
-              <div className="dino-progress-track"><div className="dino-progress-fill" style={{ width: `${courseProgress}%` }} /></div>
+              <h1 className="dino-dashboard-heading">
+                Dashboard. 
+              </h1>
             </div>
 
-            <nav className="dino-tabs" aria-label="Learning sections">
-              {[
-                ['learn', 'Learn'],
-                ['course', 'Course'],
-                ['reading', 'Reading'],
-                ['writing', 'Writing'],
-                ['vocabulary', 'Vocabulary'],
-              ].map(([value, label]) => (
+            <style>
+            {`
+              .dino-header-actions {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+              }
+
+              .dino-upgrade-button {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 7px;
+                padding: 10px 16px;
+                border: 1px solid rgba(255, 215, 90, 0.65);
+                border-radius: 10px;
+                background:
+                  linear-gradient(
+                    135deg,
+                    #fff4b0 0%,
+                    #f7d65a 25%,
+                    #d9a928 50%,
+                    #f6d96a 75%,
+                    #fff1a3 100%
+                  );
+                color: #5a3b00;
+                font-weight: 800;
+                font-size: 13px;
+                letter-spacing: -0.2px;
+                cursor: pointer;
+                box-shadow:
+                  0 0 0 1px rgba(255, 215, 90, 0.15),
+                  0 4px 14px rgba(218, 168, 37, 0.28),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.75);
+                overflow: hidden;
+                transition:
+                  transform 0.18s ease,
+                  box-shadow 0.18s ease,
+                  filter 0.18s ease;
+              }
+
+              .dino-upgrade-button::before {
+                content: "";
+                position: absolute;
+                top: -40%;
+                left: -90%;
+                width: 55%;
+                height: 180%;
+                background: linear-gradient(
+                  90deg,
+                  transparent,
+                  rgba(255, 255, 255, 0.75),
+                  transparent
+                );
+                transform: rotate(20deg);
+                animation: dino-gold-shine 2.8s ease-in-out infinite;
+                pointer-events: none;
+              }
+
+              .dino-upgrade-button::after {
+                content: "✦";
+                position: absolute;
+                top: 2px;
+                right: 7px;
+                font-size: 9px;
+                color: rgba(255, 255, 255, 0.9);
+                animation: dino-gold-sparkle 1.5s ease-in-out infinite;
+                pointer-events: none;
+              }
+
+              .dino-upgrade-button:hover {
+                transform: translateY(-1px);
+                filter: brightness(1.06);
+                box-shadow:
+                  0 0 0 1px rgba(255, 215, 90, 0.25),
+                  0 7px 20px rgba(218, 168, 37, 0.4),
+                  0 0 18px rgba(255, 215, 90, 0.18),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+              }
+
+              .dino-upgrade-button:active {
+                transform: translateY(0);
+              }
+
+              @keyframes dino-gold-shine {
+                0% {
+                  left: -90%;
+                }
+
+                45%,
+                100% {
+                  left: 140%;
+                }
+              }
+
+              @keyframes dino-gold-sparkle {
+                0%,
+                100% {
+                  opacity: 0.35;
+                  transform: scale(0.85) rotate(0deg);
+                }
+
+                50% {
+                  opacity: 1;
+                  transform: scale(1.15) rotate(20deg);
+                }
+              }
+            `}
+          </style>
+
+          <div className="dino-header-actions">
+            <div className="dino-user-email">
+              {user.email}
+            </div>
+
+            <div className="dino-points-pill">
+              <span className="dino-points-coin">
+                🦖
+              </span>
+
+              <strong>
+                {dinoPoints}
+              </strong>
+
+              <span>Dino points</span>
+            </div>
+
+            <button
+              type="button"
+              className="dino-logout-button"
+              onClick={handleLogout}
+            >
+              Log out
+            </button>
+
+            {(() => {
+              const [gold, setGold] = window.React?.useState?.(false) || [false, () => {}];
+
+              if (!window.__dinoGoldCheckStarted) {
+                window.__dinoGoldCheckStarted = true;
+
+                import("../api/credentials")
+                  .then(async ({ getCurrentUser, getGoldMembership }) => {
+                    try {
+                      const user = await getCurrentUser();
+
+                      if (!user) {
+                        return;
+                      }
+
+                      const isGold = await getGoldMembership(user.id);
+
+                      window.__dinoIsGoldMember = isGold;
+
+                      window.dispatchEvent(
+                        new CustomEvent("dino-gold-membership-check"),
+                      );
+                    } catch (error) {
+                      console.error(
+                        "Failed to check Gold membership:",
+                        error,
+                      );
+                    }
+                  });
+              }
+
+              if (window.__dinoIsGoldMember) {
+                return null;
+              }
+
+              return (
+                <button
+                  type="button"
+                  className="dino-upgrade-button"
+                  onClick={() => {
+                    window.location.href = "/upgrade";
+                  }}
+                >
+                  ✦ Upgrade to Gold
+                </button>
+              );
+            })()}
+          </div>
+
+
+            <div className="dino-progress">
+              <div className="dino-progress-meta">
+                <span>
+                  Course progress
+                </span>
+                <strong>
+                  {courseProgress}%
+                </strong>
+              </div>
+
+              <div className="dino-progress-track">
+                <div
+                  className="dino-progress-fill"
+                  style={{
+                    width: `${courseProgress}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </header>
+
+          <nav className="dino-tabs">
+            {[
+              ['course', 'Course'],
+              ['reading', 'Reading'],
+              ['writing', 'Writing'],
+              ['vocabulary', 'Vocabulary'],
+            ].map(
+              ([value, label]) => (
                 <button
                   type="button"
                   key={value}
-                  className={`dino-tab ${activeTab === value ? 'active' : ''} ${value === 'learn' ? 'learning-tab' : ''}`}
-                  onClick={() => setActiveTab(value)}
+                  className={
+                    activeTab === value
+                      ? 'dino-tab active'
+                      : 'dino-tab'
+                  }
+                  onClick={() =>
+                    setActiveTab(value)
+                  }
                 >
-                  {value === 'learn' ? '✦ ' : ''}{label}
+                  {label}
                 </button>
-              ))}
-            </nav>
+              ),
+            )}
+          </nav>
           </div>
 
           <main className="dino-main">
-            {activeTab === 'learn' && (
-              <section className="dino-panel">
-                <div className="dino-panel-heading">
-                  <div>
-                    <span className="dino-kicker">Dino Learning Path</span>
-                    <h2 className="dino-panel-title">Learn the <span>whole skill.</span></h2>
-                    <p className="dino-panel-description">
-                      One path for every IB topic. Each lesson mixes vocabulary, original reading, comprehension and writing so you actually use what you learned instead of collecting lonely flashcards like a digital squirrel.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="dino-hero-card">
-                  <div>
-                    <span className="dino-kicker" style={{ color: '#8fa99b' }}>AI-powered daily practice</span>
-                    <h3>{learningLesson ? learningLesson.title : 'Choose a topic and start a lesson.'}</h3>
-                    <p>
-                      {learningLesson
-                        ? learningLesson.intro
-                        : 'Dino builds an original micro-lesson at your difficulty, then coaches you through the complete skill loop.'}
-                    </p>
-                  </div>
-                  <div className="dino-hero-actions">
-                    <div className="dino-hero-metric">
-                      <span>Topics</span>
-                      <strong>{totalCount}</strong>
-                    </div>
-                    <div className="dino-hero-metric">
-                      <span>Completed</span>
-                      <strong>{completedCount}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="dino-learning-shell">
-                  <div className="dino-learning-path">
-                    <div className="dino-learning-path-header">
-                      <div>
-                        <span className="dino-kicker">Your path</span>
-                        <h3>Pick your next topic.</h3>
-                        <p>Completed topics stay complete because your existing course progress remains the source of truth.</p>
-                      </div>
-                      <div className="dino-learning-streak">
-                        <span>Progress</span>
-                        <strong>{courseProgress}%</strong>
-                      </div>
-                    </div>
-
-                    {course.themes.map((theme, themeIndex) => (
-                      <section className="dino-learning-theme" key={theme.en}>
-                        <div className="dino-learning-theme-title">
-                          <strong>{String(themeIndex + 1).padStart(2, '0')} · {theme.en}</strong>
-                          <span>{theme.local}</span>
-                        </div>
-                        <div className="dino-learning-nodes">
-                          {theme.topics.map(([english, local], topicIndex) => {
-                            const complete = isCompleted(theme.en, english)
-                            const selected = learningTopic === english
-                            return (
-                              <article className={`dino-learning-node ${complete ? 'complete' : ''} ${selected ? 'is-selected' : ''}`} key={english}>
-                                <div className="dino-learning-node-bubble">{complete ? '✓' : ['✦', '◆', '●', '▲', '■'][topicIndex % 5]}</div>
-                                <div className="dino-learning-node-copy">
-                                  <strong>{english}</strong>
-                                  <small>{local}</small>
-                                </div>
-                                <div className="dino-learning-node-meta">
-                                  <div>{complete ? 'Completed' : 'Ready'}</div>
-                                  <button
-                                    type="button"
-                                    className="dino-learning-start"
-                                    onClick={() => {
-                                      setLearningTopic(english)
-                                      setLearningLesson(null)
-                                      setLearningStep(0)
-                                      setLearningReadingGrade(null)
-                                      setLearningWritingGrade(null)
-                                      setLearningAnswers({ reading: '', writing: '' })
-                                      setLearningError('')
-                                    }}
-                                  >
-                                    {selected ? 'Selected' : complete ? 'Review' : 'Start'}
-                                  </button>
-                                </div>
-                              </article>
-                            )
-                          })}
-                        </div>
-                      </section>
-                    ))}
-                  </div>
-
-                  <aside className="dino-lesson-card">
-                    {!learningTopic ? (
-                      <div className="dino-empty-center">
-                        <div className="dino-prompt-icon">✦</div>
-                        <h3>Your lesson lives here.</h3>
-                        <p>Select any topic in the learning path. Dino will combine vocabulary, reading and writing around one coherent lesson.</p>
-                      </div>
-                    ) : !learningLesson ? (
-                      <>
-                        <div className="dino-lesson-head">
-                          <div>
-                            <span className="dino-kicker">Selected topic</span>
-                            <h3>{selectedLearningTopic?.topic}</h3>
-                          </div>
-                          <span className="dino-lesson-step">0 / 5</span>
-                        </div>
-                        <p className="dino-lesson-intro">{selectedLearningTopic?.theme} · {selectedLearningTopic?.local}</p>
-
-                        <div className="dino-generator-fields" style={{ marginTop: 22 }}>
-                          <div className="dino-field dino-field-full">
-                            <label className="dino-field-label">Difficulty</label>
-                            <select className="dino-select" value={learningDifficulty} onChange={(event) => setLearningDifficulty(event.target.value)}>
-                              <option>Beginner</option>
-                              <option>Intermediate</option>
-                              <option>Advanced</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <button type="button" className="dino-generate" disabled={learningGenerating} onClick={generateLearningLesson}>
-                          {learningGenerating ? 'Building your lesson…' : 'Start AI lesson → 1 🦖'}
-                        </button>
-                        {learningGenerating && <div className="dino-generating">Dino is combining vocabulary, reading and writing into one lesson...</div>}
-                        {learningError && <div className="dino-error">{learningError}</div>}
-                      </>
-                    ) : learningStep === 4 ? (
-                      <div className="dino-lesson-complete">
-                        <div className="dino-complete-icon">✓</div>
-                        <span className="dino-kicker">Lesson complete</span>
-                        <h3>Nice work.</h3>
-                        <p>{learningLesson.takeaway}</p>
-                        <button type="button" className="dino-button" style={{ marginTop: 17, width: '100%' }} onClick={() => setLearningLesson(null)}>
-                          Choose another lesson
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="dino-lesson-head">
-                          <div>
-                            <span className="dino-kicker">AI lesson</span>
-                            <h3>{learningLesson.title}</h3>
-                          </div>
-                          <span className="dino-lesson-step">{learningStep + 1} / 5</span>
-                        </div>
-                        <div className="dino-lesson-progress"><span style={{ width: `${((learningStep + 1) / 5) * 100}%` }} /></div>
-                        <p className="dino-lesson-intro">{learningLesson.intro}</p>
-
-                        {learningStep === 0 && (
-                          <n>
-                            <h4 className="dino-lesson-step-title">Learn the vocabulary</h4>
-                            <div className="dino-lesson-word-grid">
-                              {learningLesson.words.map((word) => (
-                                <div className="dino-lesson-word" key={word.term}>
-                                  <strong>{word.term}</strong>
-                                  <span>{word.translation}</span>
-                                  <p>{word.example}</p>
-                                </div>
-                              ))}
-                            </div>
-                          </n>
-                        )}
-
-                        {learningStep === 1 && (
-                          <>
-                            <h4 className="dino-lesson-step-title">Read and notice</h4>
-                            <div className="dino-lesson-reading">
-                              <h4>{learningLesson.reading.title}</h4>
-                              <p>{renderMarkdown(learningLesson.reading.text)}</p>
-                            </div>
-                          </>
-                        )}
-
-                        {learningStep === 2 && (
-                          <>
-                            <h4 className="dino-lesson-step-title">Check comprehension</h4>
-                            <div className="dino-lesson-reading">
-                              <p><strong>{learningLesson.reading.question}</strong></p>
-                              <textarea
-                                className="dino-lesson-textarea"
-                                value={learningAnswers.reading}
-                                onChange={(event) => setLearningAnswers((current) => ({ ...current, reading: event.target.value }))}
-                                placeholder="Answer in the target language."
-                              />
-                              <button type="button" className="dino-mark-button" style={{ marginTop: 9 }} disabled={learningGrading || !learningAnswers.reading.trim()} onClick={() => gradeLearningStep('reading')}>
-                                {learningGrading ? 'Marking…' : 'Ask Dino to mark'}
-                              </button>
-                              {learningReadingGrade && (
-                                <div className="dino-lesson-feedback">
-                                  <strong>{learningReadingGrade.score}/5</strong><br />{renderMarkdown(learningReadingGrade.feedback)}<br /><br /><strong>Next step:</strong> {learningReadingGrade.nextStep}
-                                </div>
-                              )}
-                            </div>
-                          </>
-                        )}
-
-                        {learningStep === 3 && (
-                          <>
-                            <h4 className="dino-lesson-step-title">Use it in writing</h4>
-                            <div className="dino-lesson-writing">
-                              <p><strong>{learningLesson.writing.prompt}</strong></p>
-                              <p style={{ marginTop: 7, color: '#778078' }}>{learningLesson.writing.suggestedLength}</p>
-                              <ul className="dino-success-list">
-                                {learningLesson.writing.successCriteria.map((item) => <li key={item}>{item}</li>)}
-                              </ul>
-                              <textarea
-                                className="dino-lesson-textarea"
-                                style={{ minHeight: 160 }}
-                                value={learningAnswers.writing}
-                                onChange={(event) => setLearningAnswers((current) => ({ ...current, writing: event.target.value }))}
-                                placeholder="Write your response here."
-                              />
-                              <button type="button" className="dino-mark-button" style={{ marginTop: 9 }} disabled={learningGrading || !learningAnswers.writing.trim()} onClick={() => gradeLearningStep('writing')}>
-                                {learningGrading ? 'Analysing…' : 'Get AI feedback'}
-                              </button>
-                              {learningWritingGrade && (
-                                <div className="dino-lesson-feedback">
-                                  {renderMarkdown(learningWritingGrade.feedback)}
-                                  <br /><strong>Strengths</strong>
-                                  <ul>{learningWritingGrade.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
-                                  <strong>Improve next</strong>
-                                  <ul>{learningWritingGrade.improvements.map((item) => <li key={item}>{item}</li>)}</ul>
-                                  <strong>Next step:</strong> {learningWritingGrade.nextStep}
-                                </div>
-                              )}
-                            </div>
-                          </>
-                        )}
-
-                        {learningError && <div className="dino-error">{learningError}</div>}
-
-                        <div className="dino-lesson-actions">
-                          <button type="button" className="dino-small-button" disabled={learningStep === 0} onClick={() => setLearningStep((current) => Math.max(0, current - 1))}>Back</button>
-                          {learningStep < 3 ? (
-                            <button type="button" className="dino-button" onClick={() => setLearningStep((current) => current + 1)}>Continue</button>
-                          ) : (
-                            <button type="button" className="dino-button" onClick={finishLearningLesson}>Complete lesson</button>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </aside>
-                </div>
-              </section>
-            )}
 
             {activeTab === 'course' && (
               <section className="dino-panel">
                 <div className="dino-panel-heading">
                   <div>
-                    <span className="dino-kicker">Course map</span>
-                    <h2 className="dino-panel-title">Master the <span>course.</span></h2>
-                    <p className="dino-panel-description">Track every IB Language B theme and topic using your existing course progress.</p>
+                    <span className="dino-kicker">
+                      Course
+                    </span>
+
+                    <h2 className="dino-panel-title">
+                      Master the <span>course.</span>
+                    </h2>
+
+                    <p className="dino-panel-description">
+                      Track your progress across every IB Language B course theme and topic.
+                    </p>
                   </div>
                 </div>
+
                 <div className="dino-theme-grid">
-                  {course.themes.map((theme, index) => (
-                    <article className="dino-theme-card" key={theme.en}>
-                      <div className="dino-theme-top"><span>{String(index + 1).padStart(2, '0')}</span><span>{theme.topics.filter(([topic]) => isCompleted(theme.en, topic)).length}/{theme.topics.length}</span></div>
-                      <h3 className="dino-theme-title">{theme.en}</h3>
-                      <div className="dino-theme-local">{theme.local}</div>
-                      <div className="dino-topic-list">
-                        {theme.topics.map(([english, local]) => {
-                          const complete = isCompleted(theme.en, english)
-                          const topicId = `${language}::${theme.en}::${english}`
-                          return (
-                            <label key={english} className={`dino-topic ${complete ? 'completed' : ''}`}>
-                              <input type="checkbox" checked={complete} disabled={savingTopic === topicId} onChange={() => toggleTopic(theme.en, english)} style={{ display: 'none' }} />
-                              <span className="dino-check">{complete ? '✓' : ''}</span>
-                              <span className="dino-topic-copy"><strong>{english}</strong><small>{local}</small></span>
-                            </label>
-                          )
-                        })}
-                      </div>
-                    </article>
-                  ))}
+                  {course.themes.map(
+                    (
+                      theme,
+                      index,
+                    ) => (
+                      <article
+                        className="dino-theme"
+                        key={theme.en}
+                      >
+                        <div className="dino-theme-top">
+                          <span className="dino-theme-number">
+                            {String(
+                              index + 1,
+                            ).padStart(
+                              2,
+                              '0',
+                            )}
+                          </span>
+
+                          <span className="dino-theme-count">
+                            {
+                              theme.topics.filter(
+                                (
+                                  topic,
+                                ) =>
+                                  isCompleted(
+                                    theme.en,
+                                    topic[0],
+                                  ),
+                              ).length
+                            }
+                            /
+                            {
+                              theme
+                                .topics
+                                .length
+                            }
+                          </span>
+                        </div>
+
+                        <h3 className="dino-theme-title">
+                          {theme.en}
+                        </h3>
+
+                        <div className="dino-theme-local">
+                          {theme.local}
+                        </div>
+
+                        <div className="dino-topic-list">
+                          {theme.topics.map(
+                            ([
+                              english,
+                              local,
+                            ]) => {
+                              const complete =
+                                isCompleted(
+                                  theme.en,
+                                  english,
+                                )
+
+                              const topicId =
+                                `${language}::${theme.en}::${english}`
+
+                              return (
+                                <label
+                                  key={
+                                    english
+                                  }
+                                  className={
+                                    complete
+                                      ? 'dino-topic completed'
+                                      : 'dino-topic'
+                                  }
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={
+                                      complete
+                                    }
+                                    disabled={
+                                      savingTopic ===
+                                      topicId
+                                    }
+                                    onChange={() =>
+                                      toggleTopic(
+                                        theme.en,
+                                        english,
+                                      )
+                                    }
+                                  />
+
+                                  <span className="dino-check">
+                                    {complete
+                                      ? '✓'
+                                      : ''}
+                                  </span>
+
+                                  <span className="dino-topic-copy">
+                                    <strong>
+                                      {
+                                        english
+                                      }
+                                    </strong>
+
+                                    <small>
+                                      {
+                                        local
+                                      }
+                                    </small>
+                                  </span>
+                                </label>
+                              )
+                            },
+                          )}
+                        </div>
+                      </article>
+                    ),
+                  )}
                 </div>
               </section>
             )}
 
             {activeTab === 'reading' && (
-              <section className="dino-panel">
+              <section className="dino-panel dino-reading-panel">
                 <div className="dino-panel-heading">
                   <div>
-                    <span className="dino-kicker">Reading</span>
-                    <h2 className="dino-panel-title">Train like the <span>examiner.</span></h2>
-                    <p className="dino-panel-description">Generate original reading practice, answer in place and get AI marking with actionable feedback.</p>
+                    <span className="dino-kicker">
+                      Reading
+                    </span>
+
+                    <h2 className="dino-panel-title">
+                      Reading <span>questionbank.</span>
+                    </h2>
+
+                    <p className="dino-panel-description">
+                      Generate marked reading questions and answer them in place.
+                    </p>
                   </div>
                 </div>
+
                 <div className="dino-reading-workspace">
-                  {expandedSection === 'questionbank' && <div className="dino-expand-backdrop" onClick={() => setExpandedSection(null)} />}
-                  <div className={`dino-reading-card dino-reading-generator ${expandedSection === 'questionbank' ? 'dino-card-expanded' : ''}`}>
+                  {expandedSection === 'questionbank' && (
+                    <div
+                      className="dino-expand-backdrop"
+                      onClick={() =>
+                        setExpandedSection(
+                          null,
+                        )
+                      }
+                    />
+                  )}
+
+                  <div
+                    className={`dino-reading-card dino-reading-generator ${
+                      expandedSection ===
+                      'questionbank'
+                        ? 'dino-card-expanded'
+                        : ''
+                    }`}
+                  >
                     <div className="dino-card-topbar">
-                      <span className="dino-card-label">Reading questionbank</span>
+                      <span className="dino-card-label">
+                        Reading questionbank
+                      </span>
+
                       <div className="dino-card-topbar-actions">
-                        <span className="dino-card-status">{generatedQuestions ? 'Questions ready' : 'Ready'}</span>
-                        <button type="button" className="dino-expand-button" onClick={() => setExpandedSection((current) => current === 'questionbank' ? null : 'questionbank')} aria-label="Expand reading questionbank">↗</button>
+                        <span className="dino-card-status">
+                          {generatedQuestions
+                            ? 'Questions ready'
+                            : 'Ready'}
+                        </span>
+
+                        
                       </div>
                     </div>
+
                     {!generatedQuestions ? (
                       <div className="dino-generator-body">
-                        <h3 className="dino-generator-title">Build a reading set.</h3>
-                        <p className="dino-generator-description">Choose the question style, difficulty and IB course topic.</p>
+                        <h3 className="dino-generator-title">
+                          Build a reading set.
+                        </h3>
+
+                        <p className="dino-generator-description">
+                          Choose the question style, difficulty, and IB course topic.
+                        </p>
+
                         <div className="dino-generator-fields">
-                          <div className="dino-field"><label className="dino-field-label">Question type</label><select className="dino-select" value={readingType} onChange={(e) => setReadingType(e.target.value)}><option>Mixed</option><option>Multiple choice</option><option>Short answer</option><option>True / false</option><option>Vocabulary in context</option><option>Inference</option></select></div>
-                          <div className="dino-field"><label className="dino-field-label">Difficulty</label><select className="dino-select" value={readingDifficulty} onChange={(e) => setReadingDifficulty(e.target.value)}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
-                          <div className="dino-field"><label className="dino-field-label">Language</label><div className="dino-select" style={{ display:'flex', alignItems:'center' }}>{language}</div></div>
-                          <div className="dino-field"><label className="dino-field-label">IB course topic</label><select className="dino-select" value={readingTopic} onChange={(e) => setReadingTopic(e.target.value)}><option value="">Select a course topic</option>{course.themes.map((theme) => <optgroup key={theme.en} label={`${theme.en} / ${theme.local}`}>{theme.topics.map(([english, local]) => <option key={english} value={english}>{english} / {local}</option>)}</optgroup>)}</select></div>
+                          <div className="dino-field">
+                            <label className="dino-field-label">
+                              Question type
+                            </label>
+
+                            <select
+                              className="dino-select"
+                              value={
+                                readingType
+                              }
+                              onChange={(
+                                event,
+                              ) =>
+                                setReadingType(
+                                  event.target
+                                    .value,
+                                )
+                              }
+                            >
+                              <option>
+                                Mixed
+                              </option>
+                              <option>
+                                Multiple choice
+                              </option>
+                              <option>
+                                Short answer
+                              </option>
+                              <option>
+                                True / false
+                              </option>
+                              <option>
+                                Vocabulary in context
+                              </option>
+                              <option>
+                                Inference
+                              </option>
+                            </select>
+                          </div>
+
+                          <div className="dino-field">
+                            <label className="dino-field-label">
+                              Difficulty
+                            </label>
+
+                            <select
+                              className="dino-select"
+                              value={
+                                readingDifficulty
+                              }
+                              onChange={(
+                                event,
+                              ) =>
+                                setReadingDifficulty(
+                                  event.target
+                                    .value,
+                                )
+                              }
+                            >
+                              <option>
+                                Beginner
+                              </option>
+                              <option>
+                                Intermediate
+                              </option>
+                              <option>
+                                Advanced
+                              </option>
+                            </select>
+                          </div>
+
+                          <div className="dino-field">
+                            <label className="dino-field-label">
+                              Language
+                            </label>
+
+                            <div
+                              style={{
+                                minHeight:
+                                  '42px',
+                                padding:
+                                  '0 11px',
+                                border:
+                                  '1px solid rgba(0,0,0,.08)',
+                                borderRadius:
+                                  '11px',
+                                background:
+                                  '#fff',
+                                display:
+                                  'flex',
+                                alignItems:
+                                  'center',
+                                fontSize:
+                                  '10px',
+                                fontWeight:
+                                  500,
+                              }}
+                            >
+                              {language}
+                            </div>
+                          </div>
+
+                          <div className="dino-field">
+                            <label className="dino-field-label">
+                              IB course topic
+                            </label>
+
+                            <select
+                              className="dino-select"
+                              value={
+                                readingTopic
+                              }
+                              onChange={(
+                                event,
+                              ) =>
+                                setReadingTopic(
+                                  event.target
+                                    .value,
+                                )
+                              }
+                            >
+                              <option value="">
+                                Select a course topic
+                              </option>
+
+                              {course.themes.map(
+                                (
+                                  theme,
+                                ) => (
+                                  <optgroup
+                                    key={
+                                      theme.en
+                                    }
+                                    label={`${theme.en} / ${theme.local}`}
+                                  >
+                                    {theme.topics.map(
+                                      ([
+                                        english,
+                                        local,
+                                      ]) => (
+                                        <option
+                                          key={
+                                            english
+                                          }
+                                          value={
+                                            english
+                                          }
+                                        >
+                                          {
+                                            english
+                                          }{' '}
+                                          /{' '}
+                                          {
+                                            local
+                                          }
+                                        </option>
+                                      ),
+                                    )}
+                                  </optgroup>
+                                ),
+                              )}
+                            </select>
+                          </div>
                         </div>
-                        <button type="button" className="dino-generate" disabled={!readingTopic || isGeneratingQuestions} onClick={generateReadingQuestions}>{isGeneratingQuestions ? 'Generating...' : 'Generate questions → 1 🦖'}</button>
-                        {isGeneratingQuestions && <div className="dino-generating">Dino is building the reading set...</div>}
-                        {questionError && <div className="dino-error">{questionError}</div>}
+
+                        <button
+                          type="button"
+                          className="dino-generate"
+                          disabled={
+                            !readingTopic ||
+                            isGeneratingQuestions
+                          }
+                          onClick={
+                            generateReadingQuestions
+                          }
+                        >
+                          {isGeneratingQuestions
+                            ? 'Generating...'
+                            : `Generate questions → 1 🦖`}
+                        </button>
+
+                        {isGeneratingQuestions && (
+                          <div className="dino-generating">
+                            Dino is building the reading set...
+                          </div>
+                        )}
+
+                        {questionError && (
+                          <div className="dino-error">
+                            {
+                              questionError
+                            }
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="dino-generator-body">
-                        <h3 className="dino-generator-title">{generatedQuestions.title}</h3>
-                        <p className="dino-generator-description">{generatedQuestions.instructions}</p>
+                        <h3 className="dino-generator-title">
+                          {
+                            generatedQuestions.title
+                          }
+                        </h3>
+
+                        <p className="dino-generator-description">
+                          {
+                            generatedQuestions.instructions
+                          }
+                        </p>
+
                         <div className="dino-question-list">
-                          {generatedQuestions.questions.map((question) => {
-                            const grade = readingGrades[question.id]
-                            return (
-                              <article className="dino-generated-question" key={question.id}>
-                                <div className="dino-question-header"><span className="dino-question-number">Question {question.id}</span><span className="dino-question-marks">{question.marks} {question.marks === 1 ? 'mark' : 'marks'}</span></div>
-                                {question.context && <div className="dino-reading-context"><div className="dino-card-label">Reading text</div><div className="dino-reading-context-copy">{renderMarkdown(question.context)}</div></div>}
-                                <div className="dino-question-text">{renderMarkdown(question.question)}</div>
-                                <textarea className="dino-answer-box" value={answerSubmission[question.id] || ''} onChange={(e) => setAnswerSubmission((current) => ({ ...current, [question.id]: e.target.value }))} placeholder={`Write your answer here. Maximum ${question.marks} ${question.marks === 1 ? 'mark' : 'marks'}.`} />
-                                <div className="dino-question-actions"><span className="dino-grade-pill">{grade ? `${grade.score}/${grade.maxMarks} marked` : `${question.marks} marks available`}</span><button type="button" className="dino-mark-button" disabled={gradingQuestion !== null || !String(answerSubmission[question.id] || '').trim()} onClick={() => markReadingQuestion(question.id)}>{gradingQuestion === question.id ? 'Marking...' : grade ? 'Mark again' : 'Mark answer'}</button></div>
-                                {grade && <div className="dino-feedback"><div className="dino-feedback-score">{grade.score}/{grade.maxMarks}</div><div style={{ marginTop: 8 }}>{renderMarkdown(grade.feedback)}</div><div style={{ marginTop: 8 }}>{renderMarkdown(`**Next step:** ${grade.nextStep}`)}</div></div>}
-                              </article>
-                            )
-                          })}
+                          {generatedQuestions.questions.map(
+                            (
+                              question,
+                            ) => {
+                              const grade =
+                                readingGrades[
+                                  question.id
+                                ]
+
+                              return (
+                                <article
+                                  className="dino-generated-question"
+                                  key={
+                                    question.id
+                                  }
+                                >
+                                  <div className="dino-question-header">
+                                    <span className="dino-question-number">
+                                      Question{' '}
+                                      {
+                                        question.id
+                                      }
+                                    </span>
+
+                                    <span className="dino-question-marks">
+                                      {
+                                        question.marks
+                                      }{' '}
+                                      {question.marks ===
+                                      1
+                                        ? 'mark'
+                                        : 'marks'}
+                                    </span>
+                                  </div>
+
+                                  {question.context && (
+                                    <div className="dino-reading-context">
+                                      <div className="dino-reading-context-label">
+                                        Reading text
+                                      </div>
+
+                                      <div className="dino-reading-context-copy">
+                                        {renderMarkdown(
+                                          question.context,
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  <div className="dino-question-text">
+                                    {renderMarkdown(
+                                      question.question,
+                                    )}
+                                  </div>
+
+                                  <textarea
+                                    className="dino-answer-box"
+                                    value={
+                                      answerSubmission[
+                                        question.id
+                                      ] || ''
+                                    }
+                                    onChange={(
+                                      event,
+                                    ) =>
+                                      setAnswerSubmission(
+                                        (
+                                          current,
+                                        ) => ({
+                                          ...current,
+                                          [question.id]:
+                                            event
+                                              .target
+                                              .value,
+                                        }),
+                                      )
+                                    }
+                                    placeholder={`Write your answer here. Maximum ${question.marks} ${question.marks === 1 ? 'mark' : 'marks'}.`}
+                                  />
+
+                                  <div className="dino-question-actions">
+                                    <span className="dino-grade-pill">
+                                      {grade
+                                        ? `${grade.score}/${grade.maxMarks} marked`
+                                        : `${question.marks} marks available`}
+                                    </span>
+
+                                    <button
+                                      type="button"
+                                      className="dino-mark-button"
+                                      disabled={
+                                        gradingQuestion !==
+                                          null ||
+                                        !String(
+                                          answerSubmission[
+                                            question.id
+                                          ] || '',
+                                        ).trim()
+                                      }
+                                      onClick={() =>
+                                        markReadingQuestion(
+                                          question.id,
+                                        )
+                                      }
+                                    >
+                                      {gradingQuestion ===
+                                      question.id
+                                        ? 'Marking...'
+                                        : grade
+                                          ? 'Mark again'
+                                          : 'Mark answer'}
+                                    </button>
+                                  </div>
+
+                                  {grade && (
+                                    <div className="dino-feedback">
+                                      <div className="dino-feedback-score">
+                                        {
+                                          grade.score
+                                        }
+                                        /
+                                        {
+                                          grade.maxMarks
+                                        }
+                                      </div>
+
+                                      <div
+                                        style={{
+                                          marginTop:
+                                            '8px',
+                                        }}
+                                      >
+                                        {renderMarkdown(
+                                          grade.feedback,
+                                        )}
+                                      </div>
+
+                                      <div
+                                        style={{
+                                          marginTop:
+                                            '8px',
+                                        }}
+                                      >
+                                        {renderMarkdown(
+                                          `**Next step:** ${grade.nextStep}`,
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </article>
+                              )
+                            },
+                          )}
                         </div>
-                        <div className="dino-total-score"><span>Current reading score</span><strong>{readingEarnedMarks}/{readingTotalMarks}</strong></div>
-                        {questionError && <div className="dino-error">{questionError}</div>}
-                        <button type="button" className="dino-small-button" onClick={() => { setGeneratedQuestions(null); setAnswerSubmission({}); setReadingGrades({}); setQuestionError(''); setExpandedSection(null) }}>Generate a new set</button>
+
+                        <div className="dino-total-score">
+                          <span>
+                            Current reading score
+                          </span>
+
+                          <strong>
+                            {
+                              readingEarnedMarks
+                            }
+                            /
+                            {
+                              readingTotalMarks
+                            }
+                          </strong>
+                        </div>
+
+                        {questionError && (
+                          <div className="dino-error">
+                            {
+                              questionError
+                            }
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          className="dino-small-button"
+                          onClick={() => {
+                            setGeneratedQuestions(
+                              null,
+                            )
+                            setAnswerSubmission(
+                              {},
+                            )
+                            setReadingGrades(
+                              {},
+                            )
+                            setQuestionError(
+                              '',
+                            )
+                            setExpandedSection(
+                              null,
+                            )
+                          }}
+                        >
+                          Generate a new set
+                        </button>
                       </div>
                     )}
                   </div>
 
-                  <div className="dino-reading-card dino-tutor-card">
-                    <div className="dino-card-topbar"><span className="dino-card-label">AI study context</span><span className="dino-card-status">Linked to your practice</span></div>
-                    <div className="dino-empty-center" style={{ minHeight: 0, height: '100%' }}>
-                      <div className="dino-prompt-icon">✦</div>
-                      <h3>Your reading workspace is focused.</h3>
-                      <p>Use the generated text, answer it in the panel and let Dino grade the actual response. The existing question generation and grading logic remains unchanged.</p>
-                    </div>
-                  </div>
                 </div>
               </section>
             )}
 
             {activeTab === 'writing' && (
               <section className="dino-panel">
-                <div className="dino-panel-heading"><div><span className="dino-kicker">Writing</span><h2 className="dino-panel-title">Write. Get <span>better.</span></h2><p className="dino-panel-description">Generate an IB-style task, write your response and get examiner-style feedback using the existing grading flow.</p></div></div>
-                <div className="dino-writing-workspace">
-                  {expandedSection === 'writing' && <div className="dino-expand-backdrop" onClick={() => setExpandedSection(null)} />}
-                  <div className="dino-writing-card dino-writing-controls">
-                    <label className="dino-field-label">Course topic</label>
-                    <select className="dino-select" value={writingTopic} onChange={(e) => setWritingTopic(e.target.value)}><option value="">Select a course topic</option>{course.themes.map((theme) => <optgroup key={theme.en} label={`${theme.en} / ${theme.local}`}>{theme.topics.map(([english, local]) => <option key={english} value={english}>{english} / {local}</option>)}</optgroup>)}</select>
-                    <label className="dino-field-label">Text type</label>
-                    <select className="dino-select" value={writingType} onChange={(e) => setWritingType(e.target.value)}>{writingTypes.map((type) => <option key={type}>{type}</option>)}</select>
-                    <label className="dino-field-label">Difficulty</label>
-                    <select className="dino-select" value={writingDifficulty} onChange={(e) => setWritingDifficulty(e.target.value)}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select>
-                    <button type="button" className="dino-generate" disabled={!writingTopic || writingGenerating} onClick={createPrompt}>{writingGenerating ? 'Generating...' : 'Generate prompt → 1 🦖'}</button>
-                    {writingGenerating && <div className="dino-generating">Dino is building your task...</div>}
-                    {questionError && !writingTask && <div className="dino-error">{questionError}</div>}
+                <div className="dino-panel-heading">
+                  <div>
+                    <span className="dino-kicker">
+                      Writing
+                    </span>
+
+                    <h2 className="dino-panel-title">
+                      Practice <span>smarter.</span>
+                    </h2>
+
+                    <p className="dino-panel-description">
+                      Generate an IB-style writing task, write your response, then get an examiner-style mark and actionable feedback.
+                    </p>
                   </div>
-                  <div className={`dino-writing-card dino-writing-editor ${expandedSection === 'writing' ? 'dino-card-expanded' : ''}`}>
-                    <div className="dino-writing-editor-topbar"><button type="button" className="dino-expand-button" onClick={() => setExpandedSection((current) => current === 'writing' ? null : 'writing')} aria-label="Expand writing workspace">↗</button></div>
+                </div>
+
+                <div className="dino-writing-workspace">
+                  {expandedSection === 'writing' && (
+                    <div
+                      className="dino-expand-backdrop"
+                      onClick={() =>
+                        setExpandedSection(
+                          null,
+                        )
+                      }
+                    />
+                  )}
+
+                  <div className="dino-writing-card dino-writing-controls">
+                    <label className="dino-field-label">
+                      Course topic
+                    </label>
+
+                    <select
+                      className="dino-select"
+                      value={
+                        writingTopic
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setWritingTopic(
+                          event.target
+                            .value,
+                        )
+                      }
+                    >
+                      <option value="">
+                        Select a course topic
+                      </option>
+
+                      {course.themes.map(
+                        (theme) => (
+                          <optgroup
+                            key={
+                              theme.en
+                            }
+                            label={`${theme.en} / ${theme.local}`}
+                          >
+                            {theme.topics.map(
+                              ([
+                                english,
+                                local,
+                              ]) => (
+                                <option
+                                  value={
+                                    english
+                                  }
+                                  key={
+                                    english
+                                  }
+                                >
+                                  {
+                                    english
+                                  }{' '}
+                                  /{' '}
+                                  {
+                                    local
+                                  }
+                                </option>
+                              ),
+                            )}
+                          </optgroup>
+                        ),
+                      )}
+                    </select>
+
+                    <label className="dino-field-label">
+                      Text type
+                    </label>
+
+                    <select
+                      className="dino-select"
+                      value={
+                        writingType
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setWritingType(
+                          event.target
+                            .value,
+                        )
+                      }
+                    >
+                      {writingTypes.map(
+                        (type) => (
+                          <option
+                            value={
+                              type
+                            }
+                            key={
+                              type
+                            }
+                          >
+                            {type}
+                          </option>
+                        ),
+                      )}
+                    </select>
+
+                    <label className="dino-field-label">
+                      Difficulty
+                    </label>
+
+                    <select
+                      className="dino-select"
+                      value={
+                        writingDifficulty
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setWritingDifficulty(
+                          event.target
+                            .value,
+                        )
+                      }
+                    >
+                      <option>
+                        Beginner
+                      </option>
+                      <option>
+                        Intermediate
+                      </option>
+                      <option>
+                        Advanced
+                      </option>
+                    </select>
+
+                    <button
+                      type="button"
+                      className="dino-generate"
+                      disabled={
+                        !writingTopic ||
+                        writingGenerating
+                      }
+                      onClick={
+                        createPrompt
+                      }
+                    >
+                      {writingGenerating
+                        ? 'Generating...'
+                        : 'Generate prompt → 1 🦖'}
+                    </button>
+
+                    {writingGenerating && (
+                      <div className="dino-generating">
+                        Dino is building your task...
+                      </div>
+                    )}
+
+                    {questionError &&
+                      !writingTask && (
+                        <div className="dino-error">
+                          {
+                            questionError
+                          }
+                        </div>
+                      )}
+                  </div>
+
+                  <div
+                    className={`dino-writing-card dino-writing-editor ${
+                      expandedSection ===
+                      'writing'
+                        ? 'dino-card-expanded'
+                        : ''
+                    }`}
+                  >
+                    <div className="dino-writing-editor-topbar">
+                      
+
+                      
+                    </div>
+
                     <div className="dino-writing-editor-content">
                       {!writingTask ? (
-                        <div className="dino-prompt-empty"><div className="dino-prompt-icon">✦</div><h3>Your writing task will appear here.</h3><p>Select a topic, text type and difficulty, then generate an original IB-style task.</p></div>
+                        <div className="dino-prompt-empty">
+                          <div className="dino-prompt-icon">
+                            ✦
+                          </div>
+
+                          <h3>
+                            Your writing task will appear here.
+                          </h3>
+
+                          <p>
+                            Select a course topic, text type, and difficulty, then let Dino generate the task and marking criteria.
+                          </p>
+                        </div>
                       ) : (
                         <>
-                          <div className="dino-writing-task"><span className="dino-prompt-label">Generated task</span><h3>{writingTask.title}</h3><div className="dino-writing-meta"><span>{writingType}</span><span>{writingDifficulty}</span><span>30 marks</span><span>{writingTask.suggestedLength}</span></div><div className="dino-writing-task-prompt">{renderMarkdown(writingTask.prompt)}</div><div className="dino-prompt-label">IB Paper 1 criteria</div><ol className="dino-criteria"><li>Criterion A: Language — 12 marks</li><li>Criterion B: Message — 12 marks</li><li>Criterion C: Conceptual understanding — 6 marks</li></ol></div>
-                          <div className="dino-writing-answer-label"><strong>Your response</strong><span>30 marks available</span></div>
-                          <textarea className="dino-writing-textarea" value={writingAnswer} onChange={(e) => setWritingAnswer(e.target.value)} placeholder="Write your response here..." />
-                          <button type="button" className="dino-mark-button" style={{ width:'100%', marginTop:10 }} disabled={!writingAnswer.trim() || writingGrading} onClick={markWriting}>{writingGrading ? 'Marking response...' : 'Mark response'}</button>
-                          {questionError && writingTask && <div className="dino-error">{questionError}</div>}
+                          <div className="dino-writing-task">
+                            <span className="dino-prompt-label">
+                              Generated task
+                            </span>
+
+                            <h3>
+                              {
+                                writingTask.title
+                              }
+                            </h3>
+
+                            <div className="dino-writing-meta">
+                              <span>
+                                {
+                                  writingType
+                                }
+                              </span>
+
+                              <span>
+                                {
+                                  writingDifficulty
+                                }
+                              </span>
+
+                              <span>
+                                30 marks
+                              </span>
+
+                              <span>
+                                {
+                                  writingTask.suggestedLength
+                                }
+                              </span>
+                            </div>
+
+                            <div className="dino-writing-task-prompt">
+                              {renderMarkdown(
+                                writingTask.prompt,
+                              )}
+                            </div>
+
+                            <div className="dino-prompt-label">
+                              IB Paper 1 criteria
+                            </div>
+
+                            <ol className="dino-criteria">
+                              <li>Criterion A: Language — 12 marks</li>
+                              <li>Criterion B: Message — 12 marks</li>
+                              <li>Criterion C: Conceptual understanding — 6 marks</li>
+                            </ol>
+                          </div>
+
+                          <div className="dino-writing-answer-label">
+                            <strong>
+                              Your response
+                            </strong>
+
+                            <span>
+                              30 marks available
+                            </span>
+                          </div>
+
+                          <textarea
+                            className="dino-writing-textarea"
+                            value={
+                              writingAnswer
+                            }
+                            onChange={(
+                              event,
+                            ) =>
+                              setWritingAnswer(
+                                event.target
+                                  .value,
+                              )
+                            }
+                            placeholder="Write your response here..."
+                          />
+
+                          <button
+                            type="button"
+                            className="dino-mark-button"
+                            style={{
+                              width: '100%',
+                              marginTop:
+                                '10px',
+                            }}
+                            disabled={
+                              !writingAnswer.trim() ||
+                              writingGrading
+                            }
+                            onClick={
+                              markWriting
+                            }
+                          >
+                            {writingGrading
+                              ? 'Marking response...'
+                              : 'Mark response'}
+                          </button>
+
+                          {questionError &&
+                            writingTask && (
+                              <div className="dino-error">
+                                {
+                                  questionError
+                                }
+                              </div>
+                            )}
+
                           {writingGrade && (
-                            <div className="dino-writing-grade"><div className="dino-writing-grade-score"><span className="dino-prompt-label">Result</span><strong>{writingGrade.score}/30</strong></div><div className="dino-criterion-scores"><span>Language {writingGrade.criterionA}/12</span><span>Message {writingGrade.criterionB}/12</span><span>Conceptual understanding {writingGrade.criterionC}/6</span></div>{renderMarkdown(writingGrade.feedback)}<div className="dino-writing-grade-section"><strong>Strengths</strong><ul>{writingGrade.strengths.map((item,index)=><li key={index}>{item}</li>)}</ul></div><div className="dino-writing-grade-section"><strong>Improve next</strong><ul>{writingGrade.improvements.map((item,index)=><li key={index}>{item}</li>)}</ul></div><div className="dino-writing-grade-section"><strong>Next step</strong><p style={{ margin: 0, marginTop: 5, color:'#4b4b4b', fontSize:9, lineHeight:1.45 }}>{writingGrade.nextStep}</p></div><button type="button" className="dino-small-button" onClick={createPrompt} disabled={writingGenerating}>Generate another task</button></div>
+                            <div className="dino-writing-grade">
+                              <div className="dino-writing-grade-score">
+                                <span className="dino-prompt-label">
+                                  Result
+                                </span>
+
+                                <strong>
+                                  {
+                                    writingGrade.score
+                                  }
+                                  /
+                                  30
+                                </strong>
+                              </div>
+
+                              <div className="dino-criterion-scores">
+                                <span>Language {writingGrade.criterionA}/12</span>
+                                <span>Message {writingGrade.criterionB}/12</span>
+                                <span>Conceptual understanding {writingGrade.criterionC}/6</span>
+                              </div>
+
+                              {renderMarkdown(
+                                writingGrade.feedback,
+                              )}
+
+                              <div className="dino-writing-grade-section">
+                                <strong>
+                                  Strengths
+                                </strong>
+
+                                <ul>
+                                  {writingGrade.strengths.map(
+                                    (
+                                      item,
+                                      index,
+                                    ) => (
+                                      <li
+                                        key={
+                                          index
+                                        }
+                                      >
+                                        {
+                                          item
+                                        }
+                                      </li>
+                                    ),
+                                  )}
+                                </ul>
+                              </div>
+
+                              <div className="dino-writing-grade-section">
+                                <strong>
+                                  Improve next
+                                </strong>
+
+                                <ul>
+                                  {writingGrade.improvements.map(
+                                    (
+                                      item,
+                                      index,
+                                    ) => (
+                                      <li
+                                        key={
+                                          index
+                                        }
+                                      >
+                                        {
+                                          item
+                                        }
+                                      </li>
+                                    ),
+                                  )}
+                                </ul>
+                              </div>
+
+                              <div className="dino-writing-grade-section">
+                                <strong>
+                                  Next step
+                                </strong>
+
+                                <p
+                                  style={{
+                                    margin:
+                                      0,
+                                    color:
+                                      '#4b4b4b',
+                                    fontSize:
+                                      '10px',
+                                    lineHeight:
+                                      1.45,
+                                  }}
+                                >
+                                  {
+                                    writingGrade.nextStep
+                                  }
+                                </p>
+                              </div>
+
+                              <button
+                                type="button"
+                                className="dino-small-button"
+                                onClick={
+                                  createPrompt
+                                }
+                                disabled={
+                                  writingGenerating
+                                }
+                              >
+                                Generate another task
+                              </button>
+                            </div>
                           )}
                         </>
                       )}
@@ -3459,28 +5676,111 @@ Give practical IB-style feedback. Do not rewrite the whole response.
 
             {activeTab === 'vocabulary' && (
               <section className="dino-panel">
-                <div className="dino-panel-heading"><div><span className="dino-kicker">Vocabulary</span><h2 className="dino-panel-title">Make words <span>stick.</span></h2><p className="dino-panel-description">Generate a topic-specific set and practise it one term at a time using your existing AI vocabulary flow.</p></div></div>
+                <div className="dino-panel-heading">
+                  <div>
+                    <span className="dino-kicker">Vocabulary</span>
+                    <h2 className="dino-panel-title">
+                      Learn words that <span>stick.</span>
+                    </h2>
+                    <p className="dino-panel-description">
+                      Build a focused vocabulary set for any topic in your course, then practise one term at a time.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="dino-vocabulary-workspace">
                   <div className="dino-vocabulary-controls">
                     <label className="dino-field-label">Course topic</label>
-                    <select className="dino-select" value={vocabularyTopic} onChange={(e) => setVocabularyTopic(e.target.value)}><option value="">Select a course topic</option>{course.themes.map((theme) => <optgroup key={theme.en} label={`${theme.en} / ${theme.local}`}>{theme.topics.map(([english, local]) => <option key={english} value={english}>{english} / {local}</option>)}</optgroup>)}</select>
-                    <button type="button" className="dino-generate" disabled={!vocabularyTopic || vocabularyGenerating} onClick={generateVocabulary}>{vocabularyGenerating ? 'Generating...' : 'Generate vocabulary → 1 🦖'}</button>
+                    <select
+                      className="dino-select"
+                      value={vocabularyTopic}
+                      onChange={(event) => setVocabularyTopic(event.target.value)}
+                    >
+                      <option value="">Select a course topic</option>
+                      {course.themes.map((theme) => (
+                        <optgroup key={theme.en} label={`${theme.en} / ${theme.local}`}>
+                          {theme.topics.map(([english, local]) => (
+                            <option key={english} value={english}>
+                              {english} / {local}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      className="dino-generate"
+                      disabled={!vocabularyTopic || vocabularyGenerating}
+                      onClick={generateVocabulary}
+                    >
+                      {vocabularyGenerating ? 'Generating...' : 'Generate vocabulary → 1 🦖'}
+                    </button>
+
                     {questionError && <div className="dino-error">{questionError}</div>}
                   </div>
+
                   <div className="dino-vocabulary-trainer">
                     {!vocabularySet ? (
-                      <div className="dino-prompt-empty"><div className="dino-prompt-icon">✦</div><h3>Your vocabulary set will appear here.</h3><p>Select any topic to generate a fresh target-language set.</p></div>
+                      <div className="dino-prompt-empty">
+                        <div className="dino-prompt-icon">✦</div>
+                        <h3>Your vocabulary set will appear here.</h3>
+                        <p>Select any IB course topic to start training.</p>
+                      </div>
                     ) : (
                       <>
-                        <div className="dino-vocabulary-topline"><div><span className="dino-prompt-label">Vocabulary trainer</span><h3>{vocabularySet.title}</h3></div><span className="dino-vocabulary-count">{vocabularyIndex + 1} / {vocabularySet.words.length}</span></div>
+                        <div className="dino-vocabulary-topline">
+                          <div>
+                            <span className="dino-prompt-label">Vocabulary trainer</span>
+                            <h3>{vocabularySet.title}</h3>
+                          </div>
+                          <span className="dino-vocabulary-count">
+                            {vocabularyIndex + 1} / {vocabularySet.words.length}
+                          </span>
+                        </div>
+
                         <p className="dino-generator-description">{vocabularySet.instructions}</p>
-                        <button type="button" className={`dino-vocabulary-card ${vocabularyRevealed ? 'is-flipped' : ''}`} onClick={() => setVocabularyRevealed((current) => !current)} aria-label={vocabularyRevealed ? 'Flip card to term' : 'Flip card to answer'}>
+
+                        <button
+                          type="button"
+                          className={`dino-vocabulary-card ${vocabularyRevealed ? 'is-flipped' : ''}`}
+                          onClick={() => setVocabularyRevealed((current) => !current)}
+                          aria-label={vocabularyRevealed ? 'Flip card to term' : 'Flip card to answer'}
+                        >
                           <span className="dino-flashcard-inner">
-                            <span className="dino-flashcard-face dino-flashcard-front"><span className="dino-prompt-label">Target language</span><strong>{vocabularySet.words[vocabularyIndex].term}</strong><span className="dino-flashcard-hint">Tap to reveal the meaning.</span></span>
-                            <span className="dino-flashcard-face dino-flashcard-back"><span className="dino-prompt-label">Meaning</span><strong>{vocabularySet.words[vocabularyIndex].translation}</strong><span className="dino-flashcard-example">{vocabularySet.words[vocabularyIndex].example}</span><span className="dino-flashcard-note">{vocabularySet.words[vocabularyIndex].note}</span></span>
+                            <span className="dino-flashcard-face dino-flashcard-front">
+                              <span className="dino-prompt-label">Target language</span>
+                              <strong>{vocabularySet.words[vocabularyIndex].term}</strong>
+                              <span className="dino-flashcard-hint">Tap the card to reveal the answer</span>
+                            </span>
+                            <span className="dino-flashcard-face dino-flashcard-back">
+                              <span className="dino-prompt-label">Meaning</span>
+                              <strong>{vocabularySet.words[vocabularyIndex].translation}</strong>
+                              <span className="dino-flashcard-example">{vocabularySet.words[vocabularyIndex].example}</span>
+                              <span className="dino-flashcard-note">{vocabularySet.words[vocabularyIndex].note}</span>
+                            </span>
                           </span>
                         </button>
-                        <div className="dino-vocabulary-actions"><button type="button" className="dino-small-button" onClick={() => setVocabularyRevealed((current) => !current)}>Flip card</button><button type="button" className="dino-mark-button" onClick={() => { setVocabularyIndex((current) => (current + 1) % vocabularySet.words.length); setVocabularyRevealed(false) }}>Next word</button></div>
+
+                        <div className="dino-vocabulary-actions">
+                          <button
+                            type="button"
+                            className="dino-small-button"
+                            onClick={() => setVocabularyRevealed((current) => !current)}
+                          >
+                            Flip card
+                          </button>
+                          <button
+                            type="button"
+                            className="dino-mark-button"
+                            onClick={() => {
+                              setVocabularyIndex((current) => (current + 1) % vocabularySet.words.length)
+                              setVocabularyRevealed(false)
+                            }}
+                          >
+                            Next word
+                          </button>
+                        </div>
                       </>
                     )}
                   </div>
