@@ -2403,7 +2403,7 @@ Target-language topic: ${selected.local}
 
         .dino-dashboard-heading {
           margin: 0;
-          color: #f9f9f9;
+          color: #ffedd0;
           font-family: Inter, sans-serif;
           font-size: clamp(42px, 5vw, 64px);
           line-height: .93;
