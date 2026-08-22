@@ -4357,249 +4357,636 @@ Target-language topic: ${selected.local}
         <div className="dino-dashboard-shell">
 
           <div className="dino-dashboard-sticky">
-          <header className="dino-dashboard-header">
-            <div>
-              <span className="dino-kicker">
-                Dino
-              </span>
+            <style>{`
+              .dino-dashboard-sticky {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                width: 100%;
+                padding: 18px 20px 0;
+                background:
+                  linear-gradient(
+                    180deg,
+                    rgba(248, 248, 248, 0.96) 0%,
+                    rgba(248, 248, 248, 0.92) 78%,
+                    rgba(248, 248, 248, 0) 100%
+                  );
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+              }
 
-              <h1 className="dino-dashboard-heading">
-                Dashboard. 
-              </h1>
-            </div>
+              .dino-dashboard-shell {
+                width: 100%;
+                max-width: 1450px;
+                margin: 0 auto;
+              }
 
-            <style>
-            {`
-              .dino-header-actions {
+              .dino-dashboard-header {
+                position: relative;
+                overflow: hidden;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 24px;
+                align-items: center;
+                padding: 24px 26px 22px;
+                border: 1px solid rgba(0, 0, 0, 0.07);
+                border-radius: 22px;
+                background:
+                  radial-gradient(
+                    circle at 100% 0%,
+                    rgba(0, 210, 106, 0.075),
+                    transparent 30%
+                  ),
+                  radial-gradient(
+                    circle at 0% 100%,
+                    rgba(0, 0, 0, 0.025),
+                    transparent 34%
+                  ),
+                  rgba(255, 255, 255, 0.92);
+                box-shadow:
+                  0 1px 2px rgba(0, 0, 0, 0.025),
+                  0 10px 30px rgba(0, 0, 0, 0.045);
+              }
+
+              .dino-dashboard-header::before {
+                content: "";
+                position: absolute;
+                top: -70px;
+                right: 90px;
+                width: 180px;
+                height: 180px;
+                border-radius: 50%;
+                background: rgba(0, 210, 106, 0.05);
+                filter: blur(30px);
+                pointer-events: none;
+              }
+
+              .dino-header-left {
+                position: relative;
+                z-index: 1;
+                min-width: 0;
+              }
+
+              .dino-brand-row {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 7px;
+              }
+
+              .dino-kicker {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                color: #00a956;
+                font-size: 11px;
+                font-weight: 800;
+                line-height: 1;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+              }
+
+              .dino-kicker::before {
+                content: "";
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: #00d26a;
+                box-shadow: 0 0 0 4px rgba(0, 210, 106, 0.1);
+              }
+
+              .dino-dashboard-heading {
+                margin: 0;
+                color: #090909;
+                font-size: clamp(28px, 3vw, 42px);
+                font-weight: 800;
+                line-height: 0.98;
+                letter-spacing: -0.055em;
+              }
+
+              .dino-dashboard-subtitle {
+                margin: 10px 0 0;
+                max-width: 590px;
+                color: #707070;
+                font-size: 13px;
+                font-weight: 500;
+                line-height: 1.55;
+                letter-spacing: -0.01em;
+              }
+
+              .dino-header-right {
+                position: relative;
+                z-index: 1;
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                justify-content: flex-end;
+                gap: 9px;
+                flex-wrap: wrap;
+              }
+
+              .dino-user-chip,
+              .dino-points-pill,
+              .dino-logout-button,
+              .dino-upgrade-button {
+                height: 40px;
+                border-radius: 12px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                white-space: nowrap;
+              }
+
+              .dino-user-chip {
+                padding: 0 13px;
+                max-width: 250px;
+                border: 1px solid rgba(0, 0, 0, 0.07);
+                background: #f7f7f7;
+                color: #6c6c6c;
+                font-size: 12px;
+                font-weight: 600;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+
+              .dino-points-pill {
+                gap: 7px;
+                padding: 0 13px;
+                border: 1px solid rgba(0, 210, 106, 0.18);
+                background: rgba(0, 210, 106, 0.07);
+                color: #087944;
+                font-size: 12px;
+                font-weight: 700;
+              }
+
+              .dino-points-coin {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 23px;
+                height: 23px;
+                border-radius: 8px;
+                background: #ffffff;
+                border: 1px solid rgba(0, 210, 106, 0.12);
+                font-size: 12px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+              }
+
+              .dino-points-pill strong {
+                font-size: 13px;
+                color: #101010;
+                font-weight: 800;
+              }
+
+              .dino-points-label {
+                color: #3e7d61;
+                font-weight: 600;
+              }
+
+              .dino-logout-button {
+                padding: 0 13px;
+                border: 1px solid rgba(0, 0, 0, 0.07);
+                background: #ffffff;
+                color: #555555;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                transition:
+                  background 0.16s ease,
+                  border-color 0.16s ease,
+                  color 0.16s ease,
+                  transform 0.16s ease;
+              }
+
+              .dino-logout-button:hover {
+                background: #f7f7f7;
+                border-color: rgba(0, 0, 0, 0.12);
+                color: #111111;
+                transform: translateY(-1px);
               }
 
               .dino-upgrade-button {
                 position: relative;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
                 gap: 7px;
-                padding: 10px 16px;
-                border: 1px solid rgba(255, 215, 90, 0.65);
-                border-radius: 10px;
+                padding: 0 15px;
+                overflow: hidden;
+                border: 1px solid rgba(0, 0, 0, 0.09);
                 background:
                   linear-gradient(
                     135deg,
-                    #fff4b0 0%,
-                    #f7d65a 25%,
-                    #d9a928 50%,
-                    #f6d96a 75%,
-                    #fff1a3 100%
+                    #242424 0%,
+                    #101010 52%,
+                    #242424 100%
                   );
-                color: #5a3b00;
+                color: #ffffff;
+                font-size: 12px;
                 font-weight: 800;
-                font-size: 13px;
-                letter-spacing: -0.2px;
+                letter-spacing: -0.01em;
                 cursor: pointer;
                 box-shadow:
-                  0 0 0 1px rgba(255, 215, 90, 0.15),
-                  0 4px 14px rgba(218, 168, 37, 0.28),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.75);
-                overflow: hidden;
+                  0 4px 12px rgba(0, 0, 0, 0.12),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.08);
                 transition:
                   transform 0.18s ease,
                   box-shadow 0.18s ease,
-                  filter 0.18s ease;
+                  background 0.18s ease;
               }
 
               .dino-upgrade-button::before {
                 content: "";
                 position: absolute;
-                top: -40%;
-                left: -90%;
-                width: 55%;
-                height: 180%;
-                background: linear-gradient(
-                  90deg,
-                  transparent,
-                  rgba(255, 255, 255, 0.75),
-                  transparent
-                );
-                transform: rotate(20deg);
-                animation: dino-gold-shine 2.8s ease-in-out infinite;
+                inset: 0;
+                background:
+                  linear-gradient(
+                    115deg,
+                    transparent 20%,
+                    rgba(255, 255, 255, 0.11) 45%,
+                    transparent 67%
+                  );
+                transform: translateX(-120%);
+                animation: dino-upgrade-shine 3.8s ease-in-out infinite;
                 pointer-events: none;
               }
 
-              .dino-upgrade-button::after {
-                content: "✦";
-                position: absolute;
-                top: 2px;
-                right: 7px;
-                font-size: 9px;
-                color: rgba(255, 255, 255, 0.9);
-                animation: dino-gold-sparkle 1.5s ease-in-out infinite;
-                pointer-events: none;
+              .dino-upgrade-icon {
+                position: relative;
+                z-index: 1;
+                color: #8cffbd;
+                font-size: 13px;
+              }
+
+              .dino-upgrade-label {
+                position: relative;
+                z-index: 1;
               }
 
               .dino-upgrade-button:hover {
                 transform: translateY(-1px);
-                filter: brightness(1.06);
                 box-shadow:
-                  0 0 0 1px rgba(255, 215, 90, 0.25),
-                  0 7px 20px rgba(218, 168, 37, 0.4),
-                  0 0 18px rgba(255, 215, 90, 0.18),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+                  0 7px 18px rgba(0, 0, 0, 0.17),
+                  0 0 0 3px rgba(0, 210, 106, 0.06);
+                background:
+                  linear-gradient(
+                    135deg,
+                    #292929 0%,
+                    #131313 52%,
+                    #292929 100%
+                  );
               }
 
               .dino-upgrade-button:active {
                 transform: translateY(0);
               }
 
-              @keyframes dino-gold-shine {
-                0% {
-                  left: -90%;
-                }
-
-                45%,
-                100% {
-                  left: 140%;
-                }
-              }
-
-              @keyframes dino-gold-sparkle {
+              @keyframes dino-upgrade-shine {
                 0%,
+                55% {
+                  transform: translateX(-120%);
+                }
+
+                85%,
                 100% {
-                  opacity: 0.35;
-                  transform: scale(0.85) rotate(0deg);
-                }
-
-                50% {
-                  opacity: 1;
-                  transform: scale(1.15) rotate(20deg);
+                  transform: translateX(120%);
                 }
               }
-            `}
-          </style>
 
-          <div className="dino-header-actions">
-            <div className="dino-user-email">
-              {user.email}
-            </div>
+              .dino-progress-section {
+                grid-column: 1 / -1;
+                position: relative;
+                z-index: 1;
+                margin-top: 2px;
+                padding-top: 18px;
+                border-top: 1px solid rgba(0, 0, 0, 0.055);
+              }
 
-            <div className="dino-points-pill">
-              <span className="dino-points-coin">
-                🦖
-              </span>
+              .dino-progress-meta {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                margin-bottom: 9px;
+              }
 
-              <strong>
-                {dinoPoints}
-              </strong>
+              .dino-progress-meta-left {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              }
 
-              <span>Dino points</span>
-            </div>
+              .dino-progress-title {
+                color: #363636;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 0.01em;
+              }
 
-            <button
-              type="button"
-              className="dino-logout-button"
-              onClick={handleLogout}
-            >
-              Log out
-            </button>
+              .dino-progress-status {
+                display: inline-flex;
+                align-items: center;
+                min-height: 21px;
+                padding: 0 8px;
+                border-radius: 999px;
+                background: #f3f3f3;
+                color: #777777;
+                font-size: 10px;
+                font-weight: 700;
+              }
 
-            {(() => {
-              const [gold, setGold] = window.React?.useState?.(false) || [false, () => {}];
+              .dino-progress-meta strong {
+                color: #101010;
+                font-size: 12px;
+                font-weight: 800;
+              }
 
-              if (!window.__dinoGoldCheckStarted) {
-                window.__dinoGoldCheckStarted = true;
+              .dino-progress-track {
+                width: 100%;
+                height: 7px;
+                overflow: hidden;
+                border-radius: 999px;
+                background: #ececec;
+              }
 
-                import("../api/credentials")
-                  .then(async ({ getCurrentUser, getGoldMembership }) => {
-                    try {
-                      const user = await getCurrentUser();
+              .dino-progress-fill {
+                height: 100%;
+                border-radius: inherit;
+                background:
+                  linear-gradient(
+                    90deg,
+                    #00c968 0%,
+                    #00d978 55%,
+                    #16e887 100%
+                  );
+                box-shadow: 0 0 12px rgba(0, 210, 106, 0.18);
+                transition: width 0.5s ease;
+              }
 
-                      if (!user) {
-                        return;
-                      }
+              .dino-tabs {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin-top: 10px;
+                padding: 5px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                border: 1px solid rgba(0, 0, 0, 0.065);
+                border-radius: 16px;
+                background: rgba(255, 255, 255, 0.88);
+                box-shadow:
+                  0 4px 16px rgba(0, 0, 0, 0.035);
+              }
 
-                      const isGold = await getGoldMembership(user.id);
+              .dino-tabs::-webkit-scrollbar {
+                display: none;
+              }
 
-                      window.__dinoIsGoldMember = isGold;
+              .dino-tab {
+                position: relative;
+                flex: 0 0 auto;
+                min-width: 110px;
+                height: 38px;
+                padding: 0 15px;
+                border: 0;
+                border-radius: 11px;
+                background: transparent;
+                color: #777777;
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: -0.01em;
+                cursor: pointer;
+                transition:
+                  background 0.17s ease,
+                  color 0.17s ease,
+                  box-shadow 0.17s ease,
+                  transform 0.17s ease;
+              }
 
-                      window.dispatchEvent(
-                        new CustomEvent("dino-gold-membership-check"),
-                      );
-                    } catch (error) {
-                      console.error(
-                        "Failed to check Gold membership:",
-                        error,
-                      );
+              .dino-tab:hover {
+                color: #151515;
+                background: #f6f6f6;
+              }
+
+              .dino-tab.active {
+                color: #0a0a0a;
+                background: #ffffff;
+                box-shadow:
+                  0 2px 8px rgba(0, 0, 0, 0.07),
+                  0 0 0 1px rgba(0, 0, 0, 0.035);
+              }
+
+              .dino-tab.active::after {
+                content: "";
+                position: absolute;
+                left: 50%;
+                bottom: 4px;
+                width: 18px;
+                height: 2px;
+                border-radius: 999px;
+                background: #00d26a;
+                transform: translateX(-50%);
+              }
+
+              @media (max-width: 980px) {
+                .dino-dashboard-header {
+                  grid-template-columns: 1fr;
+                }
+
+                .dino-header-right {
+                  justify-content: flex-start;
+                }
+
+                .dino-user-chip {
+                  max-width: none;
+                }
+              }
+
+              @media (max-width: 640px) {
+                .dino-dashboard-sticky {
+                  padding: 10px 10px 0;
+                }
+
+                .dino-dashboard-header {
+                  padding: 20px 18px 18px;
+                  border-radius: 18px;
+                }
+
+                .dino-dashboard-heading {
+                  font-size: 30px;
+                }
+
+                .dino-dashboard-subtitle {
+                  font-size: 12px;
+                }
+
+                .dino-header-right {
+                  gap: 7px;
+                }
+
+                .dino-user-chip {
+                  width: 100%;
+                  justify-content: flex-start;
+                }
+
+                .dino-points-pill,
+                .dino-logout-button,
+                .dino-upgrade-button {
+                  flex: 1;
+                }
+
+                .dino-tab {
+                  min-width: 98px;
+                }
+              }
+            `}</style>
+
+            <div className="dino-dashboard-shell">
+              <header className="dino-dashboard-header">
+                <div className="dino-header-left">
+                  <div className="dino-brand-row">
+                    <span className="dino-kicker">Dino</span>
+                  </div>
+
+                  <h1 className="dino-dashboard-heading">
+                    Dashboard.
+                  </h1>
+
+                  <p className="dino-dashboard-subtitle">
+                    Keep moving through your course, build your skills, and make
+                    steady progress toward your exam.
+                  </p>
+                </div>
+
+                <div className="dino-header-right">
+                  <div className="dino-user-chip">
+                    {user.email}
+                  </div>
+
+                  <div className="dino-points-pill">
+                    <span className="dino-points-coin">🦖</span>
+
+                    <strong>
+                      {dinoPoints}
+                    </strong>
+
+                    <span className="dino-points-label">
+                      Dino points
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="dino-logout-button"
+                    onClick={handleLogout}
+                  >
+                    Log out
+                  </button>
+
+                  {(() => {
+                    if (!window.__dinoGoldCheckStarted) {
+                      window.__dinoGoldCheckStarted = true;
+
+                      import("../api/credentials")
+                        .then(async ({ getCurrentUser, getGoldMembership }) => {
+                          try {
+                            const currentUser = await getCurrentUser();
+
+                            if (!currentUser) {
+                              return;
+                            }
+
+                            const isGold = await getGoldMembership(
+                              currentUser.id,
+                            );
+
+                            window.__dinoIsGoldMember = isGold;
+
+                            window.dispatchEvent(
+                              new CustomEvent(
+                                "dino-gold-membership-check",
+                              ),
+                            );
+                          } catch (error) {
+                            console.error(
+                              "Failed to check Gold membership:",
+                              error,
+                            );
+                          }
+                        });
                     }
-                  });
-              }
 
-              if (window.__dinoIsGoldMember) {
-                return null;
-              }
+                    if (window.__dinoIsGoldMember) {
+                      return null;
+                    }
 
-              return (
-                <button
-                  type="button"
-                  className="dino-upgrade-button"
-                  onClick={() => {
-                    window.location.href = "/upgrade";
-                  }}
-                >
-                  ✦ Upgrade to Gold
-                </button>
-              );
-            })()}
-          </div>
+                    return (
+                      <button
+                        type="button"
+                        className="dino-upgrade-button"
+                        onClick={() => {
+                          window.location.href = "/upgrade";
+                        }}
+                      >
+                        <span className="dino-upgrade-icon">✦</span>
 
+                        <span className="dino-upgrade-label">
+                          Upgrade to Gold
+                        </span>
+                      </button>
+                    );
+                    })()}
+                  
+                </div>
 
-            <div className="dino-progress">
-              <div className="dino-progress-meta">
-                <span>
-                  Course progress
-                </span>
-                <strong>
-                  {courseProgress}%
-                </strong>
-              </div>
+                <div className="dino-progress-section">
+                  <div className="dino-progress-meta">
+                    <div className="dino-progress-meta-left">
+                      <span className="dino-progress-title">
+                        Course progress
+                      </span>
 
-              <div className="dino-progress-track">
-                <div
-                  className="dino-progress-fill"
-                  style={{
-                    width: `${courseProgress}%`,
-                  }}
-                />
-              </div>
+                      <span className="dino-progress-status">
+                        {courseProgress === 100
+                          ? "Completed"
+                          : "In progress"}
+                      </span>
+                    </div>
+
+                    <strong>
+                      {courseProgress}%
+                    </strong>
+                  </div>
+
+                  <div className="dino-progress-track">
+                    <div
+                      className="dino-progress-fill"
+                      style={{
+                        width: `${courseProgress}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </header>
+
+              <nav className="dino-tabs">
+                {[
+                  ["course", "Course"],
+                  ["reading", "Reading"],
+                  ["writing", "Writing"],
+                  ["vocabulary", "Vocabulary"],
+                ].map(([value, label]) => (
+                  <button
+                    type="button"
+                    key={value}
+                    className={
+                      activeTab === value
+                        ? "dino-tab active"
+                        : "dino-tab"
+                    }
+                    onClick={() => setActiveTab(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </nav>
             </div>
-          </header>
-
-          <nav className="dino-tabs">
-            {[
-              ['course', 'Course'],
-              ['reading', 'Reading'],
-              ['writing', 'Writing'],
-              ['vocabulary', 'Vocabulary'],
-            ].map(
-              ([value, label]) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    activeTab === value
-                      ? 'dino-tab active'
-                      : 'dino-tab'
-                  }
-                  onClick={() =>
-                    setActiveTab(value)
-                  }
-                >
-                  {label}
-                </button>
-              ),
-            )}
-          </nav>
           </div>
 
           <main className="dino-main">
